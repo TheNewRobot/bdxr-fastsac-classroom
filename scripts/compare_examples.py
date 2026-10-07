@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
-    names = ["slower", "baseline", "faster", "smoother"]
+    names = ["slower", "baseline", "control", "faster", "smoother"]
     records = {}
     for folder in sorted((ROOT / "examples").iterdir()):
         if not (folder / "evaluation.json").exists():
@@ -36,7 +36,7 @@ def main():
     plt.rcParams.update({"font.size": 11})
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
     positions = np.arange(len(names))
-    colors = ["#69a5a5", "#25825a", "#e9a45c", "#778bc2"][:len(names)]
+    colors = ["#69a5a5", "#25825a", "#a0a0a0", "#e9a45c", "#778bc2"][:len(names)]
     axes[0].bar(positions, [records[n]["mean_speed"] for n in names],
                color=colors, label="Measured speed")
     axes[0].plot(positions, [records[n]["target_speed"] for n in names],
