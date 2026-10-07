@@ -1,0 +1,96 @@
+{
+  "checkpoint": "runs/smoother_01/step_002000.pt",
+  "training_step": 2000,
+  "target_speed": 0.3,
+  "episodes": [
+    {
+      "seed": 1000,
+      "fell": false,
+      "duration_seconds": 15.0,
+      "mean_speed": 0.2907012375295162,
+      "return": 173.14741507545114,
+      "peak_foot_height": 0.10010874271392822,
+      "airborne_fraction": 0.006666666666666667,
+      "steady_peak_min_foot_height": 0.028145823627710342,
+      "clear_flights": 0,
+      "landed_hops": 0,
+      "steady_action_change_rms": 0.093892108307087,
+      "contact_transitions": [
+        38,
+        37
+      ]
+    },
+    {
+      "seed": 1001,
+      "fell": false,
+      "duration_seconds": 15.0,
+      "mean_speed": 0.29041484252611793,
+      "return": 172.79748376086354,
+      "peak_foot_height": 0.09998372197151184,
+      "airborne_fraction": 0.006666666666666667,
+      "steady_peak_min_foot_height": 0.028807908296585083,
+      "clear_flights": 0,
+      "landed_hops": 0,
+      "steady_action_change_rms": 0.09365839170691158,
+      "contact_transitions": [
+        38,
+        37
+      ]
+    },
+    {
+      "seed": 1002,
+      "fell": false,
+      "duration_seconds": 15.0,
+      "mean_speed": 0.2905365670025349,
+      "return": 173.03086722269654,
+      "peak_foot_height": 0.1001429557800293,
+      "airborne_fraction": 0.006666666666666667,
+      "steady_peak_min_foot_height": 0.029087521135807037,
+      "clear_flights": 0,
+      "landed_hops": 0,
+      "steady_action_change_rms": 0.09396396017766424,
+      "contact_transitions": [
+        38,
+        37
+      ]
+    },
+    {
+      "seed": 1003,
+      "fell": false,
+      "duration_seconds": 15.0,
+      "mean_speed": 0.2903131275723378,
+      "return": 172.97999892011285,
+      "peak_foot_height": 0.10262127965688705,
+      "airborne_fraction": 0.008,
+      "steady_peak_min_foot_height": 0.028737761080265045,
+      "clear_flights": 0,
+      "landed_hops": 0,
+      "steady_action_change_rms": 0.09336820414289831,
+      "contact_transitions": [
+        38,
+        37
+      ]
+    },
+    {
+      "seed": 1004,
+      "fell": false,
+      "duration_seconds": 15.0,
+      "mean_speed": 0.29057302192350226,
+      "return": 173.05116388946772,
+      "peak_foot_height": 0.1005299985408783,
+      "airborne_fraction": 0.006666666666666667,
+      "steady_peak_min_foot_height": 0.028578370809555054,
+      "clear_flights": 0,
+      "landed_hops": 0,
+      "steady_action_change_rms": 0.09381654374567526,
+      "contact_transitions": [
+        38,
+        37
+      ]
+    }
+  ],
+  "initial_jitter_radians": 0.015,
+  "fall_fraction": 0.0,
+  "mean_speed": 0.2905077593108018,
+  "label": "fine-tuned"
+}
