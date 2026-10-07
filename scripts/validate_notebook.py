@@ -1,0 +1,54 @@
+"""Execute the complete notebook with short real training runs (local test)."""
+
+import argparse
+from pathlib import Path
+
+import nbformat
+from nbclient import NotebookClient
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--work", default="/tmp/bdxr-colab-check")
+    p.add_argument("--kernel", default="bdxr-validation")
+    p.add_argument("--full", action="store_true", help="Run the full 512-environment lesson with W&B")
+    args = p.parse_args()
+    root = Path(__file__).resolve().parents[1]
+    nb = nbformat.read(root / "notebooks/BDXR_Walking_101.ipynb", as_version=4)
+    for cell in nb.cells:
+        if cell.cell_type != "code":
+            continue
+        source = cell.source
+        source = source.replace(
+            'WORK = Path("/content/bdxr_classroom") if Path("/content").exists() else Path.cwd() / "bdxr_classroom_lab"',
+            f"WORK = Path({args.work!r})",
+        )
+        source = source.replace("NUM_ENVS = 1024 if gpu_gib >= 24 else 512",
+                                f"NUM_ENVS = {512 if args.full else 32}")
+        source = source.replace("BATCH_SIZE = 4096 if gpu_gib >= 24 else 2048",
+                                f"BATCH_SIZE = {2048 if args.full else 256}")
+        if not args.full:
+            source = source.replace("NUM_ENVS = 512", "NUM_ENVS = 32")
+            source = source.replace("BATCH_SIZE = 2048", "BATCH_SIZE = 256")
+        if args.full:
+            source = source.replace("USE_WANDB = False", "USE_WANDB = True")
+        else:
+            source = source.replace('"--steps", 6000', '"--steps", 60')
+            source = source.replace('"--steps", 2000', '"--steps", 60')
+            source = source.replace('"--episodes", 3', '"--episodes", 1')
+            source = source.replace('"--episodes", 5', '"--episodes", 1')
+            source = source.replace('"--compile", ', "")
+        cell.source = source
+    nb.metadata.kernelspec.name = args.kernel
+    client = NotebookClient(nb, timeout=1800 if args.full else 600, kernel_name=args.kernel,
+                            resources={"metadata": {"path": str(root)}})
+    client.execute()
+    dest = root / ("artifacts/notebook_full_executed.ipynb" if args.full
+                   else "artifacts/notebook_smoke_executed.ipynb")
+    dest.parent.mkdir(exist_ok=True)
+    nbformat.write(nb, dest)
+    print(f"All notebook cells executed successfully: {dest}")
+
+
+if __name__ == "__main__":
+    main()
