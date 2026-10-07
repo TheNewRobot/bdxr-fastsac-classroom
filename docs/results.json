@@ -1,0 +1,114 @@
+{
+  "baseline": {
+    "mean_speed": 0.29075981993509536,
+    "target_speed": 0.3,
+    "fall_fraction": 0.0,
+    "training_seconds": 318.56099316920154,
+    "training_origin": "trained from scratch",
+    "action_change_rms": 0.11061962331166227,
+    "landed_hops": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "foot_clearance": 0.027504916489124297
+  },
+  "control": {
+    "mean_speed": 0.2954170692838418,
+    "target_speed": 0.3,
+    "fall_fraction": 0.0,
+    "training_seconds": 89.72899549989961,
+    "training_origin": "fine-tuned",
+    "action_change_rms": 0.11209357789052385,
+    "landed_hops": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "foot_clearance": 0.02851894348859787
+  },
+  "faster": {
+    "mean_speed": 0.44534769317056055,
+    "target_speed": 0.45,
+    "fall_fraction": 0.0,
+    "training_seconds": 144.34467749507166,
+    "training_origin": "fine-tuned",
+    "action_change_rms": 0.13290601014931286,
+    "landed_hops": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "foot_clearance": 0.027096362411975862
+  },
+  "hopping": {
+    "mean_speed": -0.008844294904556104,
+    "target_speed": 0.0,
+    "fall_fraction": 0.0,
+    "training_seconds": 228.85238576703705,
+    "training_origin": "fine-tuned",
+    "action_change_rms": 0.10753906963772272,
+    "landed_hops": [
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "foot_clearance": 0.06262229084968567
+  },
+  "hopping_taller": {
+    "mean_speed": -0.021758524922525974,
+    "target_speed": 0.0,
+    "fall_fraction": 0.0,
+    "training_seconds": 157.0450494440738,
+    "training_origin": "fine-tuned",
+    "action_change_rms": 0.12540502616191018,
+    "landed_hops": [
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "foot_clearance": 0.0918123558163643
+  },
+  "slower": {
+    "mean_speed": 0.16415856707536927,
+    "target_speed": 0.15,
+    "fall_fraction": 0.0,
+    "training_seconds": 117.81481390004046,
+    "training_origin": "fine-tuned",
+    "action_change_rms": 0.09721216571011715,
+    "landed_hops": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "foot_clearance": 0.02356863170862198
+  },
+  "smoother": {
+    "mean_speed": 0.2905077593108018,
+    "target_speed": 0.3,
+    "fall_fraction": 0.0,
+    "training_seconds": 121.40119168395177,
+    "training_origin": "fine-tuned",
+    "action_change_rms": 0.09373984161604729,
+    "landed_hops": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "foot_clearance": 0.028671476989984512
+  }
+}
