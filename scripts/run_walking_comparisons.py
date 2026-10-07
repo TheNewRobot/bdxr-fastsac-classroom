@@ -20,6 +20,7 @@ def main():
     config = json.loads((parent.parent / "config.json").read_text())
     env = dict(os.environ, PYTHONPATH=str(ROOT / "src"), MUJOCO_GL="egl")
     for variant, speed, smoothness in [
+        ("control", config["speed"], config["smoothness"]),
         ("slower", max(0.05, config["speed"] - 0.15), config["smoothness"]),
         ("faster", config["speed"] + 0.15, config["smoothness"]),
         ("smoother", config["speed"], 3 * config["smoothness"]),
