@@ -118,6 +118,10 @@ Positive yaw-rate commands turn left; negative commands turn right. Zero yaw ask
 
 SAC learns actions with high estimated future reward while encouraging exploration. Replay lets it learn from earlier experience. We use SAC here; the older reference notebook used PPO.
 
+During training, the actor samples actions. An **entropy bonus** encourages it
+to keep exploring instead of always repeating one choice. During evaluation
+and gameplay, we use its deterministic action without that sampling noise.
+
 Simulator velocity scores speed tracking and sustained sideways drift during
 training. Those measurements do not become actor inputs.
 
