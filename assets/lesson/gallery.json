@@ -101,7 +101,7 @@
     "video": "moving_hops/rollout.mp4",
     "motion": "moving_hops/motion.png",
     "learning_curve": "moving_hops/learning_curves.png",
-    "caption": "Small moving hops on 15 mm practice terrain after stationary, moving, and varied-start terrain training. Five slow-command trials: zero falls, mean peak simultaneous sole clearance 3.0 cm, and 9.6 landed hops per 15 seconds. Body rise is a different measurement. This 2,000-step terrain checkpoint passed flat/on-step handovers and completed the recorded course. Later training regressed; more steps are not automatically better.",
+    "caption": "Small moving hops on 15 mm practice terrain after stationary, moving, and varied-start terrain training. Five slow-command trials: zero falls, mean peak simultaneous sole clearance 3.0 cm, and 9.6 landed hops per 15 seconds. Body rise is a different measurement. This 2,000-step terrain checkpoint passed flat/on-step handovers and completed the recorded course. Later training regressed; more steps are not automatically better. A repeated evaluation of these same weights later missed a forward hop-count requirement; that failure is preserved with the experiment.",
     "experiment": "experiments/2026-10-08_041447_469611_hop_height25_varied_starts",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/kdqtmoqs"
   }
