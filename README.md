@@ -5,9 +5,10 @@ Train, measure, change one parameter, and play a small desert-droid course.
 
 ![Desert Droid Run interface](assets/lesson/course_preview.png)
 
-**Status:** fresh command walking and a complete recorded course run are available.
-The final hopping curriculum and lesson integration are still being tested.
-The browser controls have been tested locally against the simulator.
+**Status:** command walking, controlled style comparisons, repeated hopping and
+walk/hop handovers have been evaluated locally. The lesson includes a complete
+recorded course run. Notebook integration and browser controls have passed local
+checks; a further fresh training run is underway.
 Actual Google Colab execution has not been performed.
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
