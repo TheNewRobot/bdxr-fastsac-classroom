@@ -8,8 +8,8 @@ Train, measure, change one parameter, and play a small desert-droid course.
 **Status:** command walking, controlled style comparisons, repeated hopping and
 walk/hop handovers have been evaluated locally. The lesson includes a complete
 recorded course run. Notebook integration and browser controls have passed local
-checks. An additional fresh run missed a backward-drift check; recipe
-validation continues.
+checks. A fresh baseline with a sideways-drift training reward passed the
+command suite; validation of the complete updated lesson continues.
 Actual Google Colab execution has not been performed.
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
@@ -57,7 +57,8 @@ export MUJOCO_GL=egl
 .venv/bin/python -m bdxr_classroom.train \
   --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
   --steps 8000 --minutes 15 --command-mode balanced \
-  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 2 --mirror-replay --compile
+  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 2 \
+  --lateral-bias-weight 2 --mirror-replay --compile
 ```
 
 These settings match the notebook's walking recipe. Runtime depends on the GPU;

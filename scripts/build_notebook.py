@@ -115,6 +115,9 @@ Positive yaw-rate commands turn left; negative commands turn right. Zero yaw ask
 
 SAC learns actions with high estimated future reward while encouraging exploration. Replay lets it learn from earlier experience. We use SAC here; the older reference notebook used PPO.
 
+Simulator velocity scores speed tracking and sustained sideways drift during
+training. Those measurements do not become actor inputs.
+
 We train 512 simulated robots in parallel. One training step advances every robot,
 collecting 512 experiences. Replaying those experiences produces separate neural-network
 updates. The learning-curve horizontal axis counts experiences, not seconds.
@@ -131,7 +134,8 @@ TRAIN_STEPS = 8000  # @param {type:"integer"}
 USE_WANDB = False  # @param {type:"boolean"}
 WANDB_MODE = "online" if USE_WANDB else "disabled"
 COMMAND_OPTIONS = ["--command-mode", "balanced", "--yaw-tracking", "imu",
-                   "--yaw-std", 0.2, "--yaw-bias-weight", 2, "--mirror-replay"]
+                   "--yaw-std", 0.2, "--yaw-bias-weight", 2,
+                   "--lateral-bias-weight", 2, "--mirror-replay"]
 if USE_WANDB and not (os.environ.get("WANDB_API_KEY") or Path.home().joinpath(".netrc").exists()):
     import getpass
     runtime_env["WANDB_API_KEY"] = getpass.getpass("Your W&B API key (not saved in this notebook): ")
@@ -206,7 +210,7 @@ def summarize_commands(run, expected_digest):
 
 Simulated robots practice forward/backward speeds, stops, and turns. Many environments collect experience in parallel.
 
-The training recipe also mirrors left/right experience and rewards low sustained turning error.
+The training recipe also mirrors left/right experience and rewards low sustained turning error and sideways drift.
 Turning rate is estimated from the gyro and gravity direction; there is no compass or absolute-heading input.
 
 Predict: what would a robot do if speed tracking mattered but turning error barely mattered?
