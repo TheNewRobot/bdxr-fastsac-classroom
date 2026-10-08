@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw
 from .environment import make_env
 from .experiments import experiment_root
 from .fastsac import FastSAC
+from .motion_metrics import count_hops
 
 
 def wrap(angle):
@@ -60,6 +61,8 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
     writer = imageio.get_writer(video, fps=25, codec="libx264", quality=7,
                                  macro_block_size=16) if video else None
     rows = []
+    previous_action = torch.zeros(env.num_envs, env.action_manager.total_action_dim, device=env.device)
+    foot_ids, _ = env.scene["robot"].find_sites(["left_foot", "right_foot"])
     try:
         for step in range(round(seconds / env.step_dt)):
             time = step * env.step_dt
@@ -94,6 +97,12 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                 robot.root_link_lin_vel_b[:, 1], robot.root_link_ang_vel_b[:, 2],
                 longitudinal, lateral, wrap(robot.heading_w - heading0),
             ], dim=1).cpu().numpy()
+            changes = (actions - previous_action).square().mean(-1).sqrt().cpu().tolist()
+            previous_action = actions.clone()
+            feet = robot.site_pos_w[:, foot_ids, 2].cpu().tolist()
+            contacts = (env.scene["feet_ground_contact"].data.found > 0).reshape(env.num_envs, -1).cpu().tolist()
+            joint_angles = robot.joint_pos.cpu().tolist()
+            upright = (-robot.projected_gravity_b[:, 2]).cpu().tolist()
             for index in range(env.num_envs):
                 if not current_alive[index]:
                     continue
@@ -105,6 +114,9 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                     "cross_track": float(values[index, 7]), "heading_error": float(values[index, 8]),
                     "command_speed": float(commands[index, 0]), "command_yaw": float(commands[index, 2]),
                     "fell": bool(terminated[index]),
+                    "action_change_rms": changes[index], "foot_heights": feet[index],
+                    "foot_contacts": contacts[index], "joint_angles": joint_angles[index],
+                    "upright": upright[index],
                 })
             if writer and step % 2 == 0 and current_alive[0]:
                 frame = Image.fromarray(env.render())
@@ -121,6 +133,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
     for index in range(env.num_envs):
         episode = [r for r in rows if r["episode"] == index]
         steady = [r for r in episode if r["time"] >= 1] or episode
+        clear_flights, landed_hops = count_hops(episode, env.step_dt)
         reports.append({
             "episode": index, "fell": any(r["fell"] for r in episode),
             "duration_s": episode[-1]["time"] + env.step_dt,
@@ -131,6 +144,9 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
             "final_cross_track_m": episode[-1]["cross_track"],
             "final_progress_m": episode[-1]["progress"],
             "heading_change_deg": float(episode[-1]["heading_error"] * 180 / math.pi),
+            "action_change_rms": float(np.mean([r["action_change_rms"] for r in steady])),
+            "clear_flights": clear_flights, "landed_hops": landed_hops,
+            "peak_simultaneous_foot_clearance": max(min(r["foot_heights"]) for r in steady),
         })
     return reports, rows
 
@@ -139,7 +155,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("checkpoint")
     parser.add_argument("--cases", nargs="+", default=["slow", "forward", "fast", "backward", "stop",
-                                                      "left", "right", "straight", "sequence"])
+                                                      "turn_left", "turn_right", "left", "right", "sequence"])
     parser.add_argument("--episodes", type=int, default=5)
     parser.add_argument("--seconds", type=float, default=15)
     parser.add_argument("--output")
@@ -157,10 +173,14 @@ def main():
     agent, cfg = load_agent(checkpoint, args.episodes)
     env = make_env(args.episodes, cfg["speed"], cfg["smoothness"], render=not args.no_video,
                    task_version=cfg.get("task_version", "v2"), initial_jitter=0.015,
+                   hop_height=cfg.get("hop_height", .04), hop_body_weight=cfg.get("hop_body_weight", 0),
                    command_mode=cfg.get("command_mode", "fixed"),
                    yaw_weight=cfg.get("yaw_weight", 4.0),
+                   yaw_tracking=cfg.get("yaw_tracking", "full"), yaw_std=cfg.get("yaw_std", 0.2),
+                   linear_weight=cfg.get("linear_weight"), swing_height=cfg.get("swing_height"),
                    proprio_only=cfg.get("proprio_only", False))
     result = {"checkpoint": str(checkpoint), "cases": {},
+             "straightness_cases": ["slow", "forward", "fast", "backward", "straight", "straight_fast", "straight_back"],
              "sampling": f"{args.episodes} parallel independently perturbed starts per case; shared RNG seed 1000",
              "controller": "Direct velocity commands only. No heading or path feedback; world measurements are evaluation-only."}
     try:

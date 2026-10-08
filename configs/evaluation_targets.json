@@ -1,0 +1,19 @@
+{
+  "description": "Selection targets for the direct-command classroom policy; these are targets, not claims of achieved performance.",
+  "episodes_per_case": 5,
+  "required_cases": ["slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence"],
+  "seconds_per_case": 15,
+  "falls_allowed": 0,
+  "speed_mae_max_m_s": 0.05,
+  "yaw_rate_mae_max_rad_s": 0.1,
+  "straight_cases": ["slow", "forward", "fast", "backward"],
+  "mean_max_cross_track_limit_m": 0.2,
+  "per_episode_max_cross_track_limit_m": 0.3,
+  "game_target_seconds": 45,
+  "game_calibration_range_seconds": [30, 60],
+  "notes": [
+    "Cross-track targets apply only to zero-yaw straight commands, not commanded turns.",
+    "Position and heading are evaluation-only and cannot feed the actor or a path-correction controller.",
+    "Five starting states are not five independent training seeds."
+  ]
+}

@@ -13,16 +13,31 @@ import wandb
 
 from .environment import make_env, step_and_reset
 from .fastsac import FastSAC
+from .experiments import create_experiment, experiment_root, write_manifest, capture_source
 
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--name", default="walk")
+    p.add_argument("--run-root", default="experiments")
+    p.add_argument("--result-file", help="Write the actual timestamped run path for notebook automation")
     p.add_argument("--num-envs", type=int, default=1024)
     p.add_argument("--steps", type=int, default=10000)
     p.add_argument("--minutes", type=float, default=30)
     p.add_argument("--speed", type=float, default=0.3)
     p.add_argument("--smoothness", type=float, default=1)
+    p.add_argument("--command-mode", choices=["fixed", "mixed", "balanced"], default="fixed")
+    p.add_argument("--speed-min", type=float, default=-0.25)
+    p.add_argument("--speed-max", type=float, default=0.5)
+    p.add_argument("--yaw-max", type=float, default=0.6)
+    p.add_argument("--yaw-weight", type=float, default=4.0)
+    p.add_argument("--yaw-tracking", choices=["full", "rate"], default="full")
+    p.add_argument("--yaw-std", type=float, default=0.2)
+    p.add_argument("--linear-weight", type=float)
+    p.add_argument("--swing-height", type=float)
+    p.add_argument("--training-terrain-height", type=float, default=0.0)
+    p.add_argument("--proprio-only", action=argparse.BooleanOptionalAction, default=False,
+                   help="Optional symmetric-critic ablation; default critic uses privileged observations")
     p.add_argument("--task-version", choices=["v1", "v2", "hop"], default="v2")
     p.add_argument("--hop-height", type=float, default=0.04)
     p.add_argument("--hop-body-weight", type=float, default=0.0)
@@ -47,20 +62,34 @@ def main():
     torch.set_num_threads(4)
     torch.set_float32_matmul_precision("high")
     torch.manual_seed(args.seed)
-    out = Path("runs") / args.name
-    out.mkdir(parents=True, exist_ok=True)
-    existing_run = (out / "config.json").exists()
-    if existing_run and (not args.resume or args.finetune):
-        raise FileExistsError(f"{out} already exists; choose a new --name or resume this same experiment")
-    config_path = out / (f"resume_config_{time.time_ns()}.json" if existing_run else "config.json")
+    existing_run = bool(args.resume and not args.finetune)
+    out = experiment_root(args.resume) if existing_run else create_experiment(args.name, args.run_root)
+    if existing_run:
+        original = out / "config/training.json"
+        if not original.exists():
+            raise ValueError("Migrate this legacy run before resuming, or use --finetune for a new experiment")
+        previous_cfg = json.loads(original.read_text())
+        for key in ["num_envs", "speed", "smoothness", "task_version", "hop_height",
+                    "hop_body_weight", "seed", "batch_size", "updates", "buffer_size",
+                    "actor_hidden", "critic_hidden", "gamma", "compile", "amp",
+                    "command_mode", "speed_min", "speed_max", "yaw_max", "yaw_weight",
+                    "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
+                    "training_terrain_height"]:
+            if key in previous_cfg:
+                setattr(args, key, previous_cfg[key])
+    cfg["experiment_path"] = str(out)
+    if args.result_file:
+        Path(args.result_file).write_text(str(out.resolve()))
+    print(f"Experiment: {out}", flush=True)
+    config_path = out / "config" / (f"resume_{time.time_ns()}.json" if existing_run else "training.json")
     config_path.write_text(json.dumps(cfg, indent=2))
     previous_timing = {}
-    if existing_run and (out / "timing.json").exists():
-        previous_timing = json.loads((out / "timing.json").read_text())
+    if existing_run and (out / "metrics/timing.json").exists():
+        previous_timing = json.loads((out / "metrics/timing.json").read_text())
     previous_training_seconds = previous_timing.get("training_seconds", 0.0)
     wandb_resume = {}
-    if existing_run and args.wandb_mode == "online" and (out / "wandb.json").exists():
-        previous_wandb = json.loads((out / "wandb.json").read_text())
+    if existing_run and args.wandb_mode == "online" and (out / "metrics/wandb.json").exists():
+        previous_wandb = json.loads((out / "metrics/wandb.json").read_text())
         if previous_wandb.get("url"):
             wandb_resume = {"id": previous_wandb["id"], "resume": "allow"}
     run = wandb.init(project=args.project, name=args.name, config=cfg, dir=str(out),
@@ -68,11 +97,20 @@ def main():
                      tags=["FastSAC", "BDX-R", "classroom", cfg["runtime_environment"], cfg["hardware"]],
                      **wandb_resume)
     if run:
-        (out / "wandb.json").write_text(json.dumps({"url": run.url, "id": run.id}))
+        (out / "metrics/wandb.json").write_text(json.dumps({"url": run.url, "id": run.id}))
     setup_start = time.monotonic()
     env = make_env(args.num_envs, args.speed, args.smoothness, args.seed,
                  task_version=args.task_version, hop_height=args.hop_height,
-                 hop_body_weight=args.hop_body_weight)
+                 hop_body_weight=args.hop_body_weight, command_mode=args.command_mode,
+                 speed_min=args.speed_min, speed_max=args.speed_max,
+                 yaw_max=args.yaw_max, yaw_weight=args.yaw_weight, proprio_only=args.proprio_only,
+                 yaw_tracking=args.yaw_tracking, yaw_std=args.yaw_std,
+                 linear_weight=args.linear_weight, swing_height=args.swing_height,
+                 training_terrain_height=args.training_terrain_height)
+    if not existing_run:
+        write_manifest(out, cfg, env.cfg)
+    else:
+        capture_source(out)
     obs, _ = env.reset()
     agent = FastSAC(obs["actor"].shape[1], obs["critic"].shape[1],
                     env.action_manager.total_action_dim, cfg)
@@ -81,9 +119,10 @@ def main():
         previous = agent.load(args.resume, replay=not args.finetune)
         step = 0 if args.finetune else previous
     setup_seconds = time.monotonic() - setup_start
-    if not (out / "initial.pt").exists():
-        agent.save(out / "initial.pt", step)
-    (out / "dimensions.json").write_text(json.dumps({
+    checkpoints = out / "checkpoints"
+    if not (checkpoints / "initial.pt").exists():
+        agent.save(checkpoints / "initial.pt", step)
+    (out / "config/dimensions.json").write_text(json.dumps({
         "actor": obs["actor"].shape[1], "critic": obs["critic"].shape[1],
         "actions": env.action_manager.total_action_dim,
         "joint_names": env.scene["robot"].joint_names,
@@ -101,7 +140,7 @@ def main():
     recent_returns, recent_lengths = [], []
     terminations = truncations_total = 0
     metrics = {}
-    path = out / "metrics.jsonl"
+    path = out / "metrics/training.jsonl"
     try:
         with path.open("a", buffering=1) as log:
             while step < args.steps and not stop:
@@ -137,7 +176,11 @@ def main():
                         "episode_seconds": sum(recent_lengths)/max(1, len(recent_lengths)),
                         "terminations": terminations, "timeouts": truncations_total,
                         "forward_speed": float(robot.root_link_lin_vel_b[:, 0].mean()),
-                        "target_speed": args.speed,
+                        "target_speed": float(env.command_manager.get_command("twist")[:, 0].mean()),
+                        "velocity_error": float((robot.root_link_lin_vel_b[:, :2] -
+                            env.command_manager.get_command("twist")[:, :2]).abs().mean()),
+                        "yaw_error": float((robot.root_link_ang_vel_b[:, 2] -
+                            env.command_manager.get_command("twist")[:, 2]).abs().mean()),
                         **{k: float(v) for k, v in metrics.items()},
                         **{k: float(v) for k, v in info.items() if isinstance(v, (float, int, torch.Tensor))},
                     }
@@ -151,17 +194,17 @@ def main():
                           f"speed={row['forward_speed']:.2f} reward={row['reward_per_step']:.3f}",
                           flush=True)
                 if step % args.save_every == 0:
-                    agent.save(out / f"step_{step:06d}.pt", step)
-                    agent.save(out / "resume.pt", step, include_replay=True)
+                    agent.save(checkpoints / f"step_{step:06d}.pt", step)
+                    agent.save(checkpoints / "resume.pt", step, include_replay=True)
     finally:
-        agent.save(out / "final.pt", step)
-        agent.save(out / "resume.pt", step, include_replay=True)
+        agent.save(checkpoints / "final.pt", step)
+        agent.save(checkpoints / "resume.pt", step, include_replay=True)
         session_seconds = time.monotonic() - start
         summary = {"step": step, "training_seconds": previous_training_seconds + session_seconds,
                    "session_training_seconds": session_seconds,
                    "setup_seconds": setup_seconds, "stopped_by_signal": stop,
                    "hardware": torch.cuda.get_device_name(0)}
-        (out / "timing.json").write_text(json.dumps(summary, indent=2))
+        (out / "metrics/timing.json").write_text(json.dumps(summary, indent=2))
         if run:
             run.summary.update(summary)
             run.finish()

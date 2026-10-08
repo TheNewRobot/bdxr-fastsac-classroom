@@ -3,6 +3,15 @@
 import math
 import torch
 
+from .training_terrain import ground_height
+
+
+def yaw_rate_tracking(env, std=0.2):
+    """Separate yaw-command tracking from the robot's normal roll/pitch motion."""
+    command = env.command_manager.get_command("twist")[:, 2]
+    actual = env.scene["robot"].data.root_link_ang_vel_b[:, 2]
+    return torch.exp(-(actual - command).square() / std**2)
+
 
 def hop_phase(env):
     phase = (env.episode_length_buf * env.step_dt) % 1.0
@@ -17,7 +26,8 @@ def hop_height_tracking(env, height=0.04):
     desired = height * torch.sin(math.pi * flight_phase)
     robot = env.scene["robot"]
     foot_ids, _ = robot.find_sites(["left_foot", "right_foot"])
-    actual = robot.data.site_pos_w[:, foot_ids, 2]
+    positions = robot.data.site_pos_w[:, foot_ids]
+    actual = positions[..., 2] - ground_height(env, positions)
     error = (actual - desired[:, None]).square().mean(-1)
     return torch.exp(-error / 0.025**2)
 
@@ -35,7 +45,8 @@ def hop_body_height_tracking(env, height=0.06):
     phase = (env.episode_length_buf * env.step_dt) % 1.0
     flight_phase = ((phase - 0.35) / 0.25).clamp(0, 1)
     desired = 0.265 + height * torch.sin(math.pi * flight_phase)
-    actual = env.scene["robot"].data.root_link_pos_w[:, 2]
+    position = env.scene["robot"].data.root_link_pos_w
+    actual = position[:, 2] - ground_height(env, position)
     return torch.exp(-(actual - desired).square() / 0.035**2)
 
 

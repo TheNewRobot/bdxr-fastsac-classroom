@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 import copy
+from functools import partial
 
 import torch
 from bdx_r_mjlab.tasks.velocity.config.bdxr.env_cfgs import bdxr_flat_env_cfg
@@ -15,7 +16,9 @@ from . import behaviors
 def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              task_version="v2", hop_height=0.04, hop_body_weight=0.0,
              initial_jitter=0.0, command_mode="fixed", speed_min=-0.25,
-             speed_max=0.5, yaw_max=0.6, yaw_weight=4.0, proprio_only=False):
+             speed_max=0.5, yaw_max=0.6, yaw_weight=4.0, proprio_only=False,
+             yaw_tracking="full", yaw_std=0.2, course=None,
+             linear_weight=None, swing_height=None, training_terrain_height=0.0):
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs
@@ -42,7 +45,13 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
     command.rel_standing_envs = 0.0
     command.debug_vis = False
     # Legacy fixed-speed checkpoints retain their original task configuration.
-    if command_mode == "mixed":
+    if command_mode in ["mixed", "balanced"]:
+        if command_mode == "balanced":
+            from dataclasses import fields
+            from .commands import BalancedVelocityCommandCfg
+            command = BalancedVelocityCommandCfg(**{
+                field.name: copy.deepcopy(getattr(command, field.name)) for field in fields(command)})
+            cfg.commands["twist"] = command
         command.ranges.lin_vel_x = (speed_min, speed_max)
         command.ranges.ang_vel_z = (-yaw_max, yaw_max)
         command.resampling_time_range = (3.0, 6.0)
@@ -52,6 +61,9 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         command.init_velocity_prob = 0.0
         cfg.rewards["track_angular_velocity"].weight = yaw_weight
         cfg.rewards["track_angular_velocity"].params["std"] = 0.5
+        if yaw_tracking == "rate":
+            cfg.rewards["track_angular_velocity"] = RewardTermCfg(
+                func=behaviors.yaw_rate_tracking, weight=yaw_weight, params={"std": yaw_std})
     cfg.observations["actor"].enable_corruption = False
     cfg.rewards["action_rate_l2"].weight *= smoothness
     # Head stays under position control at neutral; physical head mass remains.
@@ -83,6 +95,10 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
                 params={"height": hop_height})
         for key in ["air_time", "foot_clearance", "foot_swing_height"]:
             cfg.rewards.pop(key, None)
+    if linear_weight is not None:
+        cfg.rewards["track_linear_velocity"].weight = linear_weight
+    if swing_height is not None and "foot_swing_height" in cfg.rewards:
+        cfg.rewards["foot_swing_height"].params["target_height"] = swing_height
     allowed = {"base_ang_vel", "projected_gravity", "joint_pos", "joint_vel", "actions", "command", "hop_phase"}
     if not set(cfg.observations["actor"].terms) <= allowed:
         raise ValueError("Unexpected observation in proprioceptive policy")
@@ -99,8 +115,30 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
     cfg.viewer.elevation = -12
     cfg.viewer.azimuth = 140
     cfg.viewer.max_extra_envs = 0
-    return ManagerBasedRlEnv(cfg=cfg, device="cuda:0",
-                             render_mode="rgb_array" if render else None)
+    if training_terrain_height:
+        from .training_terrain import build_training_terrain
+        if course is not None or training_terrain_height < 0:
+            raise ValueError("Practice terrain requires positive height and no game course")
+        cfg.scene.spec_fn = partial(build_training_terrain, height=training_terrain_height)
+        cfg.events["reset_base"].params["pose_range"]["x"] = (-.2, .2)
+    if course is not None:
+        from .course import CourseConfig, build_course
+        if num_envs != 1:
+            raise ValueError("The game course uses one player robot")
+        cfg.scene.terrain.textures = ()
+        cfg.scene.terrain.materials = ()
+        cfg.scene.spec_fn = partial(build_course, cfg=CourseConfig(**course))
+        cfg.episode_length_s = 1e9
+        cfg.viewer.distance = 2.0
+        cfg.viewer.elevation = -18
+    env = ManagerBasedRlEnv(cfg=cfg, device="cuda:0",
+                           render_mode="rgb_array" if render else None)
+    env.training_terrain_height = training_terrain_height
+    if training_terrain_height:
+        # Each Warp environment is an independent physics world. Give each robot
+        # the same tile coordinates rather than mjlab's spaced display origins.
+        env.scene.env_origins.zero_()
+    return env
 
 
 def step_and_reset(env, actions):
