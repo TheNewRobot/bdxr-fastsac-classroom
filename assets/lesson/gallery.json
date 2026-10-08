@@ -70,5 +70,13 @@
     "motion": "command_walking/motion.png",
     "learning_curve": "command_walking/learning_curves.png",
     "caption": "Selected command-walking checkpoint: 10 commands × 5 perturbed starts × 15 seconds, no falls. Forward mean maximum cross-track deviation 0.084 m. Fine-tuned from earlier policies; this is not a fresh 15-minute run."
+  },
+  {
+    "id": "moving_hops",
+    "title": "Moving Hops",
+    "video": "moving_hops/rollout.mp4",
+    "motion": "moving_hops/motion.png",
+    "learning_curve": "moving_hops/learning_curves.png",
+    "caption": "Moving hops on flat ground: 14 settled landings in each of five 15-second trials. Mean forward speed 0.105 m/s against a 0.15 m/s command. This checkpoint has not cleared the obstacle course."
   }
 ]
