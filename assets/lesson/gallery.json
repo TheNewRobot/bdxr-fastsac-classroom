@@ -83,7 +83,7 @@
     "video": "command_walking/rollout.mp4",
     "motion": "command_walking/motion.png",
     "learning_curve": "command_walking/learning_curves.png",
-    "caption": "Fresh training, selected at 8,000 updates after 611 seconds of training on a local L40S, excluding dependency installation and evaluation. All 10 commands \u00d7 5 perturbed starts \u00d7 15 seconds passed the declared gate with zero falls. Forward mean maximum cross-track deviation: 0.169 m. These are five starting states, not five independent training seeds. Actual Colab remains untested.",
+    "caption": "Fresh training, selected at 8,000 simulation steps (32,000 gradient updates) after 611 seconds of training on a local L40S, excluding dependency installation and evaluation. All 10 commands \u00d7 5 perturbed starts \u00d7 15 seconds passed the declared gate with zero falls. Forward mean maximum cross-track deviation: 0.169 m. These are five starting states, not five independent training seeds. Actual Colab remains untested.",
     "experiment": "experiments/2026-10-08_021859_184033_classroom_mirrored_fresh",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/7uhl689h"
   },
@@ -91,9 +91,9 @@
     "id": "course_run",
     "title": "Desert Droid Run",
     "video": "course_run/rollout.mp4",
-    "caption": "46.58 simulation seconds, zero falls, all three obstacles and the rough patch crossed before the raised finish. Classroom obstacles: 17.5\u201320 mm; ascent: 18 cm. Visually directed speed/yaw/mode commands with pauses for inspection; this is not autonomous navigation or a real-time human play test.",
-    "experiment": "experiments/2026-10-08_024023_102614_manual_course_trial",
-    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/6qviug23"
+    "caption": "45.72 simulation seconds, zero falls, all three obstacles and the rough patch crossed before the raised finish. Classroom obstacles: 17.5\u201320 mm; ascent: 18 cm. Uses the fresh walking policy and the varied-start hopping curriculum. Visually directed speed/yaw/mode commands with pauses; not autonomous navigation or a real-time human play test. An earlier attempt missed an obstacle and was retained as incomplete.",
+    "experiment": "experiments/2026-10-08_042912_469752_manual_course_trial",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/9y5k7mzb"
   },
   {
     "id": "moving_hops",
@@ -101,8 +101,8 @@
     "video": "moving_hops/rollout.mp4",
     "motion": "moving_hops/motion.png",
     "learning_curve": "moving_hops/learning_curves.png",
-    "caption": "Moving hops over 15 mm practice terrain. Five perturbed starts: zero falls; mean peak simultaneous sole clearance 4.7 cm, about 14 landed hops per 15-second trial. This fine-tuned checkpoint was also used in the recorded classroom course; its long training lineage is separate from the fresh student recipe.",
-    "experiment": "experiments/2026-10-08_021905_869109_sole_hops_mirrored",
-    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/oisxs5mw"
+    "caption": "Small moving hops on 15 mm practice terrain after stationary, moving, and varied-start terrain training. Five slow-command trials: zero falls, mean peak simultaneous sole clearance 3.0 cm, and 9.6 landed hops per 15 seconds. Body rise is a different measurement. This 2,000-step terrain checkpoint passed flat/on-step handovers and completed the recorded course. Later training regressed; more steps are not automatically better.",
+    "experiment": "experiments/2026-10-08_041447_469611_hop_height25_varied_starts",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/kdqtmoqs"
   }
 ]
