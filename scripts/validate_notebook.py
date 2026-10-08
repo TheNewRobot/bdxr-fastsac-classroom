@@ -34,7 +34,7 @@ def main():
         if args.full:
             source = source.replace("USE_WANDB = False", "USE_WANDB = True")
         else:
-            source = source.replace("TRAIN_STEPS = 10000", "TRAIN_STEPS = 60")
+            source = source.replace("TRAIN_STEPS = 8000", "TRAIN_STEPS = 60")
             source = source.replace("VARIATION_STEPS = 3000", "VARIATION_STEPS = 60")
             source = source.replace("TRAIN_HOPPING = True", "TRAIN_HOPPING = False")
             source = source.replace('"--steps", 6000', '"--steps", 60')

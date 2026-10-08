@@ -118,9 +118,11 @@ NUM_ENVS = 512
 BATCH_SIZE = 2048
 TRAIN_SEED = 7
 TRAIN_MINUTES = 15  # @param {type:"number"}
-TRAIN_STEPS = 10000  # @param {type:"integer"}
+TRAIN_STEPS = 8000  # @param {type:"integer"}
 USE_WANDB = False  # @param {type:"boolean"}
 WANDB_MODE = "online" if USE_WANDB else "disabled"
+COMMAND_OPTIONS = ["--command-mode", "balanced", "--yaw-tracking", "imu",
+                   "--yaw-std", 0.2, "--yaw-bias-weight", 2, "--mirror-replay"]
 if USE_WANDB and not (os.environ.get("WANDB_API_KEY") or Path.home().joinpath(".netrc").exists()):
     import getpass
     runtime_env["WANDB_API_KEY"] = getpass.getpass("Your W&B API key (not saved in this notebook): ")
@@ -161,10 +163,13 @@ def show_motion(run, checkpoint="final"):
 
 Simulated robots practice forward/backward speeds, stops, and turns. Many environments collect experience in parallel.
 
+The training recipe also mirrors left/right experience and rewards low sustained turning error.
+Turning rate is estimated from the gyro and gravity direction; there is no compass or absolute-heading input.
+
 Predict: what would a robot do if speed tracking mattered but turning error barely mattered?
 """)
     code('''BASELINE = train("command_walking_baseline",
-                 "--command-mode", "balanced", "--yaw-tracking", "rate", "--yaw-std", 0.2,
+                 *COMMAND_OPTIONS,
                  "--steps", TRAIN_STEPS, "--minutes", TRAIN_MINUTES)
 print("Your experiment:", BASELINE)
 print("Before learning:")
@@ -211,12 +216,12 @@ print(json.loads((example / "provenance.json").read_text())["caption"])
 display(Video(str(example / "gyro_style_comparison.mp4"), embed=True, width=720))
 display(Image(filename=str(example / "gyro_style_comparison.png")))
 print("Prediction:", PREDICTION)
-VARIATION = train(EXPERIMENT, "--command-mode", "balanced", "--yaw-tracking", "rate",
-                  "--yaw-std", 0.2, "--steps", VARIATION_STEPS, "--minutes", 10,
+VARIATION = train(EXPERIMENT, *COMMAND_OPTIONS,
+                  "--steps", VARIATION_STEPS, "--minutes", 10,
                   "--resume", BASELINE / "checkpoints/final.pt", "--finetune", *changed)
 CONTROL = VARIATION if EXPERIMENT == "control" else train(
-    "unchanged_control", "--command-mode", "balanced", "--yaw-tracking", "rate",
-    "--yaw-std", 0.2, "--steps", VARIATION_STEPS, "--minutes", 10,
+    "unchanged_control", *COMMAND_OPTIONS,
+    "--steps", VARIATION_STEPS, "--minutes", 10,
     "--resume", BASELINE / "checkpoints/final.pt", "--finetune")
 from statistics import mean
 comparisons = [("control", CONTROL)] + ([] if CONTROL == VARIATION else [(EXPERIMENT, VARIATION)])
@@ -296,7 +301,7 @@ Load your learned controller into a desert outpost with **three obstacles, rough
 
 Use speed and yaw controls to steer. If you loaded a hopping policy, switch modes before obstacles and watch the transition state. There is no navigation controller.
 
-**Fall → return to the start. Time and falls accumulate. Reach the finish upright → win.** The scoreboard measures simulation time. A new game resets the score.
+**Fall → return to the start. Time and falls accumulate. Cross the three obstacles and rough patch, then reach the finish upright → win.** The four checkpoints prevent shortcuts. The scoreboard measures simulation time. A new game resets the score.
 """)
     code('''# @title Launch your playable validation course
 WALK_CHECKPOINT = str(BASELINE / "checkpoints/final.pt")  # @param {type:"string"}
