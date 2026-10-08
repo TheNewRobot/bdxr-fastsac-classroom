@@ -1,10 +1,12 @@
 {
-  "caption": "Recorded instructor comparison: fresh 8000-update parent, then 3000 additional updates each for control and smoother. Only the action-change penalty changes (1 to 3). All three pass the full command suite. Smoother reduces forward action-change RMS by about 17% versus control, but has greater lateral drift. One training seed; five perturbed evaluation starts.",
+  "caption": "Recorded instructor comparison: one validated parent; control and both variations each receive 3000 extra steps. Only action-change penalty (1 to 3) or swing target (6 to 7.5 cm) changes. Baseline and both variations pass the full 50-trial command suite. The control fails fast-walking drift despite zero falls. Smoother reduces forward action-change RMS by about 16%; the higher target does not increase measured swing. One training seed; five perturbed evaluation starts.",
   "runs": [
-    "2026-10-08_021859_184033_classroom_mirrored_fresh",
-    "2026-10-08_023847_662154_fresh_mirror8k_variation_control",
-    "2026-10-08_024547_119325_fresh_mirror8k_variation_smoother"
+    "2026-10-08_045922_707542_unchanged_control",
+    "2026-10-08_054851_100749_recovered_baseline_control",
+    "2026-10-08_055353_834252_recovered_baseline_smoother",
+    "2026-10-08_060538_950070_recovered_baseline_higher75"
   ],
-  "provenance": "experiments/2026-10-08_025516_525568_policy_comparison/config/comparison.json",
-  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/97niuyes"
+  "provenance": "experiments/2026-10-08_061335_316142_policy_comparison/config/comparison.json",
+  "selection_and_metrics": "experiments/2026-10-08_061335_316142_policy_comparison/evaluation/selection_and_metrics.json",
+  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/gqgbud4j"
 }

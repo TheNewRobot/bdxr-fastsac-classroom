@@ -78,16 +78,6 @@
     "caption": "Preliminary fixed-speed experiments. These comparisons did not establish straight-line command control."
   },
   {
-    "id": "command_walking",
-    "title": "Command Walking",
-    "video": "command_walking/rollout.mp4",
-    "motion": "command_walking/motion.png",
-    "learning_curve": "command_walking/learning_curves.png",
-    "caption": "Fresh training, selected at 8,000 simulation steps (32,000 gradient updates) after 611 seconds of training on a local L40S, excluding dependency installation and evaluation. All 10 commands \u00d7 5 perturbed starts \u00d7 15 seconds passed the declared gate with zero falls. Forward mean maximum cross-track deviation: 0.169 m. These are five starting states, not five independent training seeds. Actual Colab remains untested.",
-    "experiment": "experiments/2026-10-08_021859_184033_classroom_mirrored_fresh",
-    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/7uhl689h"
-  },
-  {
     "id": "course_run",
     "title": "Desert Droid Run",
     "video": "course_run/rollout.mp4",
@@ -104,5 +94,15 @@
     "caption": "Small moving hops after stationary, moving, and terrain training. Two 15-trial terrain screens passed with zero falls, as did flat/on-step handovers with the validated walker. All 25 backward/turn trials stayed upright and moved in the requested directions. The target is 4.5 cm sole clearance; these five slow trials measured a mean peak of about 3.7 cm and 11 landed hops per 15 seconds. The learning curve shows the final terrain stage; parent stages are recorded in the experiment lineage.",
     "experiment": "experiments/2026-10-08_053242_824689_fresh_parent_hop_height45mm",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/i90z95hq"
+  },
+  {
+    "id": "command_walking",
+    "title": "Command Walking",
+    "video": "command_walking/rollout.mp4",
+    "motion": "command_walking/motion.png",
+    "learning_curve": "command_walking/learning_curves.png",
+    "caption": "Recorded instructor command baseline: all 50 speed/backward/stop/turn/transition trials pass. The initial 8000-step run missed drift checks; an unchanged 3000-step continuation recovered them. About 13.4 minutes of combined training on the local L40S, plus setup and evaluation. The curve shown is the recovery stage only. This is the parent of both current style variations and the walker used in the recorded course. One training seed; five perturbed evaluation starts.",
+    "experiment": "experiments/2026-10-08_045922_707542_unchanged_control",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/gqgbud4j"
   }
 ]

@@ -24,7 +24,7 @@ def main():
     for variant, changes in [
         ("control", {}),
         ("smoother", {"smoothness": 3 * config["smoothness"]}),
-        ("higher_steps", {"swing_height": 0.09}),
+        ("higher_steps", {"swing_height": 0.075}),
     ]:
         name = f"{args.prefix}_{variant}"
         settings = dict(config, **changes)
