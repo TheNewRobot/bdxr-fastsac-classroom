@@ -41,6 +41,16 @@ class Score:
         return None
 
 
+@dataclasses.dataclass
+class PostureMonitor:
+    collapsed_seconds: float = 0.0
+
+    def update(self, dt, upright, base_above_feet):
+        collapsed = upright < .65 or (upright < .85 and base_above_feet < .17)
+        self.collapsed_seconds = self.collapsed_seconds + dt if collapsed else 0.0
+        return self.collapsed_seconds >= .5
+
+
 class GameSession:
     """One simulation owner; call methods on the thread that creates the session."""
 
@@ -68,6 +78,7 @@ class GameSession:
         self.env = make_env(1, render=render, task_version="hop",
                             course=None if flat else dataclasses.asdict(self.course), seed=seed)
         self.env.cfg.episode_length_s = 1e9
+        self.foot_ids, _ = self.env.scene["robot"].find_sites(["left_foot", "right_foot"])
         self.render_enabled, self.record = render, record
         self.video_part = 0
         self.writer, self.log = None, None
@@ -106,6 +117,7 @@ class GameSession:
 
     def reset_robot(self):
         self.env.reset(seed=self.seed + self.score.falls)
+        self.posture = PostureMonitor()
         self.stage = "walk"
         self.requested_mode = "walk"
         self.requested_speed = self.requested_yaw = 0.0
@@ -185,14 +197,23 @@ class GameSession:
         position = robot.root_link_pos_w[0].cpu().tolist()
         upright = float(-robot.projected_gravity_b[0, 2])
         contact = bool((self.env.scene["feet_ground_contact"].data.found > 0).any())
-        fell = bool(terminated[0]) or abs(position[1]) > 3.5 or position[0] < -1.5
+        # Scoring-only measurements: a collapsed robot should reset even if the
+        # training termination allows a larger recovery window. A short grace
+        # period and relative foot height avoid classifying normal hops as falls.
+        base_above_feet = position[2] - float(robot.site_pos_w[0, self.foot_ids, 2].min())
+        collapsed = self.posture.update(self.env.step_dt, upright, base_above_feet)
+        outside = abs(position[1]) > 3.5 or position[0] < -1.5
+        fall_reason = ("training_termination" if bool(terminated[0]) else
+                       "course_bounds" if outside else "collapsed_posture" if collapsed else None)
+        fell = fall_reason is not None
         at_finish = (not self.flat and position[0] >= self.course.length - .35 and abs(position[1]) < .65 and
                      position[2] > self.course.finish_height + .16 and upright > .9 and contact)
         event = self.score.advance(self.env.step_dt, fell, at_finish)
         row = {"time": self.score.elapsed, "position": position, "upright": upright,
                "speed_command": self.speed, "yaw_command": self.yaw, "mode": self.stage,
                "action_change_rms": float((action - self.last_action).square().mean().sqrt()),
-               "event": event, "falls": self.score.falls}
+               "event": event, "falls": self.score.falls,
+               "base_above_feet": base_above_feet, "fall_reason": fall_reason}
         self.last_action = action.clone()
         self.log.write(json.dumps(row) + "\n")
         if self.render_enabled and self.steps % 2 == 0:
