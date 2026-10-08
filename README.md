@@ -5,7 +5,8 @@ Train, measure, change one parameter, and play a small desert-droid course.
 
 ![Desert Droid Run interface](assets/lesson/course_preview.png)
 
-**Status:** command-policy training and course validation are in progress.
+**Status:** fresh command walking and a complete recorded course run are available.
+The final hopping curriculum and lesson integration are still being tested.
 The browser controls have been tested locally against the simulator.
 Actual Google Colab execution has not been performed.
 
