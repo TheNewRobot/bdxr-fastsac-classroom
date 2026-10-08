@@ -55,6 +55,7 @@ def main():
                    linear_tracking=cfg.get("linear_tracking", "instant"),
                    swing_height=cfg.get("swing_height"),
                    yaw_bias_weight=cfg.get("yaw_bias_weight", 0),
+                   lateral_bias_weight=cfg.get("lateral_bias_weight", 0),
                    reward_scale=cfg.get("reward_scale", 1),
                    initial_jitter=args.initial_jitter)
     env.cfg.episode_length_s = args.seconds

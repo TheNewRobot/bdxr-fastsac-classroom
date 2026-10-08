@@ -38,7 +38,7 @@ def main():
                     "actor_hidden", "critic_hidden", "gamma", "task_version",
                     "speed", "smoothness", "command_mode", "speed_min", "speed_max",
                     "yaw_max", "yaw_tracking", "yaw_std", "yaw_weight", "linear_weight",
-                    "swing_height", "yaw_bias_weight", "training_terrain_height",
+                    "swing_height", "yaw_bias_weight", "lateral_bias_weight", "training_terrain_height",
                     "training_terrain_style", "training_start_span", "initial_jitter",
                     "reward_scale", "linear_tracking"]:
             if settings.get(key) is not None:

@@ -41,6 +41,21 @@ def yaw_bias_tracking(env, std=0.025, time_constant=0.3, tilt_compensation=False
     return torch.exp(-env._yaw_bias_error.square() / std**2)
 
 
+def lateral_bias_tracking(env, std=0.025, time_constant=0.3):
+    """Training-only reward for low sustained sideways velocity error.
+
+    Simulator velocity is privileged reward information, never actor input or
+    deployed feedback. Averaging tolerates the alternating sway of a gait.
+    """
+    error = (env.scene["robot"].data.root_link_lin_vel_b[:, 1]
+             - env.command_manager.get_command("twist")[:, 1])
+    old = getattr(env, "_lateral_bias_error", torch.zeros_like(error))
+    old = torch.where(env.episode_length_buf <= 1, torch.zeros_like(old), old)
+    fraction = 1 - math.exp(-env.step_dt / time_constant)
+    env._lateral_bias_error = torch.lerp(old, error, fraction)
+    return torch.exp(-env._lateral_bias_error.square() / std**2)
+
+
 def average_linear_velocity_tracking(env, std=0.3, time_constant=0.3):
     """Reward average progress without penalizing every hop's velocity oscillation.
 
