@@ -18,5 +18,5 @@ __pycache__/
 *.log
 .DS_Store
 bdxr_classroom_lab/
-# Keep only the deliberate, compact inference exports in examples/.
+# Checkpoints and inference exports belong in ignored experiment folders.
 *.pt
