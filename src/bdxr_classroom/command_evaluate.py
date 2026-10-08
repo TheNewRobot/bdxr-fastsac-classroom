@@ -20,6 +20,7 @@ from .experiments import experiment_root, capture_source, jsonable
 from .fastsac import FastSAC
 from .motion_metrics import count_hops
 from .training_terrain import ground_height
+from .behaviors import imu_turn_rate
 
 
 def wrap(angle):
@@ -97,6 +98,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                 robot.heading_w, robot.root_link_lin_vel_b[:, 0],
                 robot.root_link_lin_vel_b[:, 1], robot.root_link_ang_vel_b[:, 2],
                 longitudinal, lateral, wrap(robot.heading_w - heading0),
+                imu_turn_rate(env),
             ], dim=1).cpu().numpy()
             changes = (actions - previous_action).square().mean(-1).sqrt().cpu().tolist()
             previous_action = actions.clone()
@@ -113,6 +115,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                     "y": float(values[index, 1]), "heading": float(values[index, 2]),
                     "speed": float(values[index, 3]), "lateral_speed": float(values[index, 4]),
                     "yaw_rate": float(values[index, 5]), "progress": float(values[index, 6]),
+                    "imu_yaw_rate": float(values[index, 9]),
                     "cross_track": float(values[index, 7]), "heading_error": float(values[index, 8]),
                     "command_speed": float(commands[index, 0]), "command_yaw": float(commands[index, 2]),
                     "fell": bool(terminated[index]),
@@ -147,6 +150,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
             "duration_s": episode[-1]["time"] + env.step_dt,
             "speed_mae": float(np.mean([abs(r["speed"]-r["command_speed"]) for r in steady])),
             "yaw_mae": float(np.mean([abs(r["yaw_rate"]-r["command_yaw"]) for r in steady])),
+            "imu_yaw_mae": float(np.mean([abs(r["imu_yaw_rate"]-r["command_yaw"]) for r in steady])),
             "mean_speed": float(np.mean([r["speed"] for r in steady])),
             "max_cross_track_m": max(abs(r["cross_track"]) for r in episode),
             "final_cross_track_m": episode[-1]["cross_track"],
@@ -196,9 +200,11 @@ def main():
                    training_terrain_style=args.terrain_style,
                    yaw_bias_weight=cfg.get("yaw_bias_weight", 0),
                    reward_scale=cfg.get("reward_scale", 1),
-                   linear_tracking=cfg.get("linear_tracking", "instant"))
+                   linear_tracking=cfg.get("linear_tracking", "instant"),
+                   hop_height_reward=cfg.get("hop_height_reward", "continuous"))
     result = {"checkpoint": str(checkpoint), "cases": {}, "terrain_height_m": args.terrain_height,
              "terrain_style": args.terrain_style if args.terrain_height else "flat",
+             "yaw_measurements": "yaw_mae uses body gyro Z; imu_yaw_mae compensates tilt using gyro and gravity only",
              "straightness_cases": ["slow", "forward", "fast", "backward", "straight", "straight_fast", "straight_back"],
              "sampling": f"{args.episodes} parallel independently perturbed starts per case; shared RNG seed 1000",
              "controller": "Direct velocity commands only. No heading or path feedback; world measurements are evaluation-only."}
@@ -220,7 +226,8 @@ def main():
                 data = [r for r in rows if r["episode"] == index]
                 axes[0].plot([r["progress"] for r in data], [r["cross_track"] for r in data])
                 axes[1].plot([r["time"] for r in data], [r["speed"] for r in data], alpha=.7)
-                axes[2].plot([r["time"] for r in data], [r["yaw_rate"] for r in data], alpha=.7)
+                yaw_key = "imu_yaw_rate" if cfg.get("yaw_tracking") == "imu" else "yaw_rate"
+                axes[2].plot([r["time"] for r in data], [r[yaw_key] for r in data], alpha=.7)
             axes[0].set(xlabel="Along initial heading (m)", ylabel="Cross-track (m)")
             axes[0].set_aspect("equal")
             for axis, key, title in [(axes[1], "command_speed", "Speed (m/s)"), (axes[2], "command_yaw", "Yaw rate (rad/s)")]:

@@ -46,6 +46,7 @@ def main():
     env = make_env(1, speed, cfg["smoothness"], render=not args.no_video,
                    task_version=cfg.get("task_version", "v1"),
                    hop_height=cfg.get("hop_height", 0.04),
+                   hop_height_reward=cfg.get("hop_height_reward", "continuous"),
                    hop_body_weight=cfg.get("hop_body_weight", 0.0),
                    proprio_only=cfg.get("proprio_only", False),
                    linear_weight=cfg.get("linear_weight"),
