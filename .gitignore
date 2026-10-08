@@ -4,6 +4,7 @@
 /runs/
 /wandb/
 /artifacts/
+/experiments/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
@@ -19,4 +20,3 @@ __pycache__/
 bdxr_classroom_lab/
 # Keep only the deliberate, compact inference exports in examples/.
 *.pt
-!examples/*/policy.pt
