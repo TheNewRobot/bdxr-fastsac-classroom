@@ -13,10 +13,11 @@
   browser test passed. Reset/timer/finish contracts have unit tests.
 - The notebook is being updated and retested with this complete workflow.
 
-The selected walking checkpoint passed the full command suite, and repeated
-flat-ground mode transitions passed. Initial obstacle crossings failed.
+Selected walking and smoother/control examples passed the full command suite.
+Repeated flat-ground mode transitions passed. Obstacle crossings remain under
+development; a successful partial segment is not a full course traversal.
 
-Remaining work: independent baseline training verification, controlled variants,
+Remaining work: verification of the final student training recipe,
 terrain-capable hops and transitions, physical course
 traversal/calibration, and final notebook/browser integration checks.
 
