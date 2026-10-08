@@ -22,7 +22,14 @@ def main():
         "source_sha256": hashlib.sha256((root / "notebooks/BDXR_Walking_101.ipynb").read_bytes()).hexdigest(),
         "full_training": args.full, "work": args.work, "colab_tested": False,
         "scope": "Local notebook execution; not actual Google Colab.",
+        "quality_gate_enforced": args.full,
     }
+    if not args.full:
+        nb.cells[0].source = (
+            "**PLUMBING SMOKE TEST:** Short training runs are expected to fail policy-quality "
+            "checks. Their failed verdicts are retained; recovery and the baseline stop gate "
+            "are bypassed only in this executed test copy. This does not validate locomotion.\n\n"
+            + nb.cells[0].source)
     for cell in nb.cells:
         if cell.cell_type != "code":
             continue
@@ -41,6 +48,9 @@ def main():
         if args.full:
             source = source.replace("USE_WANDB = False", "USE_WANDB = True")
         else:
+            source = source.replace(
+                'if not BASELINE_CHECK["passed"]:',
+                'if False:  # Smoke harness only: retain the failed verdict, skip recovery/stop.')
             source = source.replace("TRAIN_STEPS = 8000", "TRAIN_STEPS = 60")
             source = source.replace("VARIATION_STEPS = 3000", "VARIATION_STEPS = 60")
             source = source.replace("TRAIN_HOPPING = True", "TRAIN_HOPPING = False")
