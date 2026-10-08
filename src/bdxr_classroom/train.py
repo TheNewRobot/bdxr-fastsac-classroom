@@ -46,7 +46,8 @@ def main():
                    help="Optional symmetric-critic ablation; default critic uses privileged observations")
     p.add_argument("--task-version", choices=["v1", "v2", "hop"], default="v2")
     p.add_argument("--hop-height", type=float, default=0.04)
-    p.add_argument("--hop-height-reward", choices=["continuous", "flight"], default="continuous")
+    p.add_argument("--hop-height-reward", choices=["continuous", "flight", "flight_both"],
+                   default="continuous")
     p.add_argument("--hop-clearance", choices=["site", "sole"], default="site")
     p.add_argument("--mirror-replay", action=argparse.BooleanOptionalAction, default=False)
     p.add_argument("--hop-body-weight", type=float, default=0.0)

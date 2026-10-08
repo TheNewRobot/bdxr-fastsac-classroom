@@ -93,7 +93,8 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         cfg.rewards["track_linear_velocity"].weight = 2.0
         cfg.rewards["hop_height"] = RewardTermCfg(
             func=behaviors.hop_height_tracking, weight=8.0,
-            params={"height": hop_height, "flight_only": hop_height_reward == "flight",
+            params={"height": hop_height, "flight_only": hop_height_reward in ("flight", "flight_both"),
+                    "bilateral": hop_height_reward == "flight_both",
                     "clearance_mode": hop_clearance})
         cfg.rewards["hop_contacts"] = RewardTermCfg(func=behaviors.hop_contact_timing, weight=4.0)
         cfg.rewards["hop_landing"] = RewardTermCfg(func=behaviors.hop_landing_cost, weight=-1e-6)
