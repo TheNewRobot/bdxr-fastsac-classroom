@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 import copy
+import math
 from functools import partial
 
 import torch
@@ -24,6 +25,8 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              hop_clearance="site", training_start_span=0.2):
     if hop_clearance not in ("site", "sole"):
         raise ValueError("Hop clearance must use site or sole measurements")
+    if not math.isfinite(initial_jitter) or initial_jitter < 0:
+        raise ValueError("Initial jitter must be finite and nonnegative")
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs

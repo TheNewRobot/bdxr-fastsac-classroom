@@ -42,6 +42,8 @@ def main():
     p.add_argument("--training-terrain-style", choices=["steps", "mixed"], default="steps")
     p.add_argument("--training-start-span", type=float, default=0.2,
                    help="Terrain practice resets uniformly within +/- this distance in metres")
+    p.add_argument("--initial-jitter", type=float, default=0.0,
+                   help="Random reset roll, pitch and joint offsets in radians")
     p.add_argument("--proprio-only", action=argparse.BooleanOptionalAction, default=False,
                    help="Optional symmetric-critic ablation; default critic uses privileged observations")
     p.add_argument("--task-version", choices=["v1", "v2", "hop"], default="v2")
@@ -86,7 +88,7 @@ def main():
                     "actor_hidden", "critic_hidden", "gamma", "compile", "amp",
                     "command_mode", "speed_min", "speed_max", "yaw_max", "yaw_weight",
                     "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
-                    "training_terrain_height", "training_terrain_style", "training_start_span",
+                    "training_terrain_height", "training_terrain_style", "training_start_span", "initial_jitter",
                     "yaw_bias_weight", "reward_scale",
                     "linear_tracking", "hop_height_reward", "hop_clearance", "mirror_replay"]:
             if key in previous_cfg:
@@ -114,6 +116,7 @@ def main():
         (out / "metrics/wandb.json").write_text(json.dumps({"url": run.url, "id": run.id}))
     setup_start = time.monotonic()
     env = make_env(args.num_envs, args.speed, args.smoothness, args.seed,
+                 initial_jitter=args.initial_jitter,
                  task_version=args.task_version, hop_height=args.hop_height,
                  hop_body_weight=args.hop_body_weight, command_mode=args.command_mode,
                  speed_min=args.speed_min, speed_max=args.speed_max,
