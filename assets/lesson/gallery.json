@@ -79,5 +79,11 @@
     "motion": "command_walking/motion.png",
     "learning_curve": "command_walking/learning_curves.png",
     "caption": "Fresh training, selected at 8,000 updates after 611 seconds training + 3.3 seconds setup on a local L40S. All 10 commands × 5 perturbed starts × 15 seconds passed the declared gate with zero falls. Forward mean maximum cross-track deviation: 0.169 m. These are five starting states, not five independent training seeds. Actual Colab remains untested."
+  },
+  {
+    "id": "course_run",
+    "title": "Desert Droid Run",
+    "video": "course_run/rollout.mp4",
+    "caption": "46.58 simulation seconds, zero falls, all three obstacles and the rough patch crossed before the raised finish. Classroom obstacles: 17.5–20 mm; ascent: 18 cm. Visually directed speed/yaw/mode commands with pauses for inspection; this is not autonomous navigation or a real-time human play test."
   }
 ]

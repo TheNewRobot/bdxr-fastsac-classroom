@@ -299,6 +299,8 @@ print("Full replay checkpoints remain in experiments/*/checkpoints/resume.pt; co
 
 Load your learned controller into a desert outpost with **three obstacles, rough ground, and a raised finish beacon**. The course is designed around roughly 45 seconds of normal-paced traversal; policy ability and player skill determine the actual result.
 
+The classroom obstacles are 17.5–20 mm high, followed by uneven ground and an 18 cm ascent. These dimensions were calibrated using recorded controller trials.
+
 Use speed and yaw controls to steer. If you loaded a hopping policy, switch modes before obstacles and watch the transition state. There is no navigation controller.
 
 **Fall → return to the start. Time and falls accumulate. Cross the three obstacles and rough patch, then reach the finish upright → win.** The four checkpoints prevent shortcuts. The scoreboard measures simulation time. A new game resets the score.

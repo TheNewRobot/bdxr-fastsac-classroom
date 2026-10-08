@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class CourseProgress:
-    # Front edge, rear edge, half-width of each physical challenge.
+    # Scoring spans enclosing each obstacle and the rough patch.
     checkpoints: tuple = ((1.98, 2.02, .65), (4.58, 5.02, .65),
                           (7.23, 7.37, .65), (7.915, 9.275, .55))
     completed: int = 0
