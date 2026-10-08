@@ -22,6 +22,7 @@ def main():
     with zipfile.ZipFile(bundle, "w", zipfile.ZIP_DEFLATED) as archive:
         for pattern in ["src/**/*.py", "src/**/*.html", "configs/*.json",
                         "requirements*.txt", "scripts/setup.py", "scripts/check_command_results.py",
+                        "scripts/check_hopping_results.py",
                         "THIRD_PARTY_NOTICES.md",
                         "assets/lesson/**/*"]:
             for path in ROOT.glob(pattern):
@@ -281,9 +282,16 @@ Check the lowest sole clearance and contact state before claiming that a hop can
 
 This extended lab uses a curriculum: stationary hops → moving hops → clearance over small physical obstacles.
 The last stage measures the sole, rather than the foot marker. Inspect each stage; flat-floor success does not prove obstacle capability.
+
+Compare the final checkpoint with the earlier 1,000-step checkpoint. Each must
+complete five trials per command without falling, land at least five hops per trial,
+and reach at least 2.5 cm sole clearance. Forward commands must move forward;
+stop must stay slow. The exact screen is saved with the results. Passing it does
+not replace tests of turning, mode switches, or the full course.
 """)
     code('''TRAIN_HOPPING = True  # @param {type:"boolean"}
 TINY_HOPS = MOVING_HOPS = HOP_RESULTS = None
+SELECTED_HOP_CHECKPOINT = None
 if TRAIN_HOPPING:
     TINY_HOPS = train("tiny_hops", "--task-version", "hop", "--speed", 0,
                      "--hop-height", 0.04, "--steps", 4000, "--minutes", 10)
@@ -303,20 +311,43 @@ if TRAIN_HOPPING:
                         "--training-terrain-height", 0.015, "--training-terrain-style", "mixed",
                         "--steps", 2000, "--minutes", 10,
                         "--resume", MOVING_HOPS / "checkpoints/final.pt", "--finetune")
-    show_motion(HOP_RESULTS)
-    print("Compare body rise, sole clearance, and knee angles: these are different quantities.")
-    display(Image(filename=str(HOP_RESULTS / "evaluation/eval_final/motion.png")))
-    run_module("bdxr_classroom.command_evaluate", HOP_RESULTS / "checkpoints/final.pt",
-               "--cases", "slow", "forward", "stop", "--episodes", 5, "--seconds", 15,
-               "--terrain-height", 0.015, "--terrain-style", "mixed")
-    hop_report = json.loads((HOP_RESULTS / "evaluation/final_commands_mixed_0.015/summary.json").read_text())
+    import sys
+    sys.path.insert(0, str(WORK / "scripts"))
+    from check_hopping_results import choose
     from statistics import mean
-    for case, trials in hop_report["cases"].items():
-        print(f"{case}: falls {sum(t['fell'] for t in trials)}/{len(trials)}, "
-              f"mean landed hops {mean(t['landed_hops'] for t in trials):.1f}, "
-              f"mean peak sole clearance {100*mean(t['peak_simultaneous_foot_clearance'] for t in trials):.1f} cm, "
-              f"mean speed {mean(t['mean_speed'] for t in trials):.2f} m/s")
-    display(Video(str(HOP_RESULTS / "videos/final_commands_mixed_0.015/slow.mp4"), embed=True, width=640))
+    hop_reports = []
+    for filename in ["final.pt", "step_001000.pt"]:
+        checkpoint = HOP_RESULTS / "checkpoints" / filename
+        if not checkpoint.exists():
+            print("Checkpoint not reached before the training time limit:", filename)
+            continue
+        run_module("bdxr_classroom.command_evaluate", checkpoint,
+                   "--cases", "slow", "forward", "stop", "--episodes", 5, "--seconds", 15,
+                   "--terrain-height", 0.015, "--terrain-style", "mixed")
+        folder = checkpoint.stem + "_commands_mixed_0.015"
+        report = json.loads((HOP_RESULTS / "evaluation" / folder / "summary.json").read_text())
+        hop_reports.append(report)
+        for case, trials in report["cases"].items():
+            print(f"{filename}, {case}: falls {sum(t['fell'] for t in trials)}/{len(trials)}, "
+                     f"mean landed hops {mean(t['landed_hops'] for t in trials):.1f}, "
+                     f"mean peak sole clearance {100*mean(t['peak_simultaneous_foot_clearance'] for t in trials):.1f} cm, "
+                     f"mean speed {mean(t['mean_speed'] for t in trials):.2f} m/s")
+    selection = choose(hop_reports, json.loads((WORK / "configs/hopping_targets.json").read_text()))
+    (HOP_RESULTS / "evaluation/checkpoint_selection.json").write_text(json.dumps(selection, indent=2))
+    for result in selection["checks"]:
+        print(Path(result["checkpoint"]).name, "Passed" if result["passed"] else "Needs work",
+              "; ".join(result["failures"]))
+    SELECTED_HOP_CHECKPOINT = selection["selected_checkpoint"]
+    if SELECTED_HOP_CHECKPOINT:
+        selected = Path(SELECTED_HOP_CHECKPOINT)
+        print("Selected for further testing in the game:", selected.name)
+        show_motion(HOP_RESULTS, selected.stem)
+        print("Body rise, sole clearance, and knee angles are different quantities.")
+        display(Image(filename=str(HOP_RESULTS / "evaluation" / ("eval_" + selected.stem) / "motion.png")))
+        display(Video(str(HOP_RESULTS / "videos" / (selected.stem + "_commands_mixed_0.015") / "slow.mp4"),
+                      embed=True, width=640))
+    else:
+        print("No hopping checkpoint passed. Inspect the failures before using one in the game.")
     run_module("bdxr_classroom.plots", HOP_RESULTS)
     display(Image(filename=str(HOP_RESULTS / "metrics/learning_curves.png")))
 else:
@@ -371,7 +402,7 @@ Use speed and yaw controls to steer. If you loaded a hopping policy, switch mode
 """)
     code('''# @title Launch your playable validation course
 WALK_CHECKPOINT = str(BASELINE / "checkpoints/final.pt")  # @param {type:"string"}
-HOP_CHECKPOINT = str(HOP_RESULTS / "checkpoints/final.pt") if HOP_RESULTS else ""  # @param {type:"string"}
+HOP_CHECKPOINT = SELECTED_HOP_CHECKPOINT or ""  # @param {type:"string"}
 GAME_PORT = 8765
 if "game_process" in globals() and game_process.poll() is None:
     game_process.terminate()
