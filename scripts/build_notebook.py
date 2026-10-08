@@ -21,7 +21,8 @@ def main():
     bundle = io.BytesIO()
     with zipfile.ZipFile(bundle, "w", zipfile.ZIP_DEFLATED) as archive:
         for pattern in ["src/**/*.py", "src/**/*.html", "configs/*.json",
-                        "requirements*.txt", "scripts/setup.py", "THIRD_PARTY_NOTICES.md",
+                        "requirements*.txt", "scripts/setup.py", "scripts/check_command_results.py",
+                        "THIRD_PARTY_NOTICES.md",
                         "assets/lesson/**/*"]:
             for path in ROOT.glob(pattern):
                 if path.is_file():
@@ -158,6 +159,27 @@ def show_motion(run, checkpoint="final"):
     run_module("bdxr_classroom.evaluate", run / "checkpoints" / (checkpoint + ".pt"), "--episodes", 1)
     report = json.loads((run / "evaluation" / ("eval_" + checkpoint) / "evaluation.json").read_text())
     display(Video(report["video_path"], embed=True, width=640))
+
+def summarize_commands(run):
+    from statistics import mean
+    sys.path.insert(0, str(WORK / "scripts"))
+    from check_command_results import check
+    report = json.loads((run / "evaluation/final_commands/summary.json").read_text())
+    targets = json.loads((WORK / "configs/evaluation_targets.json").read_text())
+    verdict = check(report, targets)
+    (run / "evaluation/final_commands/selection_check.json").write_text(json.dumps(verdict, indent=2))
+    rows = []
+    for case, trials in report["cases"].items():
+        rows.append(f"<tr><td>{html.escape(case)}</td><td>{sum(t['fell'] for t in trials)}/{len(trials)}</td>"
+                    f"<td>{mean(t['speed_mae'] for t in trials):.3f}</td>"
+                    f"<td>{mean(t['yaw_mae'] for t in trials):.3f}</td>"
+                    f"<td>{mean(t['max_cross_track_m'] for t in trials):.3f}</td></tr>")
+    display(HTML("<table><tr><th>Command</th><th>Falls</th><th>Speed error (m/s)</th>"
+                 "<th>Turn-rate error (rad/s)</th><th>Mean max lateral deviation (m)</th></tr>"
+                 + "".join(rows) + "</table>"))
+    print("Passed the declared command checks." if verdict["passed"] else
+          "Needs more work: " + "; ".join(verdict["failures"]))
+    return verdict
 ''')
     md("""## 3 · Train the command-walking baseline
 
@@ -188,6 +210,7 @@ We test the same policy at several speeds and turn rates. The plots show measure
     code('''run_module("bdxr_classroom.command_evaluate", BASELINE / "checkpoints/final.pt",
            "--cases", "slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence",
            "--episodes", 5, "--seconds", 15)
+BASELINE_CHECK = summarize_commands(BASELINE)
 for case in ["forward", "sequence"]:
     display(Video(str(BASELINE / "videos/final_commands" / (case + ".mp4")), embed=True, width=640))
     display(Image(filename=str(BASELINE / "evaluation/final_commands" / (case + ".png"))))
@@ -213,8 +236,8 @@ VARIATION_STEPS = 3000  # @param {type:"integer"}
 changed = ["--smoothness", 3] if EXPERIMENT == "smoother" else (["--swing-height", 0.09] if EXPERIMENT == "higher_steps" else [])
 example = WORK / "assets/lesson/style_comparison"
 print(json.loads((example / "provenance.json").read_text())["caption"])
-display(Video(str(example / "gyro_style_comparison.mp4"), embed=True, width=720))
-display(Image(filename=str(example / "gyro_style_comparison.png")))
+display(Video(str(example / "walking_style_comparison.mp4"), embed=True, width=720))
+display(Image(filename=str(example / "walking_style_comparison.png")))
 print("Prediction:", PREDICTION)
 VARIATION = train(EXPERIMENT, *COMMAND_OPTIONS,
                   "--steps", VARIATION_STEPS, "--minutes", 10,
@@ -230,6 +253,7 @@ for label, experiment in comparisons:
                "--cases", "slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence",
                "--episodes", 5, "--seconds", 15)
     report = json.loads((experiment / "evaluation/final_commands/summary.json").read_text())
+    summarize_commands(experiment)
     forward = report["cases"]["forward"]
     updates = json.loads((experiment / "metrics/timing.json").read_text())["step"]
     print(f"{label}: {updates} updates | action-change RMS = {mean(r['action_change_rms'] for r in forward):.3f}"
