@@ -102,6 +102,7 @@
     "motion": "moving_hops/motion.png",
     "learning_curve": "moving_hops/learning_curves.png",
     "caption": "Small moving hops after stationary, moving, and terrain training. Two 15-trial terrain screens passed with zero falls, as did flat/on-step handovers with the validated walker. All 25 backward/turn trials stayed upright and moved in the requested directions. The target is 4.5 cm sole clearance; these five slow trials measured a mean peak of about 3.7 cm and 11 landed hops per 15 seconds. The learning curve shows the final terrain stage; parent stages are recorded in the experiment lineage.",
-    "experiment": "experiments/2026-10-08_053242_824689_fresh_parent_hop_height45mm"
+    "experiment": "experiments/2026-10-08_053242_824689_fresh_parent_hop_height45mm",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/i90z95hq"
   }
 ]

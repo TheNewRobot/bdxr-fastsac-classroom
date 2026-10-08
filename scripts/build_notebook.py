@@ -249,6 +249,9 @@ if not BASELINE_CHECK["passed"]:
     BASELINE_CHECK = evaluate_walking_run(BASELINE)
 if not BASELINE_CHECK["passed"]:
     raise RuntimeError("The walking baseline still needs work. Inspect its reports before starting style experiments.")
+if BASELINE != INITIAL_BASELINE:
+    run_module("bdxr_classroom.plots", BASELINE)
+    display(Image(filename=str(BASELINE / "metrics/learning_curves.png")))
 for case in ["forward", "sequence"]:
     display(Video(str(BASELINE / "videos/final_commands" / (case + ".mp4")), embed=True, width=640))
     display(Image(filename=str(BASELINE / "evaluation/final_commands" / (case + ".png"))))
@@ -301,6 +304,8 @@ for label, experiment in comparisons:
     print(f"{label}: {steps} parallel simulation steps | action-change RMS = {mean(r['action_change_rms'] for r in forward):.3f}"
           f" | foot swing = {mean(r['swing_height_p95'] for r in forward):.3f} m"
           f" | cross-track = {mean(r['max_cross_track_m'] for r in forward):.3f} m")
+    run_module("bdxr_classroom.plots", experiment)
+    display(Image(filename=str(experiment / "metrics/learning_curves.png")))
     display(Video(str(experiment / "videos/final_commands/sequence.mp4"), embed=True, width=640))
 SELECTED_WALK_CHECKPOINT = select_checkpoint(walking_candidates)
 WALKING_VALIDATED = SELECTED_WALK_CHECKPOINT is not None
