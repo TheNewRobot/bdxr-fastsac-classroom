@@ -19,7 +19,10 @@ def main():
     parser.add_argument("--hopping")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--run-root", default="experiments")
+    parser.add_argument("--course-config", type=Path)
+    parser.add_argument("--operator", default="human")
     args = parser.parse_args()
+    course = json.loads(args.course_config.read_text()) if args.course_config else None
     commands = queue.Queue()
     shared = {"status": {"message": "Loading the robot and policies…", "ready": False}, "frame": None}
     stopping = threading.Event()
@@ -29,7 +32,8 @@ def main():
         render_requested = True
         last_frame = None
         try:
-            game = GameSession(args.walking, args.hopping, run_root=args.run_root)
+            game = GameSession(args.walking, args.hopping, run_root=args.run_root,
+                               course=course, operator=args.operator)
             while not stopping.is_set():
                 start = time.monotonic()
                 while not commands.empty():
@@ -44,7 +48,8 @@ def main():
                             game.close()
                             game = None
                             shared["status"] = {"message": "Loading selected policies…", "ready": False}
-                            game = GameSession(walking, hopping, run_root=args.run_root)
+                            game = GameSession(walking, hopping, run_root=args.run_root,
+                                               course=course, operator=args.operator)
                             render_requested = True
                         elif game is None:
                             raise ValueError("Load valid policies to start the simulator")
@@ -54,16 +59,7 @@ def main():
                         elif action == "pause":
                             game.pause()
                         elif action == "camera":
-                            import mujoco
-                            camera = game.env._offline_renderer._cam
-                            if command.get("view") == "overview":
-                                camera.type = mujoco.mjtCamera.mjCAMERA_FREE
-                                camera.lookat[:] = [6, 0, 0]
-                                camera.distance, camera.azimuth, camera.elevation = 14, 90, -65
-                            else:
-                                camera.type = mujoco.mjtCamera.mjCAMERA_TRACKING
-                                camera.trackbodyid = game.env.scene["robot"].indexing.root_body_id
-                                camera.distance, camera.azimuth, camera.elevation = 2, 140, -18
+                            game.set_camera(command.get("view", "follow"))
                             render_requested = True
                         else:
                             game.command(command.get("speed", 0), command.get("yaw", 0),

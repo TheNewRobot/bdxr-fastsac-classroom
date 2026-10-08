@@ -240,6 +240,24 @@ class GameSession:
         self.last_frame = np.asarray(frame)
         return self.last_frame
 
+    def set_camera(self, view):
+        """Change the player's view without changing policy observations."""
+        import mujoco
+        if view not in ("follow", "top", "overview"):
+            raise ValueError("Unknown camera view")
+        if self.env._offline_renderer is None:
+            self.render()
+        camera = self.env._offline_renderer._cam
+        if view == "overview":
+            camera.type = mujoco.mjtCamera.mjCAMERA_FREE
+            camera.lookat[:] = [6, 0, 0]
+            camera.distance, camera.azimuth, camera.elevation = 14, 90, -65
+        else:
+            camera.type = mujoco.mjtCamera.mjCAMERA_TRACKING
+            camera.trackbodyid = self.env.scene["robot"].indexing.root_body_id
+            camera.distance, camera.azimuth, camera.elevation = (
+                (3.2, 90, -70) if view == "top" else (2, 140, -18))
+
     def jpeg(self):
         if self.last_frame is None:
             self.render()

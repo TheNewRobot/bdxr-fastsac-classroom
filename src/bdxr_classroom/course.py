@@ -74,7 +74,9 @@ def build_course(spec, cfg=CourseConfig()):
             base = cfg.finish_height if x == 12 else 0
             geom(f"post_{x}_{y}", cylinder, (x, y, base + .13), (.045, .13, 0), metal, False)
             geom(f"light_{x}_{y}", sphere, (x, y, base + .28), (.055, 0, 0), blue, False)
-    for x in [0, 12]:
+    # Keep the decorative start beam behind the spawn so the top camera can
+    # see the droid clearly before its first step.
+    for x in [-.5, 12]:
         base = cfg.finish_height if x == 12 else 0
         geom(f"gate_{x}", box, (x, 0, base + .85), (.055, 1.0, .05), metal, False)
         geom(f"gate_glow_{x}", box, (x - .056, 0, base + .85), (.004, .75, .017), blue, False)
