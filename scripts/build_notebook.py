@@ -12,9 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     cells = []
     def md(text):
-        cells.append(nbf.v4.new_markdown_cell(text))
+        cell = nbf.v4.new_markdown_cell(text)
+        cell.id = f"lesson-{len(cells):02d}"
+        cells.append(cell)
     def code(text, hidden=False):
         cell = nbf.v4.new_code_cell(text)
+        cell.id = f"lesson-{len(cells):02d}"
         if hidden:
             cell.metadata["cellView"] = "form"
         cells.append(cell)
