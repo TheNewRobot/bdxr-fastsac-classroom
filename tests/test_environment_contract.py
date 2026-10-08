@@ -9,6 +9,24 @@ from bdxr_classroom.environment import make_env, step_and_reset
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
 class EnvironmentContract(unittest.TestCase):
+    def test_varied_terrain_starts_preserve_actor_contract(self):
+        env = make_env(64, task_version="hop", training_terrain_height=.025,
+                       training_terrain_style="mixed", training_start_span=1.5)
+        try:
+            obs, _ = env.reset(seed=123)
+            self.assertEqual(env.cfg.events["reset_base"].params["pose_range"]["x"], (-1.5, 1.5))
+            self.assertTrue((env.scene["robot"].data.root_link_pos_w[:, 0].abs() > .5).any())
+            self.assertEqual(obs["actor"].shape, (64, 49))
+            self.assertEqual(obs["critic"].shape, (64, 64))
+            self.assertEqual(set(env.cfg.observations["actor"].terms), {
+                "base_ang_vel", "projected_gravity", "joint_pos", "joint_vel",
+                "actions", "command", "hop_phase",
+            })
+            result = step_and_reset(env, torch.zeros((64, 10), device=env.device))
+            self.assertTrue(torch.isfinite(result[2]).all())
+        finally:
+            env.close()
+
     def test_sole_measurement_detects_pipe_beneath_toe(self):
         from mjlab.utils.lab_api.math import quat_apply
         from bdxr_classroom.training_terrain import ground_height, sampled_sole_clearance

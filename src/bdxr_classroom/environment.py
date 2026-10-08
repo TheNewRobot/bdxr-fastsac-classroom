@@ -21,7 +21,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              linear_weight=None, swing_height=None, training_terrain_height=0.0,
              training_terrain_style="steps", yaw_bias_weight=0.0, reward_scale=1.0,
              linear_tracking="instant", hop_height_reward="continuous",
-             hop_clearance="site"):
+             hop_clearance="site", training_start_span=0.2):
     if hop_clearance not in ("site", "sole"):
         raise ValueError("Hop clearance must use site or sole measurements")
     cfg = bdxr_flat_env_cfg()
@@ -146,7 +146,9 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
             raise ValueError("Unknown practice terrain style")
         cfg.scene.spec_fn = partial(build_training_terrain, height=training_terrain_height,
                                    style=training_terrain_style)
-        cfg.events["reset_base"].params["pose_range"]["x"] = (-.2, .2)
+        if not 0 <= training_start_span < float("inf"):
+            raise ValueError("Training start span must be finite and nonnegative")
+        cfg.events["reset_base"].params["pose_range"]["x"] = (-training_start_span, training_start_span)
     if course is not None:
         from .course import CourseConfig, build_course
         if num_envs != 1:

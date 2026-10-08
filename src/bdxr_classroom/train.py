@@ -40,6 +40,8 @@ def main():
     p.add_argument("--swing-height", type=float)
     p.add_argument("--training-terrain-height", type=float, default=0.0)
     p.add_argument("--training-terrain-style", choices=["steps", "mixed"], default="steps")
+    p.add_argument("--training-start-span", type=float, default=0.2,
+                   help="Terrain practice resets uniformly within +/- this distance in metres")
     p.add_argument("--proprio-only", action=argparse.BooleanOptionalAction, default=False,
                    help="Optional symmetric-critic ablation; default critic uses privileged observations")
     p.add_argument("--task-version", choices=["v1", "v2", "hop"], default="v2")
@@ -81,7 +83,8 @@ def main():
                     "actor_hidden", "critic_hidden", "gamma", "compile", "amp",
                     "command_mode", "speed_min", "speed_max", "yaw_max", "yaw_weight",
                     "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
-                    "training_terrain_height", "training_terrain_style", "yaw_bias_weight", "reward_scale",
+                    "training_terrain_height", "training_terrain_style", "training_start_span",
+                    "yaw_bias_weight", "reward_scale",
                     "linear_tracking", "hop_height_reward", "hop_clearance", "mirror_replay"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
@@ -116,6 +119,7 @@ def main():
                  linear_weight=args.linear_weight, swing_height=args.swing_height,
                  training_terrain_height=args.training_terrain_height,
                  training_terrain_style=args.training_terrain_style,
+                 training_start_span=args.training_start_span,
                  yaw_bias_weight=args.yaw_bias_weight, reward_scale=args.reward_scale,
                  linear_tracking=args.linear_tracking, hop_height_reward=args.hop_height_reward,
                  hop_clearance=args.hop_clearance)
