@@ -212,6 +212,7 @@ Predict: what would a robot do if speed tracking mattered but turning error bare
     code('''BASELINE = train("command_walking_baseline",
                  *COMMAND_OPTIONS,
                  "--steps", TRAIN_STEPS, "--minutes", TRAIN_MINUTES)
+INITIAL_BASELINE = BASELINE
 print("Your experiment:", BASELINE)
 print("Before learning:")
 show_motion(BASELINE, "initial")
@@ -227,12 +228,27 @@ We test the same policy at several speeds and turn rates. The plots show measure
 **Position and heading are evaluation measurements, not actor inputs.** Check drift as well as falls. Repeated starting states test one trained policy; they are not independent training runs.
 
 Lateral deviation is a straight-line check only. A curved path is expected when the command asks for a turn.
+
+If the first checkpoint misses the checks, try one unchanged continuation.
+Style experiments start only after the walking baseline passes.
 """)
-    code('''baseline_digest = checkpoint_digest(BASELINE / "checkpoints/final.pt")
-run_module("bdxr_classroom.command_evaluate", BASELINE / "checkpoints/final.pt",
-           "--cases", "slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence",
-           "--episodes", 5, "--seconds", 15)
-BASELINE_CHECK = summarize_commands(BASELINE, baseline_digest)
+    code('''def evaluate_walking_run(run):
+    digest_before = checkpoint_digest(run / "checkpoints/final.pt")
+    run_module("bdxr_classroom.command_evaluate", run / "checkpoints/final.pt",
+               "--cases", "slow", "forward", "fast", "backward", "stop",
+               "turn_left", "turn_right", "left", "right", "sequence",
+               "--episodes", 5, "--seconds", 15)
+    return summarize_commands(run, digest_before)
+
+BASELINE_CHECK = evaluate_walking_run(BASELINE)
+if not BASELINE_CHECK["passed"]:
+    print("The first checkpoint needs more practice. Continuing with unchanged behavior settings.")
+    BASELINE = train("command_walking_recovery", *COMMAND_OPTIONS,
+                     "--steps", 3000, "--minutes", 10,
+                     "--resume", BASELINE / "checkpoints/final.pt", "--finetune")
+    BASELINE_CHECK = evaluate_walking_run(BASELINE)
+if not BASELINE_CHECK["passed"]:
+    raise RuntimeError("The walking baseline still needs work. Inspect its reports before starting style experiments.")
 for case in ["forward", "sequence"]:
     display(Video(str(BASELINE / "videos/final_commands" / (case + ".mp4")), embed=True, width=640))
     display(Image(filename=str(BASELINE / "evaluation/final_commands" / (case + ".png"))))
@@ -302,7 +318,7 @@ A marker above the foot can rise while the heel stays close to the floor.
 Check the lowest sole clearance and contact state before claiming that a hop can clear an obstacle.
 
 This extended lab uses a curriculum: stationary hops → moving hops → clearance over small physical obstacles.
-The last stage measures the sole, rather than the foot marker, and practices on
+The last stage requests 4.5 cm sole clearance and practices on
 25 mm terrain from varied starting positions. This exposes the policy to more
 foot placements; it does not give the actor a terrain map. Inspect each stage;
 flat-floor success does not prove obstacle capability.
@@ -338,7 +354,7 @@ if TRAIN_HOPPING:
     HOP_RESULTS = train("terrain_hops", "--task-version", "hop", "--speed", 0.3,
                         "--command-mode", "balanced", "--speed-min", -0.1, "--speed-max", 0.3,
                         "--yaw-max", 0.3, "--yaw-tracking", "rate", "--yaw-std", 0.2,
-                        "--hop-height", 0.04, "--hop-body-weight", 6, "--linear-weight", 6,
+                        "--hop-height", 0.045, "--hop-body-weight", 6, "--linear-weight", 6,
                         "--hop-clearance", "sole", "--hop-height-reward", "flight", "--mirror-replay",
                         "--training-terrain-height", 0.025, "--training-terrain-style", "mixed",
                         "--training-start-span", 1.5,
@@ -448,10 +464,12 @@ def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
     started = time.monotonic()
     destination = WORK / ("my_bdxr_training_backup.zip" if include_replay else "my_bdxr_results.zip")
     temporary = destination.with_suffix(".tmp.zip")
-    folders = list(dict.fromkeys([BASELINE, VARIATION, CONTROL] +
+    folders = list(dict.fromkeys([INITIAL_BASELINE, BASELINE, VARIATION, CONTROL] +
                                  [run for run in [TINY_HOPS, MOVING_HOPS, HOP_RESULTS] if run]))
+    folders += list((WORK / "experiments").glob("*_command_walking_recovery"))
     folders += list((WORK / "experiments").glob("*_desert_droid_game"))
     folders += list((WORK / "experiments").glob("*_transition_validation"))
+    folders = list(dict.fromkeys(folders))
     print("Creating backup. Replay files can take several minutes to save.", flush=True)
     with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as archive:
         for index, folder in enumerate(folders, 1):
