@@ -281,7 +281,10 @@ A marker above the foot can rise while the heel stays close to the floor.
 Check the lowest sole clearance and contact state before claiming that a hop can clear an obstacle.
 
 This extended lab uses a curriculum: stationary hops → moving hops → clearance over small physical obstacles.
-The last stage measures the sole, rather than the foot marker. Inspect each stage; flat-floor success does not prove obstacle capability.
+The last stage measures the sole, rather than the foot marker, and practices on
+25 mm terrain from varied starting positions. This exposes the policy to more
+foot placements; it does not give the actor a terrain map. Inspect each stage;
+flat-floor success does not prove obstacle capability.
 
 Compare the final checkpoint with the earlier 1,000-step checkpoint. Each must
 complete five trials per command without falling, land at least five hops per trial,
@@ -312,7 +315,8 @@ if TRAIN_HOPPING:
                         "--yaw-max", 0.3, "--yaw-tracking", "rate", "--yaw-std", 0.2,
                         "--hop-height", 0.04, "--hop-body-weight", 6, "--linear-weight", 6,
                         "--hop-clearance", "sole", "--hop-height-reward", "flight", "--mirror-replay",
-                        "--training-terrain-height", 0.015, "--training-terrain-style", "mixed",
+                        "--training-terrain-height", 0.025, "--training-terrain-style", "mixed",
+                        "--training-start-span", 1.5,
                         "--steps", 2000, "--minutes", 10,
                         "--resume", MOVING_HOPS / "checkpoints/final.pt", "--finetune")
     import sys, hashlib
