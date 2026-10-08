@@ -9,6 +9,22 @@ from bdxr_classroom.environment import make_env, step_and_reset
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
 class EnvironmentContract(unittest.TestCase):
+    def test_training_jitter_varies_proprioception_without_privileged_actor_fields(self):
+        env = make_env(64, task_version="hop", initial_jitter=.03)
+        try:
+            obs, _ = env.reset(seed=123)
+            pose = env.cfg.events["reset_base"].params["pose_range"]
+            self.assertEqual(pose["roll"], (-.03, .03))
+            self.assertEqual(pose["pitch"], (-.03, .03))
+            self.assertEqual(obs["actor"].shape, (64, 49))
+            self.assertEqual(obs["critic"].shape, (64, 64))
+            self.assertNotIn("base_lin_vel", env.cfg.observations["actor"].terms)
+            gravity = env.scene["robot"].data.projected_gravity_b
+            self.assertGreater(float(gravity[:, :2].std(dim=0).min()), .005)
+            self.assertGreater(float(env.scene["robot"].data.joint_pos.std(dim=0).mean()), .005)
+        finally:
+            env.close()
+
     def test_varied_terrain_starts_preserve_actor_contract(self):
         env = make_env(64, task_version="hop", training_terrain_height=.025,
                        training_terrain_style="mixed", training_start_span=1.5)
