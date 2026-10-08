@@ -8,7 +8,8 @@ Train, measure, change one parameter, and play a small desert-droid course.
 **Status:** command walking, controlled style comparisons, repeated hopping and
 walk/hop handovers have been evaluated locally. The lesson includes a complete
 recorded course run. Notebook integration and browser controls have passed local
-checks; a further fresh training run is underway.
+checks. An additional fresh run missed a backward-drift check; recipe
+validation continues.
 Actual Google Colab execution has not been performed.
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
