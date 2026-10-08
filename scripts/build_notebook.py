@@ -395,8 +395,32 @@ try:
 except ImportError:
     display(IFrame(f"http://127.0.0.1:{GAME_PORT}", width="100%", height=950))
 print("Game logs and recordings:", status["experiment"])
-print("After playing, pause the game and run export_results() again to include the gameplay files.")
+print("After playing, run the next cell to pause, watch your recording, and save the backup.")
 ''')
+    code('''# @title After playing: watch and save your run
+with urllib.request.urlopen(f"http://127.0.0.1:{GAME_PORT}/api/state", timeout=5) as response:
+    saved_game = json.load(response)
+if not saved_game.get("paused", True):
+    request = urllib.request.Request(
+        f"http://127.0.0.1:{GAME_PORT}/api/command",
+        data=json.dumps({"action": "pause"}).encode(),
+        headers={"Content-Type": "application/json"})
+    urllib.request.urlopen(request, timeout=5).close()
+    for _ in range(100):
+        with urllib.request.urlopen(f"http://127.0.0.1:{GAME_PORT}/api/state", timeout=5) as response:
+            saved_game = json.load(response)
+        if saved_game.get("paused"):
+            break
+        time.sleep(0.1)
+    else:
+        raise RuntimeError("Pause the game before exporting its recording.")
+recordings = sorted((WORK / saved_game["experiment"] / "videos").glob("gameplay_*.mp4"))
+for recording in recordings:
+    display(Video(str(recording), embed=True, width=640))
+if not recordings:
+    print("No gameplay recorded yet. Drive the droid, then run this cell again.")
+export_results()
+''', hidden=True)
     nb = nbf.v4.new_notebook(cells=cells, metadata={
         "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
         "language_info": {"name": "python"}, "accelerator": "GPU",
