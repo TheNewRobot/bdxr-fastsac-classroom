@@ -498,8 +498,12 @@ def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
     return destination
 
 export_results()
-print("To resume: unpack the backup into WORK, then train with --resume experiments/<run>/checkpoints/resume.pt.")
-print("Networks, optimizers, normalization and replay are restored; simulated episodes restart.")
+if INCLUDE_REPLAY_IN_EXPORT:
+    print("To resume: unpack the backup into WORK, then train with --resume experiments/<run>/checkpoints/resume.pt.")
+    print("Networks, optimizers, normalization and replay are restored; simulated episodes restart.")
+else:
+    print("Replay was omitted. To start a new fine-tuning run, unpack into WORK and use --resume experiments/<run>/checkpoints/final.pt --finetune.")
+    print("This reuses trained networks with a new replay buffer, rather than restoring collected experience.")
 ''')
     md("""## 8 · Play: Desert Droid Run
 
