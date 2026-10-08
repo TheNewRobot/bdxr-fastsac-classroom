@@ -48,6 +48,11 @@ def main():
                    hop_height=cfg.get("hop_height", 0.04),
                    hop_body_weight=cfg.get("hop_body_weight", 0.0),
                    proprio_only=cfg.get("proprio_only", False),
+                   linear_weight=cfg.get("linear_weight"),
+                   linear_tracking=cfg.get("linear_tracking", "instant"),
+                   swing_height=cfg.get("swing_height"),
+                   yaw_bias_weight=cfg.get("yaw_bias_weight", 0),
+                   reward_scale=cfg.get("reward_scale", 1),
                    initial_jitter=args.initial_jitter)
     env.cfg.episode_length_s = args.seconds
     foot_ids, _ = env.scene["robot"].find_sites(["left_foot", "right_foot"])

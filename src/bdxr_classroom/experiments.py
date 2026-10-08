@@ -52,12 +52,14 @@ def jsonable(value):
 
 
 def write_manifest(out, config, env_config):
+    source = Path(__file__).resolve().parents[2]
     try:
-        revision = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-        dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], text=True).strip())
+        revision = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=source, stderr=subprocess.DEVNULL, text=True).strip()
+        dirty = bool(subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=source, stderr=subprocess.DEVNULL, text=True).strip())
     except subprocess.CalledProcessError:
         revision, dirty = None, None
-    source = Path(__file__).resolve().parents[2]
     (out / "config/environment.json").write_text(json.dumps(jsonable(env_config), indent=2))
     pins = source / "configs/upstream_revisions.json"
     manifest = {
