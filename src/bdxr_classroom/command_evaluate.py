@@ -1,9 +1,11 @@
 """Evaluate command tracking and path following with full world trajectories."""
 
 import argparse
+import hashlib
 import json
 import math
 import os
+import time
 from pathlib import Path
 
 os.environ.setdefault("MUJOCO_GL", "egl")
@@ -25,6 +27,22 @@ from .behaviors import imu_turn_rate
 
 def wrap(angle):
     return (angle + math.pi) % (2 * math.pi) - math.pi
+
+
+def preserve_previous_evaluation(output, video_dir):
+    """Keep a repeated evaluation's earlier measurements and recordings together."""
+    if output.exists() and any(output.iterdir()):
+        suffix = f"_previous_{time.time_ns()}"
+        archived = output.with_name(output.name + suffix)
+        output.rename(archived)
+        if video_dir.exists():
+            video_dir.rename(video_dir.with_name(video_dir.name + suffix))
+        print(f"Preserved previous evaluation: {archived}", flush=True)
+
+
+def checkpoint_hash(checkpoint):
+    with Path(checkpoint).open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
 def set_command(env, vx, wz):
@@ -188,11 +206,15 @@ def main():
     root = experiment_root(checkpoint)
     suffix = f"_{args.terrain_style}_{args.terrain_height:g}" if args.terrain_height else ""
     output = Path(args.output) if args.output else root / "evaluation" / (checkpoint.stem + "_commands" + suffix)
-    output.mkdir(parents=True, exist_ok=True)
     video_dir = root / "videos" / output.name
+    preserve_previous_evaluation(output, video_dir)
+    output.mkdir(parents=True, exist_ok=True)
     if not args.no_video:
         video_dir.mkdir(parents=True, exist_ok=True)
+    digest = checkpoint_hash(checkpoint)
     agent, cfg = load_agent(checkpoint, args.episodes)
+    if checkpoint_hash(checkpoint) != digest:
+        raise RuntimeError("Checkpoint changed while loading; evaluate stable saved weights.")
     env = make_env(args.episodes, cfg["speed"], cfg["smoothness"], render=not args.no_video,
                    task_version=cfg.get("task_version", "v2"), initial_jitter=0.015,
                    hop_height=cfg.get("hop_height", .04), hop_body_weight=cfg.get("hop_body_weight", 0),
@@ -208,7 +230,9 @@ def main():
                    linear_tracking=cfg.get("linear_tracking", "instant"),
                    hop_height_reward=cfg.get("hop_height_reward", "continuous"),
                    hop_clearance=cfg.get("hop_clearance", "site"))
-    result = {"checkpoint": str(checkpoint), "cases": {}, "terrain_height_m": args.terrain_height,
+    result = {"checkpoint": str(checkpoint), "checkpoint_sha256": digest,
+             "evaluation_directory": str(output), "evaluated_at_ns": time.time_ns(),
+             "cases": {}, "terrain_height_m": args.terrain_height,
              "foot_height_measurement": (
                  "Sampled collision-sole clearance above terrain; not body jump height"
                  if cfg.get("hop_clearance") == "sole" else
