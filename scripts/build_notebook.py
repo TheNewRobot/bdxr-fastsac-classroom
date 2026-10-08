@@ -159,9 +159,13 @@ def train(name, *arguments):
                "--compile", "--wandb-mode", WANDB_MODE, "--result-file", pointer, *arguments)
     return Path(pointer.read_text().strip())
 
-def show_motion(run, checkpoint="final"):
-    run_module("bdxr_classroom.evaluate", run / "checkpoints" / (checkpoint + ".pt"), "--episodes", 1)
-    report = json.loads((run / "evaluation" / ("eval_" + checkpoint) / "evaluation.json").read_text())
+def show_motion(run, checkpoint="final", speed=None):
+    suffix = "" if speed is None else f"_speed_{speed:g}"
+    output = run / "evaluation" / ("eval_" + checkpoint + suffix)
+    options = [] if speed is None else ["--speed", speed]
+    run_module("bdxr_classroom.evaluate", run / "checkpoints" / (checkpoint + ".pt"),
+               "--episodes", 1, "--output", output, *options)
+    report = json.loads((output / "evaluation.json").read_text())
     display(Video(report["video_path"], embed=True, width=640))
 
 def summarize_commands(run):
@@ -290,7 +294,7 @@ if TRAIN_HOPPING:
                         "--hop-height", 0.07, "--hop-body-weight", 6, "--linear-weight", 6,
                         "--steps", 6000, "--minutes", 15,
                         "--resume", TINY_HOPS / "checkpoints/final.pt", "--finetune")
-    show_motion(MOVING_HOPS)
+    show_motion(MOVING_HOPS, speed=0.15)
     HOP_RESULTS = train("terrain_hops", "--task-version", "hop", "--speed", 0.3,
                         "--command-mode", "balanced", "--speed-min", -0.1, "--speed-max", 0.3,
                         "--yaw-max", 0.3, "--yaw-tracking", "rate", "--yaw-std", 0.2,
