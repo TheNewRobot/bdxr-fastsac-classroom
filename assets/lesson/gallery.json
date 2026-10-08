@@ -91,9 +91,9 @@
     "id": "course_run",
     "title": "Desert Droid Run",
     "video": "course_run/rollout.mp4",
-    "caption": "45.72 simulation seconds, zero falls, all three obstacles and the rough patch crossed before the raised finish. Classroom obstacles: 17.5\u201320 mm; ascent: 18 cm. Uses the fresh walking policy and the varied-start hopping curriculum. Visually directed speed/yaw/mode commands with pauses; not autonomous navigation or a real-time human play test. An earlier attempt missed an obstacle and was retained as incomplete.",
-    "experiment": "experiments/2026-10-08_042912_469752_manual_course_trial",
-    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/9y5k7mzb"
+    "caption": "47.4 simulation seconds, zero falls, all three obstacles and the rough patch crossed before the raised finish. Classroom obstacles: 17.5\u201320 mm; ascent: 18 cm. Uses the validated walking continuation and the 4.5 cm target hopping policy, which passed two terrain screens and repeated flat/on-step handovers. Visually steered speed/yaw/mode commands with pauses; this is not an autonomous-navigation or real-time human play test.",
+    "experiment": "experiments/2026-10-08_054121_698631_manual_course_trial",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/3ylfcwbx"
   },
   {
     "id": "moving_hops",
@@ -101,8 +101,7 @@
     "video": "moving_hops/rollout.mp4",
     "motion": "moving_hops/motion.png",
     "learning_curve": "moving_hops/learning_curves.png",
-    "caption": "Small moving hops on 15 mm practice terrain after stationary, moving, and varied-start terrain training. Five slow-command trials: zero falls, mean peak simultaneous sole clearance 3.0 cm, and 9.6 landed hops per 15 seconds. Body rise is a different measurement. This 2,000-step terrain checkpoint passed flat/on-step handovers and completed the recorded course. Later training regressed; more steps are not automatically better. A repeated evaluation of these same weights later missed a forward hop-count requirement; that failure is preserved with the experiment.",
-    "experiment": "experiments/2026-10-08_041447_469611_hop_height25_varied_starts",
-    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/kdqtmoqs"
+    "caption": "Small moving hops after stationary, moving, and terrain training. Two 15-trial terrain screens passed with zero falls, as did flat/on-step handovers with the validated walker. All 25 backward/turn trials stayed upright and moved in the requested directions. The target is 4.5 cm sole clearance; these five slow trials measured a mean peak of about 3.7 cm and 11 landed hops per 15 seconds. The learning curve shows the final terrain stage; parent stages are recorded in the experiment lineage.",
+    "experiment": "experiments/2026-10-08_053242_824689_fresh_parent_hop_height45mm"
   }
 ]

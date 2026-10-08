@@ -22,8 +22,8 @@ class NotebookExports(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             work = Path(temporary)
             runs = []
-            for name in ("baseline", "variation", "control", "tiny", "moving", "terrain",
-                         "desert_droid_game", "transition_validation"):
+            for name in ("command_walking_recovery", "variation", "control", "tiny", "moving", "terrain",
+                         "desert_droid_game", "transition_validation", "initial"):
                 run = work / "experiments" / ("2026-01-01_" + name)
                 (run / "checkpoints").mkdir(parents=True)
                 # File-preservation fixtures, not purported trained policies.
@@ -33,6 +33,7 @@ class NotebookExports(unittest.TestCase):
                 (run / "wandb/private.log").write_text("excluded fixture")
                 runs.append(run)
             namespace = dict(WORK=work, zipfile=zipfile, INCLUDE_REPLAY_IN_EXPORT=True,
+                             INITIAL_BASELINE=runs[-1],
                              **dict(zip(("BASELINE", "VARIATION", "CONTROL", "TINY_HOPS",
                                          "MOVING_HOPS", "HOP_RESULTS"), runs[:6])))
             exec(compile(ast.Module(body=[function], type_ignores=[]), "<export-cell>", "exec"),
