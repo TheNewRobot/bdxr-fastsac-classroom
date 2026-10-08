@@ -296,6 +296,8 @@ if TRAIN_HOPPING:
                         "--steps", 2000, "--minutes", 10,
                         "--resume", MOVING_HOPS / "checkpoints/final.pt", "--finetune")
     show_motion(HOP_RESULTS)
+    print("Compare body rise, sole clearance, and knee angles: these are different quantities.")
+    display(Image(filename=str(HOP_RESULTS / "evaluation/eval_final/motion.png")))
     run_module("bdxr_classroom.command_evaluate", HOP_RESULTS / "checkpoints/final.pt",
                "--cases", "slow", "forward", "stop", "--episodes", 5, "--seconds", 15,
                "--terrain-height", 0.015, "--terrain-style", "mixed")
