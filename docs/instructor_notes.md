@@ -19,6 +19,8 @@ The full head remains physically present and is held near its neutral pose.
 Speed is not straightness. A robot can move forward in its own body frame
 while curving across the floor. Trajectory and yaw-rate plots expose this.
 Evaluation position measurements do not become policy inputs.
+Sideways motion can also cause drift without much turning. Simulator velocity
+can score this during training while staying out of the actor's observations.
 
 Changing the speed command differs from retraining a reward setting.
 Use the same baseline and equal training budgets for parameter comparisons.
