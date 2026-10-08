@@ -9,6 +9,28 @@ from bdxr_classroom.environment import make_env, step_and_reset
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
 class EnvironmentContract(unittest.TestCase):
+    def test_command_inputs_and_privileged_critic_separation(self):
+        from bdxr_classroom.command_evaluate import set_command
+        env = make_env(4, command_mode="mixed")
+        try:
+            env.reset(seed=123)
+            actor_terms = set(env.cfg.observations["actor"].terms)
+            self.assertEqual(actor_terms, {
+                "base_ang_vel", "projected_gravity", "joint_pos",
+                "joint_vel", "actions", "command",
+            })
+            self.assertIn("base_lin_vel", env.cfg.observations["critic"].terms)
+            self.assertIn("foot_contact_forces", env.cfg.observations["critic"].terms)
+            obs = set_command(env, -0.2, -0.4)
+            requested = torch.tensor([-0.2, 0, -0.4], device="cuda").expand(4, -1)
+            torch.testing.assert_close(obs["actor"][:, -3:], requested)
+            self.assertEqual(obs["actor"].shape, (4, 47))
+            self.assertEqual(obs["critic"].shape, (4, 62))
+            _, _, _, _, _ = env.step(torch.zeros(4, 10, device="cuda"))
+            torch.testing.assert_close(env.command_manager.get_command("twist"), requested)
+        finally:
+            env.close()
+
     def test_full_robot_and_terminal_observation(self):
         env = make_env(4)
         try:

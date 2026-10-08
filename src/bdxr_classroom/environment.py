@@ -1,6 +1,7 @@
 """Flat-ground BDX-R task built on the credited upstream mjlab environment."""
 
 from dataclasses import replace
+import copy
 
 import torch
 from bdx_r_mjlab.tasks.velocity.config.bdxr.env_cfgs import bdxr_flat_env_cfg
@@ -13,7 +14,8 @@ from . import behaviors
 
 def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              task_version="v2", hop_height=0.04, hop_body_weight=0.0,
-             initial_jitter=0.0):
+             initial_jitter=0.0, command_mode="fixed", speed_min=-0.25,
+             speed_max=0.5, yaw_max=0.6, yaw_weight=4.0, proprio_only=False):
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs
@@ -39,6 +41,17 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
     command.rel_heading_envs = 0.0
     command.rel_standing_envs = 0.0
     command.debug_vis = False
+    # Legacy fixed-speed checkpoints retain their original task configuration.
+    if command_mode == "mixed":
+        command.ranges.lin_vel_x = (speed_min, speed_max)
+        command.ranges.ang_vel_z = (-yaw_max, yaw_max)
+        command.resampling_time_range = (3.0, 6.0)
+        command.rel_standing_envs = 0.1
+        command.rel_forward_envs = 0.0
+        command.rel_world_envs = 0.0
+        command.init_velocity_prob = 0.0
+        cfg.rewards["track_angular_velocity"].weight = yaw_weight
+        cfg.rewards["track_angular_velocity"].params["std"] = 0.5
     cfg.observations["actor"].enable_corruption = False
     cfg.rewards["action_rate_l2"].weight *= smoothness
     # Head stays under position control at neutral; physical head mass remains.
@@ -70,6 +83,11 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
                 params={"height": hop_height})
         for key in ["air_time", "foot_clearance", "foot_swing_height"]:
             cfg.rewards.pop(key, None)
+    allowed = {"base_ang_vel", "projected_gravity", "joint_pos", "joint_vel", "actions", "command", "hop_phase"}
+    if not set(cfg.observations["actor"].terms) <= allowed:
+        raise ValueError("Unexpected observation in proprioceptive policy")
+    if proprio_only:
+        cfg.observations["critic"] = copy.deepcopy(cfg.observations["actor"])
     robot = cfg.scene.entities["robot"]
     robot.articulation = replace(
         robot.articulation,
