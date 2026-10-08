@@ -45,6 +45,8 @@ def main():
         command.extend(["--amp", config.get("amp", "off")])
         if config.get("compile"):
             command.append("--compile")
+        if config.get("mirror_replay"):
+            command.append("--mirror-replay")
         subprocess.run(command, cwd=ROOT, env=env, check=True)
         output = Path(pointer.read_text().strip())
         subprocess.run([sys.executable, "-m", "bdxr_classroom.command_evaluate",

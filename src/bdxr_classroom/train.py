@@ -46,6 +46,7 @@ def main():
     p.add_argument("--hop-height", type=float, default=0.04)
     p.add_argument("--hop-height-reward", choices=["continuous", "flight"], default="continuous")
     p.add_argument("--hop-clearance", choices=["site", "sole"], default="site")
+    p.add_argument("--mirror-replay", action=argparse.BooleanOptionalAction, default=False)
     p.add_argument("--hop-body-weight", type=float, default=0.0)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--batch-size", type=int, default=4096)
@@ -81,7 +82,7 @@ def main():
                     "command_mode", "speed_min", "speed_max", "yaw_max", "yaw_weight",
                     "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
                     "training_terrain_height", "training_terrain_style", "yaw_bias_weight", "reward_scale",
-                    "linear_tracking", "hop_height_reward", "hop_clearance"]:
+                    "linear_tracking", "hop_height_reward", "hop_clearance", "mirror_replay"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
     cfg["experiment_path"] = str(out)
@@ -118,6 +119,12 @@ def main():
                  yaw_bias_weight=args.yaw_bias_weight, reward_scale=args.reward_scale,
                  linear_tracking=args.linear_tracking, hop_height_reward=args.hop_height_reward,
                  hop_clearance=args.hop_clearance)
+    if args.mirror_replay:
+        from .mirror import build_maps
+        cfg["mirror_maps"] = build_maps(env)
+        config_path.write_text(json.dumps(cfg, indent=2))
+        if run:
+            run.config.update({"mirror_maps": cfg["mirror_maps"]}, allow_val_change=True)
     if not existing_run:
         write_manifest(out, cfg, env.cfg)
     else:

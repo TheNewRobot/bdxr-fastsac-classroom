@@ -23,8 +23,12 @@ from holosoma.agents.fast_sac.fast_sac_utils import EmpiricalNormalization, Simp
 class FastSAC:
     def __init__(self, actor_dim, critic_dim, action_dim, cfg):
         self.cfg = cfg
+        self.replay_mirror = None
         self.dimensions = (actor_dim, critic_dim, action_dim)
         self.device = "cuda:0"
+        if cfg.get("mirror_replay", False):
+            from .mirror import ReplayMirror
+            self.replay_mirror = ReplayMirror(cfg["mirror_maps"], self.device)
         ai = {"obs": {"start": 0, "end": actor_dim, "size": actor_dim}}
         ci = {"obs": {"start": 0, "end": critic_dim, "size": critic_dim}}
         self.actor = Actor(ai, ["obs"], action_dim, cfg["num_envs"],
@@ -110,6 +114,8 @@ class FastSAC:
         metrics = {}
         for _ in range(self.cfg["updates"]):
             data = self.buffer.sample(max(1, self.cfg["batch_size"] // self.cfg["num_envs"]))
+            if self.replay_mirror is not None:
+                data = self.replay_mirror.augment(data)
             actor = self.actor_norm(data["observations"])
             critic = self.critic_norm(data["critic_observations"])
             next_actor = self.actor_norm(data["next"]["observations"])
