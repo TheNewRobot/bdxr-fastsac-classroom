@@ -19,7 +19,7 @@ from .environment import make_env
 from .experiments import experiment_root, capture_source, jsonable
 from .fastsac import FastSAC
 from .motion_metrics import count_hops
-from .training_terrain import ground_height
+from .training_terrain import ground_height, sampled_sole_clearance
 from .behaviors import imu_turn_rate
 
 
@@ -106,7 +106,9 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
             changes = (actions - previous_action).square().mean(-1).sqrt().cpu().tolist()
             previous_action = actions.clone()
             foot_positions = robot.site_pos_w[:, foot_ids]
-            feet = (foot_positions[..., 2] - ground_height(env, foot_positions)).cpu().tolist()
+            heights = (sampled_sole_clearance(env) if env.hop_clearance == "sole" else
+                       foot_positions[..., 2] - ground_height(env, foot_positions))
+            feet = heights.cpu().tolist()
             contacts = (env.scene["feet_ground_contact"].data.found > 0).reshape(env.num_envs, -1).cpu().tolist()
             joint_angles = robot.joint_pos.cpu().tolist()
             upright = (-robot.projected_gravity_b[:, 2]).cpu().tolist()
@@ -204,8 +206,13 @@ def main():
                    yaw_bias_weight=cfg.get("yaw_bias_weight", 0),
                    reward_scale=cfg.get("reward_scale", 1),
                    linear_tracking=cfg.get("linear_tracking", "instant"),
-                   hop_height_reward=cfg.get("hop_height_reward", "continuous"))
+                   hop_height_reward=cfg.get("hop_height_reward", "continuous"),
+                   hop_clearance=cfg.get("hop_clearance", "site"))
     result = {"checkpoint": str(checkpoint), "cases": {}, "terrain_height_m": args.terrain_height,
+             "foot_height_measurement": (
+                 "Sampled collision-sole clearance above terrain; not body jump height"
+                 if cfg.get("hop_clearance") == "sole" else
+                 "Foot reference-site height above pointwise terrain; not collision-sole clearance or body jump height"),
              "terrain_style": args.terrain_style if args.terrain_height else "flat",
              "yaw_measurements": "yaw_mae uses body gyro Z; imu_yaw_mae compensates tilt using gyro and gravity only",
              "straightness_cases": ["slow", "forward", "fast", "backward", "straight", "straight_fast", "straight_back"],

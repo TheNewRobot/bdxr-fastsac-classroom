@@ -3,6 +3,7 @@
 import math
 import mujoco
 import torch
+from mjlab.utils.lab_api.math import quat_apply
 
 
 def practice_steps(height):
@@ -48,3 +49,32 @@ def ground_height(env, positions):
                 positions[..., 1].abs() <= 4)
             result = torch.where(inside, torch.maximum(result, surface), result)
     return result
+
+
+def sampled_sole_clearance(env):
+    """Estimate clearance along the actual foot capsules, for rewards only.
+
+    A reference point behind a pipe can report flat ground while the toe is
+    already over it. Sample both outside capsule centerlines on each foot and
+    subtract their radius. This is a sampled clearance, not an exact collision
+    distance, and it introduces no terrain observation into the actor.
+    """
+    robot = env.scene["robot"]
+    if not hasattr(env, "_sole_clearance_geometry"):
+        names = ["left_foot_collision1", "left_foot_collision7",
+                 "right_foot_collision1", "right_foot_collision7"]
+        ids, found = robot.find_geoms(names)
+        if list(found) != names:
+            raise ValueError("Unexpected BDX-R foot collision geometry order")
+        global_ids = robot.indexing.geom_ids[ids].cpu().numpy()
+        sizes = torch.tensor(env.sim.mj_model.geom_size[global_ids],
+                             device=env.device, dtype=torch.float32)
+        distances = torch.linspace(-1, 1, 21, device=env.device)[None, None, :, None]
+        env._sole_clearance_geometry = (ids, sizes, distances * sizes[None, :, None, 1:2])
+    ids, sizes, distances = env._sole_clearance_geometry
+    positions = robot.data.geom_pos_w[:, ids]
+    axes = quat_apply(robot.data.geom_quat_w[:, ids],
+                      positions.new_tensor([0., 0., 1.]).expand_as(positions))
+    points = positions[:, :, None, :] + axes[:, :, None, :] * distances
+    clearance = points[..., 2] - ground_height(env, points) - sizes[None, :, None, 0]
+    return clearance.reshape(env.num_envs, 2, 2, 21).amin(dim=(-1, -2))
