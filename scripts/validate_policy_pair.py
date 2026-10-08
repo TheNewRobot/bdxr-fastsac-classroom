@@ -16,7 +16,8 @@ def digest(path):
 
 def history_verdict(records, walking_hash, hopping_hash):
     matching = [record for record in records
-                if record.get("walking_sha256") == walking_hash
+                if record.get("valid_evaluation", True)
+                and record.get("walking_sha256") == walking_hash
                 and record.get("hopping_sha256") == hopping_hash]
     passed = bool(matching) and all(
         record.get("weights_unchanged") is True
@@ -62,9 +63,12 @@ def main():
                 stdout=stream, stderr=subprocess.STDOUT)
         result = json.loads(report.read_text()) if report.exists() else {}
         passed = process.returncode == 0 and result.get("passed") is True
-        record["tests"][scope] = {"passed": passed, "report": str(report),
+        valid = isinstance(result.get("passed"), bool) and isinstance(result.get("reports"), list)
+        record["tests"][scope] = {"passed": passed, "valid_evaluation": valid, "report": str(report),
                                  "log": str(log), "returncode": process.returncode}
-        print(f"{scope}: {'Passed' if passed else 'Needs work'}; {report}", flush=True)
+        label = ("Passed" if passed else "Needs work") if valid else "Evaluation error; inspect log"
+        print(f"{scope}: {label}; {report}", flush=True)
+    record["valid_evaluation"] = all(test["valid_evaluation"] for test in record["tests"].values())
     record["weights_unchanged"] = (
         digest(args.walking) == walking_hash and digest(args.hopping) == hopping_hash)
     (history / f"{stamp}_pair.json").write_text(json.dumps(record, indent=2))
@@ -72,7 +76,7 @@ def main():
     verdict = history_verdict(records, walking_hash, hopping_hash)
     (args.output / "pair_selection.json").write_text(json.dumps(verdict, indent=2))
     print(json.dumps(verdict, indent=2), flush=True)
-    raise SystemExit(0 if verdict["passed"] else 1)
+    raise SystemExit(0 if verdict["passed"] else (1 if record["valid_evaluation"] else 2))
 
 
 if __name__ == "__main__":

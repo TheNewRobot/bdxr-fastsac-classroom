@@ -27,3 +27,13 @@ class PairHistory(unittest.TestCase):
         changed = dict(incomplete, weights_unchanged=False,
                        tests={"flat": {"passed": True}, "on_step": {"passed": True}})
         self.assertFalse(module.history_verdict([changed], "walk", "hop")["passed"])
+
+    def test_infrastructure_error_does_not_poison_later_real_measurement(self):
+        error = dict(walking_sha256="walk", hopping_sha256="hop",
+                     valid_evaluation=False, tests={})
+        good = dict(walking_sha256="walk", hopping_sha256="hop", weights_unchanged=True,
+                    valid_evaluation=True,
+                    tests={"flat": {"passed": True}, "on_step": {"passed": True}})
+        verdict = module.history_verdict([error, good], "walk", "hop")
+        self.assertTrue(verdict["passed"])
+        self.assertEqual(verdict["evaluation_count"], 1)

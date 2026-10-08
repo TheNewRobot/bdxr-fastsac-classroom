@@ -37,7 +37,7 @@ def main():
             scope = ("Flat-ground handovers" if args.start_x is None else
                      "Injected course start; partial diagnostic, not a full traversal")
             (game.output / "config/transition_test.json").write_text(
-                json.dumps(dict(vars(args), scope=scope), indent=2))
+                json.dumps(dict(vars(args), scope=scope), indent=2, default=str))
             if args.start_x is not None:
                 robot = game.env.scene["robot"]
                 pose = robot.data.root_link_pose_w.clone()
