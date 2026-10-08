@@ -61,6 +61,25 @@ class LearningContract(unittest.TestCase):
             restored.load(path)
             self.assertEqual(restored.scaler.state_dict(), agent.scaler.state_dict())
 
+    def test_finetune_preserves_new_random_stream_but_resume_restores_parent(self):
+        agent = self.make_agent()
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "parent.pt"
+            torch.manual_seed(10)
+            parent_cpu = torch.get_rng_state()
+            parent_cuda = torch.cuda.get_rng_state()
+            agent.save(path, 7)
+            child = self.make_agent()
+            torch.manual_seed(20)
+            child_cpu = torch.get_rng_state()
+            child_cuda = torch.cuda.get_rng_state()
+            child.load(path, replay=False, restore_rng=False)
+            self.assertTrue(torch.equal(torch.get_rng_state(), child_cpu))
+            self.assertTrue(torch.equal(torch.cuda.get_rng_state(), child_cuda))
+            child.load(path)
+            self.assertTrue(torch.equal(torch.get_rng_state(), parent_cpu))
+            self.assertTrue(torch.equal(torch.cuda.get_rng_state(), parent_cuda))
+
 
 if __name__ == "__main__":
     unittest.main()

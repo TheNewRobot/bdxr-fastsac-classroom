@@ -153,7 +153,7 @@ class FastSAC:
         torch.save(state, temp)
         temp.replace(path)
 
-    def load(self, path, replay=True):
+    def load(self, path, replay=True, restore_rng=True):
         state = torch.load(path, map_location=self.device, weights_only=False)
         if state.get("format") == "bdxr-inference-only-v1":
             raise ValueError("This is an inference-only policy; resume training from final.pt or resume.pt")
@@ -173,6 +173,7 @@ class FastSAC:
                     raise ValueError("Replay shapes differ; use --finetune to restart replay")
                 target.copy_(value)
             self.buffer.ptr = state["replay_ptr"]
-        torch.set_rng_state(state["rng"].cpu())
-        torch.cuda.set_rng_state_all([v.cpu() for v in state["cuda_rng"]])
+        if restore_rng:
+            torch.set_rng_state(state["rng"].cpu())
+            torch.cuda.set_rng_state_all([v.cpu() for v in state["cuda_rng"]])
         return state["step"]
