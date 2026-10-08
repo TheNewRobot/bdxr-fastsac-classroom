@@ -1,10 +1,21 @@
 """The scoring contract is independent of policy quality."""
 
 import unittest
-from bdxr_classroom.game import Score
+from bdxr_classroom.game import Score, PostureMonitor
 
 
 class GameRules(unittest.TestCase):
+    def test_collapsed_posture_resets_but_brief_landings_do_not(self):
+        monitor = PostureMonitor()
+        for _ in range(10):
+            self.assertFalse(monitor.update(.02, .7, .13))
+        self.assertFalse(monitor.update(.02, .99, .13))  # Upright tucked hop.
+        self.assertEqual(monitor.collapsed_seconds, 0)
+        for _ in range(26):
+            fell = monitor.update(.02, .7, .13)
+        self.assertTrue(fell)
+        self.assertFalse(PostureMonitor().update(.02, .99, .26))
+
     def test_fall_preserves_elapsed_time_and_accumulates_count(self):
         score = Score()
         score.advance(10, False, False)
