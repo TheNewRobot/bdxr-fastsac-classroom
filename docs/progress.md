@@ -13,13 +13,14 @@
   browser test passed. Reset/timer/finish contracts have unit tests.
 - The notebook is being updated and retested with this complete workflow.
 
-Selected walking and smoother/control examples passed the full command suite.
-Repeated flat-ground mode transitions passed. Obstacle crossings remain under
-development; a successful partial segment is not a full course traversal.
+The selected fresh walking policy passed the full command suite. The lesson
+includes a complete recorded course traversal using walking and hopping
+policies. Course checkpoints reject shortcuts around the obstacles.
 
 Remaining work: verification of the final student training recipe,
-terrain-capable hops and transitions, physical course
-traversal/calibration, and final notebook/browser integration checks.
+matched style comparisons, reproducible hopping training, and final
+notebook/browser integration checks. Instructor recordings and student
+training results are labeled separately.
 
 Actual Google Colab testing is separate from local validation and remains
 unperformed. Detailed logs and development records stay in ignored experiment

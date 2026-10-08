@@ -78,17 +78,6 @@
     "caption": "Preliminary fixed-speed experiments. These comparisons did not establish straight-line command control."
   },
   {
-    "id": "moving_hops",
-    "title": "Moving Hops",
-    "video": "moving_hops/rollout.mp4",
-    "motion": "moving_hops/motion.png",
-    "learning_curve": "moving_hops/learning_curves.png",
-    "caption": "Small flat-ground hops: about 1.6 cm clearance at the lowest collision-sole point. Mean forward speed 0.105 m/s against a 0.15 m/s command. A foot marker rises higher than the sole; this checkpoint has not cleared the obstacle course.",
-    "experiment": "experiments/2026-10-08_004240_908180_moving_hops",
-    "measurement_audit": "experiments/2026-10-08_021536_596261_selected_hop_sole_audit",
-    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/hf830zex"
-  },
-  {
     "id": "command_walking",
     "title": "Command Walking",
     "video": "command_walking/rollout.mp4",
@@ -105,5 +94,15 @@
     "caption": "46.58 simulation seconds, zero falls, all three obstacles and the rough patch crossed before the raised finish. Classroom obstacles: 17.5\u201320 mm; ascent: 18 cm. Visually directed speed/yaw/mode commands with pauses for inspection; this is not autonomous navigation or a real-time human play test.",
     "experiment": "experiments/2026-10-08_024023_102614_manual_course_trial",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/6qviug23"
+  },
+  {
+    "id": "moving_hops",
+    "title": "Moving Hops",
+    "video": "moving_hops/rollout.mp4",
+    "motion": "moving_hops/motion.png",
+    "learning_curve": "moving_hops/learning_curves.png",
+    "caption": "Moving hops over 15 mm practice terrain. Five perturbed starts: zero falls; mean peak simultaneous sole clearance 4.7 cm, about 14 landed hops per 15-second trial. This fine-tuned checkpoint was also used in the recorded classroom course; its long training lineage is separate from the fresh student recipe.",
+    "experiment": "experiments/2026-10-08_021905_869109_sole_hops_mirrored",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/oisxs5mw"
   }
 ]
