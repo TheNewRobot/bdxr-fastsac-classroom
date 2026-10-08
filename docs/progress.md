@@ -17,8 +17,9 @@
   Standalone evaluations record checkpoint hashes and preserve previous results
   and videos when rerun.
 
-The selected fresh walking policy and the retained matched style comparison
-passed the full command suite. The lesson includes a complete recorded course
+The selected walking baseline and both retained variations passed the full
+command suite. Their unchanged comparison continuation failed fast-walking
+drift and is labeled accordingly. The lesson includes a complete recorded course
 traversal using walking and hopping policies. Course checkpoints reject
 shortcuts around the obstacles.
 
@@ -27,7 +28,9 @@ The selected hopping checkpoint passed repeated terrain screens and flat/on-step
 handovers. Current notebook integration passed using completed real training,
 with fresh hopping checks, live browser interaction and resumable export.
 Buttons, keyboard controls, key release and focus-loss stopping were exercised
-against the simulator. A further fresh training run is underway.
+against the simulator. An additional fresh notebook run stopped because both
+its initial baseline and unchanged recovery missed the backward-drift check.
+Further recovery settings are being evaluated; the acceptance limits are unchanged.
 
 Some earlier hopping repeats failed; those results remain in the experiment
 history. The recordings do not guarantee every new training run will work.
