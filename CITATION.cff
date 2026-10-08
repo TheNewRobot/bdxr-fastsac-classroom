@@ -3,7 +3,7 @@ message: "Please credit this teaching lesson and the upstream projects listed in
 type: software
 title: "Teach BDX-R to Walk: A FastSAC Robotics Classroom Lesson"
 authors:
-  - name: "thenewrobot"
+  - name: "TheNewRobot"
 abstract: "A self-contained classroom notebook with reproducible BDX-R locomotion experiments, evaluation videos, and introductory reinforcement-learning explanations."
 keywords:
   - robotics education

@@ -1,0 +1,89 @@
+[
+  {
+    "id": "baseline",
+    "title": "Baseline",
+    "video": "legacy/baseline/rollout.mp4",
+    "motion": "legacy/baseline/motion.png",
+    "learning_curve": "legacy/baseline/learning_curves.png",
+    "caption": "Preliminary v2 experiment; speed target 0.3 m/s. Not a validated command-following policy.",
+    "experiment": "experiments/2026-10-07_231122_walk_02",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
+  },
+  {
+    "id": "control",
+    "title": "Control",
+    "video": "legacy/control/rollout.mp4",
+    "motion": "legacy/control/motion.png",
+    "learning_curve": "legacy/control/learning_curves.png",
+    "caption": "Preliminary v2 experiment; speed target 0.3 m/s. Not a validated command-following policy.",
+    "experiment": "experiments/2026-10-07_235048_control_01",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
+  },
+  {
+    "id": "faster",
+    "title": "Faster",
+    "video": "legacy/faster/rollout.mp4",
+    "motion": "legacy/faster/motion.png",
+    "learning_curve": "legacy/faster/learning_curves.png",
+    "caption": "Preliminary v2 experiment; speed target 0.45 m/s. Not a validated command-following policy.",
+    "experiment": "experiments/2026-10-07_231741_faster_01",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
+  },
+  {
+    "id": "hopping",
+    "title": "Hopping",
+    "video": "legacy/hopping/rollout.mp4",
+    "motion": "legacy/hopping/motion.png",
+    "learning_curve": "legacy/hopping/learning_curves.png",
+    "caption": "Preliminary hop experiment; speed target 0.0 m/s. Not a validated command-following policy.",
+    "experiment": "experiments/2026-10-07_232238_hop_higher_01",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
+  },
+  {
+    "id": "hopping_taller",
+    "title": "Hopping Taller",
+    "video": "legacy/hopping_taller/rollout.mp4",
+    "motion": "legacy/hopping_taller/motion.png",
+    "learning_curve": "legacy/hopping_taller/learning_curves.png",
+    "caption": "Preliminary hop experiment; speed target 0.0 m/s. Not a validated command-following policy.",
+    "experiment": "experiments/2026-10-07_234726_hop_taller_01",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
+  },
+  {
+    "id": "slower",
+    "title": "Slower",
+    "video": "legacy/slower/rollout.mp4",
+    "motion": "legacy/slower/motion.png",
+    "learning_curve": "legacy/slower/learning_curves.png",
+    "caption": "Preliminary v2 experiment; speed target 0.15 m/s. Not a validated command-following policy.",
+    "experiment": "experiments/2026-10-07_234723_slower_01",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
+  },
+  {
+    "id": "smoother",
+    "title": "Smoother",
+    "video": "legacy/smoother/rollout.mp4",
+    "motion": "legacy/smoother/motion.png",
+    "learning_curve": "legacy/smoother/learning_curves.png",
+    "caption": "Preliminary v2 experiment; speed target 0.3 m/s. Not a validated command-following policy.",
+    "experiment": "experiments/2026-10-07_232426_smoother_01",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
+  },
+  {
+    "id": "legacy_comparison",
+    "title": "Earlier fixed-speed comparison",
+    "video": "legacy/comparison.mp4",
+    "motion": "legacy/comparison.png",
+    "learning_curve": null,
+    "caption": "Preliminary fixed-speed experiments. These comparisons did not establish straight-line command control."
+  },
+  {
+    "id": "command_walking",
+    "title": "Command Walking",
+    "video": "command_walking/rollout.mp4",
+    "motion": "command_walking/motion.png",
+    "learning_curve": "command_walking/learning_curves.png",
+    "caption": "Selected command-walking checkpoint: 10 commands \u00d7 5 perturbed starts \u00d7 15 seconds, no falls. Forward mean maximum cross-track deviation 0.084 m. Fine-tuned from earlier policies; this is not a fresh 15-minute run.",
+    "experiment": "experiments/2026-10-08_003614_607667_command_balanced_sampling"
+  }
+]

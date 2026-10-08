@@ -1,53 +1,49 @@
-# Teach BDX-R to walk
+# Teach a little droid to walk
 
-A robotics 101 lesson using **BDX-R + FastSAC**, designed for Google Colab.
+A 163A/263A robotics lesson using **BDX-R + FastSAC + MuJoCo Warp**.
+Train, measure, change one parameter, and play a small desert-droid course.
 
-![Learned BDX-R behaviors](docs/behaviors.png)
+![Desert Droid Run interface](assets/lesson/course_preview.png)
 
-[Walking video](examples/baseline/rollout.mp4) ·
-[Slower walking](examples/slower/rollout.mp4) ·
-[Faster walking](examples/faster/rollout.mp4) ·
-[Smoother commands](examples/smoother/rollout.mp4) ·
-[Small hops](examples/hopping/rollout.mp4) ·
-[Higher foot-clearance hops](examples/hopping_taller/rollout.mp4) ·
-[Side-by-side walking comparison](docs/walking_comparison.mp4)
+**Status:** command-policy training and course validation are in progress.
+The browser controls have been tested locally against the simulator.
+Actual Google Colab execution has not been performed.
 
-**Status:** real trained policies, recorded examples, and a self-contained
-notebook package. Local GPU and notebook validation are documented below.
-Actual execution on Google Colab has not been performed.
-
-- [Class notebook](notebooks/BDXR_Walking_101.ipynb)
+- [Student notebook](notebooks/BDXR_Walking_101.ipynb)
+- [Short instructor notes](docs/instructor_notes.md)
+- [Measured results and their limits](docs/results.md)
+- [Implementation status](docs/progress.md)
 - [Original class notebook](ref/25F_163A_263A_BipedalWalker_SeminarRL101.ipynb)
-- [Instructor notes](docs/instructor_notes.md)
-- [Implementation and validation record](docs/progress.md)
-- [Measured results and timings](docs/results.md)
-- [Instructor W&B gallery](https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc)
 
-Download the notebook and use **File → Upload notebook** in Colab. Select a GPU
-runtime. The notebook includes a small source-code bundle and fetches pinned
-robot assets, so it does not require this repository to be published first.
+Upload the notebook to Colab and select a GPU runtime. It includes lesson source
+and curated recordings, then fetches pinned upstream robot assets. Publishing
+this repository is not required.
 
-It installs dependencies, trains, records videos, plots real measurements, and
-fine-tunes one variation. Students can use it without a W&B account.
-Recorded examples and compact policies are included in the notebook, so students
-can inspect real results before their own training finishes.
+## What the policy sees
 
-## Project layout
+The actor receives joint positions/velocities, body angular velocity, gravity
+direction, previous actions, and requested speed/yaw rate. It does not receive
+true base linear velocity, world position, absolute heading, or a terrain map.
+The training critic may use privileged simulator observations.
 
-| Folder | Contents |
+The deployed controller follows user commands. There is no planner or external
+heading correction. World measurements are used for evaluation and game scoring.
+
+## Repository layout
+
+| Path | Purpose |
 | --- | --- |
-| `notebooks/` | Uploadable student lesson |
-| `src/bdxr_classroom/` | Simulator adapter, FastSAC, training and evaluation |
-| `configs/` | Exact upstream revisions |
-| `examples/` | Selected videos, measured curves and small inference policies |
-| `scripts/` | Setup, reproducible comparisons and notebook packaging |
-| `tests/` | Simulation and learning contract checks |
-| `docs/` | Results and short instructor notes |
-| `ref/` | Preserved original class notebook |
+| `src/bdxr_classroom/` | Simulator, FastSAC, evaluation, and game |
+| `notebooks/` | Portable student lesson |
+| `configs/` | Pinned upstream revisions |
+| `assets/lesson/` | Only selected media used by the lesson |
+| `scripts/` | Setup, comparisons, and notebook packaging |
+| `tests/` | Observation, learning, and game contracts |
+| `experiments/<timestamp>_<name>/` | **Gitignored** configs, checkpoints, metrics, evaluations, and videos |
 
-Large training checkpoints, caches, local logs and the private plan are
-gitignored. The small, deliberate example assets are versioned so the lesson
-remains easy to review and upload.
+Vendor checkouts, caches, raw results, checkpoints, and private working notes
+stay out of new commits. Curated media captions distinguish preliminary results
+from selected command policies.
 
 ## Local use
 
@@ -55,52 +51,36 @@ remains easy to review and upload.
 python scripts/setup.py
 export PYTHONPATH="$PWD/src"
 export MUJOCO_GL=egl
-.venv/bin/python -m bdxr_classroom.train --name my_walk --compile
-.venv/bin/python -m bdxr_classroom.evaluate runs/my_walk/final.pt
-.venv/bin/python -m bdxr_classroom.plots runs/my_walk
+.venv/bin/python -m bdxr_classroom.train \
+  --name command_walking --command-mode balanced --yaw-tracking rate --compile
 ```
 
-Training uses W&B by default. Add `--wandb-mode disabled` for local-only logging.
-The default project is `bdxr-fastsac-classroom`.
-
-Continue the same experiment with `--resume runs/my_walk/resume.pt`. Use the
-same environment count and configuration. The checkpoint contains replay,
-optimizer, policy, critic, and normalization state; simulated episodes restart.
-Use `--finetune` with a training checkpoint such as `step_006000.pt` to start
-a new behavior experiment without carrying over replay transitions. The small
-`examples/*/policy.pt` exports support evaluation only.
-
-To reproduce the three walking variations and an unchanged control from one parent:
+The trainer prints the actual timestamped experiment path. To evaluate it:
 
 ```bash
-.venv/bin/python scripts/run_walking_comparisons.py runs/walk_02/step_006000.pt
+.venv/bin/python -m bdxr_classroom.command_evaluate \
+  experiments/<timestamp>_command_walking/checkpoints/final.pt
 ```
 
-Each variation changes one setting and starts from that same checkpoint.
-The control keeps settings unchanged with the same extra training budget.
-See the example provenance files for the exact recorded configurations.
+Resume with `--resume .../checkpoints/resume.pt`; policy, critics, optimizers,
+normalization and replay are restored, while simulation episodes restart.
+Use `--finetune` to start a new experiment from a compatible training checkpoint.
+W&B is on by default; students can use `--wandb-mode disabled`.
 
-## Learning goals
+Launch the game with walking and optional hopping checkpoints:
 
-Identify observations, actions, and rewards; explain the policy's role; watch
-learning change robot motion; compare one controlled experiment using video,
-speed, and joint-angle measurements.
+```bash
+.venv/bin/python -m bdxr_classroom.game_server \
+  --walking experiments/<walking-run>/checkpoints/final.pt \
+  --hopping experiments/<hopping-run>/checkpoints/final.pt
+```
+
+The local panel runs on port 8765. The notebook includes the Colab port-proxy
+integration. Falls reset the robot; simulation time and fall count accumulate.
 
 ## Credits
 
-- [BDX-R](https://github.com/BDX-R) and its
-  [mjlab integration](https://github.com/BDX-R/BDX-R-MjLab): robot and reference video.
-- [FastSAC project](https://younggyo.me/fastsac-humanoid/): intended training approach.
-
-The selected walking, slower, faster, smoother, and both hopping policies each passed five
-15-second evaluations with small starting-pose perturbations and no falls.
-The baseline averages 0.291 m/s, faster walking 0.445 m/s, and the smoother
-variant reduces command changes by about 15% while retaining baseline speed.
-The hopping example produces small, repeated flights and stable landings.
-
-These are local L40S simulation results, not Colab timing guarantees or
-real-robot deployment validation. The upstream reference video is credited
-separately from our trained results.
-
-See [third-party notices](THIRD_PARTY_NOTICES.md) for attribution.
-Citation metadata for this teaching project is provided in [CITATION.cff](CITATION.cff).
+[BDX-R](https://github.com/BDX-R/BDX-R-MjLab) provides the robot and starting task.
+[Holosoma / FastSAC](https://younggyo.me/fastsac-humanoid/) provides the learning
+components. The desert outpost is original procedural scenery.
+See [third-party notices](THIRD_PARTY_NOTICES.md) and [citation metadata](CITATION.cff).
