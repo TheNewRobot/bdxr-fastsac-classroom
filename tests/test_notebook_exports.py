@@ -52,3 +52,8 @@ class NotebookExports(unittest.TestCase):
             with zipfile.ZipFile(compact) as archive:
                 self.assertFalse(any(path.endswith("resume.pt") for path in archive.namelist()))
                 self.assertEqual(len(archive.namelist()), len(runs))
+            previous_backup = backup.read_bytes()
+            with patch.object(zipfile.ZipFile, "write", side_effect=OSError("interrupted export")):
+                with self.assertRaisesRegex(OSError, "interrupted export"):
+                    namespace["export_results"]()
+            self.assertEqual(backup.read_bytes(), previous_backup)
