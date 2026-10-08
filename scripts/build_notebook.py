@@ -110,6 +110,10 @@ print("Setup seconds:", round(time.monotonic() - setup_start))
 Positive yaw-rate commands turn left; negative commands turn right. Zero yaw asks for no rotation—it is not an external heading-correction controller.
 
 SAC learns actions with high estimated future reward while encouraging exploration. Replay lets it learn from earlier experience. We use SAC here; the older reference notebook used PPO.
+
+We train 512 simulated robots in parallel. One training step advances every robot,
+collecting 512 experiences. Replaying those experiences produces separate neural-network
+updates. The learning-curve horizontal axis counts experiences, not seconds.
 """)
     code('''# @title How the controller learns and plays
 display(HTML((WORK / "assets/lesson/controller.svg").read_text()))
@@ -258,8 +262,8 @@ for label, experiment in comparisons:
     report = json.loads((experiment / "evaluation/final_commands/summary.json").read_text())
     summarize_commands(experiment)
     forward = report["cases"]["forward"]
-    updates = json.loads((experiment / "metrics/timing.json").read_text())["step"]
-    print(f"{label}: {updates} updates | action-change RMS = {mean(r['action_change_rms'] for r in forward):.3f}"
+    steps = json.loads((experiment / "metrics/timing.json").read_text())["step"]
+    print(f"{label}: {steps} parallel simulation steps | action-change RMS = {mean(r['action_change_rms'] for r in forward):.3f}"
           f" | foot swing = {mean(r['swing_height_p95'] for r in forward):.3f} m"
           f" | cross-track = {mean(r['max_cross_track_m'] for r in forward):.3f} m")
     display(Video(str(experiment / "videos/final_commands/sequence.mp4"), embed=True, width=640))
