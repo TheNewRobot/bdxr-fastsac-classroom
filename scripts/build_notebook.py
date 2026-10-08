@@ -472,6 +472,9 @@ The classroom obstacles are 17.5–20 mm high, followed by uneven ground and an 
 
 Use speed and yaw controls to steer. If you loaded a hopping policy, switch modes before obstacles and watch the transition state. There is no navigation controller.
 
+Wait until both feet visibly clear the obstacle and land before returning to
+walking. Mode changes slow the robot down, so leave space for the handover.
+
 The default walking checkpoint is the first passing baseline, control, or
 variation. An unchanged continuation can improve a baseline that missed a check.
 
