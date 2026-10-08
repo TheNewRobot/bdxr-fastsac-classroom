@@ -5,6 +5,9 @@ import datetime as dt
 import json
 import re
 import subprocess
+import functools
+import time
+import zipfile
 from pathlib import Path
 
 
@@ -38,6 +41,9 @@ def jsonable(value):
         return value
     if isinstance(value, Path):
         return str(value)
+    if isinstance(value, functools.partial):
+        return {"callable": jsonable(value.func), "args": jsonable(value.args),
+                "keywords": jsonable(value.keywords)}
     if callable(value):
         return f"{value.__module__}.{value.__qualname__}"
     if hasattr(value, "tolist"):
@@ -62,6 +68,18 @@ def write_manifest(out, config, env_config):
         "layout_version": 2,
     }
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    capture_source(out)
+
+
+def capture_source(out):
+    """Preserve the exact Python source even when an experiment starts mid-edit."""
+    source = Path(__file__).resolve().parents[2]
+    path = out / "config" / f"source_{time.time_ns()}.zip"
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for pattern in ["src/**/*.py", "src/**/*.html", "configs/*.json", "requirements*.txt"]:
+            for file in source.glob(pattern):
+                archive.write(file, file.relative_to(source))
+    return path
 
 
 def config_path(root):

@@ -9,6 +9,42 @@ from bdxr_classroom.environment import make_env, step_and_reset
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
 class EnvironmentContract(unittest.TestCase):
+    def test_practice_terrain_preserves_actor_contract(self):
+        from bdxr_classroom.training_terrain import ground_height
+        env = make_env(4, task_version="hop", training_terrain_height=.015)
+        try:
+            obs, _ = env.reset()
+            self.assertEqual(obs["actor"].shape, (4, 49))
+            self.assertEqual(obs["critic"].shape, (4, 64))
+            self.assertNotIn("foot_height", env.cfg.observations["actor"].terms)
+            self.assertIn("foot_height", env.cfg.observations["critic"].terms)
+            self.assertEqual(float(env.scene.env_origins.abs().max()), 0)
+            points = torch.tensor([[[0., 0., 0.], [.65, 0., 0.],
+                                    [1.25, 0., 0.], [.65, 5., 0.]]], device="cuda")
+            torch.testing.assert_close(
+                ground_height(env, points),
+                torch.tensor([[0, .015, .012, 0]], device="cuda"))
+            result = step_and_reset(env, torch.zeros((4, 10), device="cuda"))
+            self.assertTrue(torch.isfinite(result[2]).all())
+        finally:
+            env.close()
+
+    def test_balanced_command_coverage(self):
+        env = make_env(128, command_mode="balanced", seed=123)
+        try:
+            env.reset(seed=123)
+            commands = env.command_manager.get_command("twist")
+            x, yaw = commands[:, 0], commands[:, 2]
+            self.assertTrue(((x == 0) & (yaw == 0)).any())
+            self.assertTrue(((x != 0) & (yaw == 0)).any())
+            self.assertTrue(((x == 0) & (yaw != 0)).any())
+            self.assertTrue(((x != 0) & (yaw != 0)).any())
+            self.assertTrue((x < 0).any())
+            self.assertTrue((yaw < 0).any() and (yaw > 0).any())
+            self.assertTrue((commands[:, 1] == 0).all())
+        finally:
+            env.close()
+
     def test_command_inputs_and_privileged_critic_separation(self):
         from bdxr_classroom.command_evaluate import set_command
         env = make_env(4, command_mode="mixed")

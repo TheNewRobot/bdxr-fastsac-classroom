@@ -16,6 +16,7 @@ import torch
 
 from .environment import make_env
 from .fastsac import FastSAC
+from .experiments import experiment_root
 
 
 def main():
@@ -36,12 +37,17 @@ def main():
     cfg = dict(state["config"])
     cfg.update(num_envs=1, buffer_size=1, compile=False)
     speed = cfg["speed"] if args.speed is None else args.speed
-    out = Path(args.output or str(path.parent / f"eval_{path.stem}"))
+    root = experiment_root(path)
+    out = Path(args.output or str(root / "evaluation" / f"eval_{path.stem}"))
     out.mkdir(parents=True, exist_ok=True)
+    video_dir = root / "videos" / out.name
+    if not args.no_video:
+        video_dir.mkdir(parents=True, exist_ok=True)
     env = make_env(1, speed, cfg["smoothness"], render=not args.no_video,
                    task_version=cfg.get("task_version", "v1"),
                    hop_height=cfg.get("hop_height", 0.04),
                    hop_body_weight=cfg.get("hop_body_weight", 0.0),
+                   proprio_only=cfg.get("proprio_only", False),
                    initial_jitter=args.initial_jitter)
     env.cfg.episode_length_s = args.seconds
     foot_ids, _ = env.scene["robot"].find_sites(["left_foot", "right_foot"])
@@ -54,7 +60,7 @@ def main():
     episode_reports, samples = [], []
     writer = None
     if not args.no_video:
-        writer = imageio.get_writer(out / "rollout.mp4", fps=25,
+        writer = imageio.get_writer(video_dir / "rollout.mp4", fps=25,
                                      codec="libx264", quality=8, macro_block_size=16)
     try:
         for episode in range(args.episodes):
@@ -140,6 +146,7 @@ def main():
         env.close()
     report = {
         "checkpoint": str(path), "training_step": state["step"],
+        "video_path": str(video_dir / "rollout.mp4") if not args.no_video else None,
         "target_speed": speed, "episodes": episode_reports,
         "initial_jitter_radians": args.initial_jitter,
         "fall_fraction": float(np.mean([r["fell"] for r in episode_reports])),
