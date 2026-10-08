@@ -20,7 +20,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              yaw_tracking="full", yaw_std=0.2, course=None,
              linear_weight=None, swing_height=None, training_terrain_height=0.0,
              training_terrain_style="steps", yaw_bias_weight=0.0, reward_scale=1.0,
-             linear_tracking="instant"):
+             linear_tracking="instant", hop_height_reward="continuous"):
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs
@@ -63,9 +63,10 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         command.init_velocity_prob = 0.0
         cfg.rewards["track_angular_velocity"].weight = yaw_weight
         cfg.rewards["track_angular_velocity"].params["std"] = 0.5
-        if yaw_tracking == "rate":
+        if yaw_tracking in ("rate", "imu"):
             cfg.rewards["track_angular_velocity"] = RewardTermCfg(
-                func=behaviors.yaw_rate_tracking, weight=yaw_weight, params={"std": yaw_std})
+                func=behaviors.yaw_rate_tracking, weight=yaw_weight,
+                params={"std": yaw_std, "tilt_compensation": yaw_tracking == "imu"})
     cfg.observations["actor"].enable_corruption = False
     cfg.rewards["action_rate_l2"].weight *= smoothness
     # Head stays under position control at neutral; physical head mass remains.
@@ -88,7 +89,8 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
             group.terms["hop_phase"] = ObservationTermCfg(func=behaviors.hop_phase)
         cfg.rewards["track_linear_velocity"].weight = 2.0
         cfg.rewards["hop_height"] = RewardTermCfg(
-            func=behaviors.hop_height_tracking, weight=8.0, params={"height": hop_height})
+            func=behaviors.hop_height_tracking, weight=8.0,
+            params={"height": hop_height, "flight_only": hop_height_reward == "flight"})
         cfg.rewards["hop_contacts"] = RewardTermCfg(func=behaviors.hop_contact_timing, weight=4.0)
         cfg.rewards["hop_landing"] = RewardTermCfg(func=behaviors.hop_landing_cost, weight=-1e-6)
         if hop_body_weight:
@@ -109,7 +111,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
     if yaw_bias_weight:
         cfg.rewards["yaw_bias"] = RewardTermCfg(
             func=behaviors.yaw_bias_tracking, weight=yaw_bias_weight,
-            params={"std": .025, "time_constant": .3})
+            params={"std": .025, "time_constant": .3, "tilt_compensation": yaw_tracking == "imu"})
     if reward_scale <= 0:
         raise ValueError("Reward scale must be positive")
     # Preserve relative objectives while keeping returns inside the categorical
