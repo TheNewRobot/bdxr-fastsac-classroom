@@ -33,9 +33,11 @@ def main():
     p.add_argument("--yaw-weight", type=float, default=4.0)
     p.add_argument("--yaw-tracking", choices=["full", "rate"], default="full")
     p.add_argument("--yaw-std", type=float, default=0.2)
+    p.add_argument("--yaw-bias-weight", type=float, default=0.0)
     p.add_argument("--linear-weight", type=float)
     p.add_argument("--swing-height", type=float)
     p.add_argument("--training-terrain-height", type=float, default=0.0)
+    p.add_argument("--training-terrain-style", choices=["steps", "mixed"], default="steps")
     p.add_argument("--proprio-only", action=argparse.BooleanOptionalAction, default=False,
                    help="Optional symmetric-critic ablation; default critic uses privileged observations")
     p.add_argument("--task-version", choices=["v1", "v2", "hop"], default="v2")
@@ -69,12 +71,12 @@ def main():
         if not original.exists():
             raise ValueError("Migrate this legacy run before resuming, or use --finetune for a new experiment")
         previous_cfg = json.loads(original.read_text())
-        for key in ["num_envs", "speed", "smoothness", "task_version", "hop_height",
+        for key in ["name", "project", "num_envs", "speed", "smoothness", "task_version", "hop_height",
                     "hop_body_weight", "seed", "batch_size", "updates", "buffer_size",
                     "actor_hidden", "critic_hidden", "gamma", "compile", "amp",
                     "command_mode", "speed_min", "speed_max", "yaw_max", "yaw_weight",
                     "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
-                    "training_terrain_height"]:
+                    "training_terrain_height", "training_terrain_style", "yaw_bias_weight"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
     cfg["experiment_path"] = str(out)
@@ -106,7 +108,9 @@ def main():
                  yaw_max=args.yaw_max, yaw_weight=args.yaw_weight, proprio_only=args.proprio_only,
                  yaw_tracking=args.yaw_tracking, yaw_std=args.yaw_std,
                  linear_weight=args.linear_weight, swing_height=args.swing_height,
-                 training_terrain_height=args.training_terrain_height)
+                 training_terrain_height=args.training_terrain_height,
+                 training_terrain_style=args.training_terrain_style,
+                 yaw_bias_weight=args.yaw_bias_weight)
     if not existing_run:
         write_manifest(out, cfg, env.cfg)
     else:

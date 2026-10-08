@@ -13,6 +13,21 @@ def yaw_rate_tracking(env, std=0.2):
     return torch.exp(-(actual - command).square() / std**2)
 
 
+def yaw_bias_tracking(env, std=0.025, time_constant=0.3):
+    """Penalize sustained gyro bias while allowing normal alternating gait motion.
+
+    This is a training reward, not a heading controller. It uses neither world
+    heading nor position, and adds nothing to the actor's observation vector.
+    """
+    error = (env.scene["robot"].data.root_link_ang_vel_b[:, 2]
+             - env.command_manager.get_command("twist")[:, 2])
+    old = getattr(env, "_yaw_bias_error", torch.zeros_like(error))
+    old = torch.where(env.episode_length_buf <= 1, torch.zeros_like(old), old)
+    fraction = 1 - math.exp(-env.step_dt / time_constant)
+    env._yaw_bias_error = torch.lerp(old, error, fraction)
+    return torch.exp(-env._yaw_bias_error.square() / std**2)
+
+
 def hop_phase(env):
     phase = (env.episode_length_buf * env.step_dt) % 1.0
     angle = 2 * math.pi * phase

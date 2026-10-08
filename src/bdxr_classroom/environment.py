@@ -18,7 +18,8 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              initial_jitter=0.0, command_mode="fixed", speed_min=-0.25,
              speed_max=0.5, yaw_max=0.6, yaw_weight=4.0, proprio_only=False,
              yaw_tracking="full", yaw_std=0.2, course=None,
-             linear_weight=None, swing_height=None, training_terrain_height=0.0):
+             linear_weight=None, swing_height=None, training_terrain_height=0.0,
+             training_terrain_style="steps", yaw_bias_weight=0.0):
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs
@@ -99,6 +100,10 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         cfg.rewards["track_linear_velocity"].weight = linear_weight
     if swing_height is not None and "foot_swing_height" in cfg.rewards:
         cfg.rewards["foot_swing_height"].params["target_height"] = swing_height
+    if yaw_bias_weight:
+        cfg.rewards["yaw_bias"] = RewardTermCfg(
+            func=behaviors.yaw_bias_tracking, weight=yaw_bias_weight,
+            params={"std": .025, "time_constant": .3})
     allowed = {"base_ang_vel", "projected_gravity", "joint_pos", "joint_vel", "actions", "command", "hop_phase"}
     if not set(cfg.observations["actor"].terms) <= allowed:
         raise ValueError("Unexpected observation in proprioceptive policy")
@@ -119,7 +124,10 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         from .training_terrain import build_training_terrain
         if course is not None or training_terrain_height < 0:
             raise ValueError("Practice terrain requires positive height and no game course")
-        cfg.scene.spec_fn = partial(build_training_terrain, height=training_terrain_height)
+        if training_terrain_style not in ("steps", "mixed"):
+            raise ValueError("Unknown practice terrain style")
+        cfg.scene.spec_fn = partial(build_training_terrain, height=training_terrain_height,
+                                   style=training_terrain_style)
         cfg.events["reset_base"].params["pose_range"]["x"] = (-.2, .2)
     if course is not None:
         from .course import CourseConfig, build_course
@@ -134,6 +142,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
     env = ManagerBasedRlEnv(cfg=cfg, device="cuda:0",
                            render_mode="rgb_array" if render else None)
     env.training_terrain_height = training_terrain_height
+    env.training_terrain_style = training_terrain_style
     if training_terrain_height:
         # Each Warp environment is an independent physics world. Give each robot
         # the same tile coordinates rather than mjlab's spaced display origins.

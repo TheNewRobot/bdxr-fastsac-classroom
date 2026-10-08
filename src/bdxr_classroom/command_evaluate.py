@@ -19,6 +19,7 @@ from .environment import make_env
 from .experiments import experiment_root
 from .fastsac import FastSAC
 from .motion_metrics import count_hops
+from .training_terrain import ground_height
 
 
 def wrap(angle):
@@ -99,7 +100,8 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
             ], dim=1).cpu().numpy()
             changes = (actions - previous_action).square().mean(-1).sqrt().cpu().tolist()
             previous_action = actions.clone()
-            feet = robot.site_pos_w[:, foot_ids, 2].cpu().tolist()
+            foot_positions = robot.site_pos_w[:, foot_ids]
+            feet = (foot_positions[..., 2] - ground_height(env, foot_positions)).cpu().tolist()
             contacts = (env.scene["feet_ground_contact"].data.found > 0).reshape(env.num_envs, -1).cpu().tolist()
             joint_angles = robot.joint_pos.cpu().tolist()
             upright = (-robot.projected_gravity_b[:, 2]).cpu().tolist()
@@ -147,6 +149,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
             "action_change_rms": float(np.mean([r["action_change_rms"] for r in steady])),
             "clear_flights": clear_flights, "landed_hops": landed_hops,
             "peak_simultaneous_foot_clearance": max(min(r["foot_heights"]) for r in steady),
+            "swing_height_p95": float(np.percentile([max(r["foot_heights"]) for r in steady], 95)),
         })
     return reports, rows
 
@@ -160,12 +163,16 @@ def main():
     parser.add_argument("--seconds", type=float, default=15)
     parser.add_argument("--output")
     parser.add_argument("--no-video", action="store_true")
+    parser.add_argument("--terrain-height", type=float, default=0.0,
+                        help="Evaluate on physical practice steps; default is flat ground")
+    parser.add_argument("--terrain-style", choices=["steps", "mixed"], default="steps")
     args = parser.parse_args()
     torch.set_num_threads(2)
     torch.set_float32_matmul_precision("high")
     checkpoint = Path(args.checkpoint)
     root = experiment_root(checkpoint)
-    output = Path(args.output) if args.output else root / "evaluation" / (checkpoint.stem + "_commands")
+    suffix = f"_{args.terrain_style}_{args.terrain_height:g}" if args.terrain_height else ""
+    output = Path(args.output) if args.output else root / "evaluation" / (checkpoint.stem + "_commands" + suffix)
     output.mkdir(parents=True, exist_ok=True)
     video_dir = root / "videos" / output.name
     if not args.no_video:
@@ -178,8 +185,12 @@ def main():
                    yaw_weight=cfg.get("yaw_weight", 4.0),
                    yaw_tracking=cfg.get("yaw_tracking", "full"), yaw_std=cfg.get("yaw_std", 0.2),
                    linear_weight=cfg.get("linear_weight"), swing_height=cfg.get("swing_height"),
-                   proprio_only=cfg.get("proprio_only", False))
-    result = {"checkpoint": str(checkpoint), "cases": {},
+                   proprio_only=cfg.get("proprio_only", False),
+                   training_terrain_height=args.terrain_height,
+                   training_terrain_style=args.terrain_style,
+                   yaw_bias_weight=cfg.get("yaw_bias_weight", 0))
+    result = {"checkpoint": str(checkpoint), "cases": {}, "terrain_height_m": args.terrain_height,
+             "terrain_style": args.terrain_style if args.terrain_height else "flat",
              "straightness_cases": ["slow", "forward", "fast", "backward", "straight", "straight_fast", "straight_back"],
              "sampling": f"{args.episodes} parallel independently perturbed starts per case; shared RNG seed 1000",
              "controller": "Direct velocity commands only. No heading or path feedback; world measurements are evaluation-only."}
