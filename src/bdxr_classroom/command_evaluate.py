@@ -16,7 +16,7 @@ import torch
 from PIL import Image, ImageDraw
 
 from .environment import make_env
-from .experiments import experiment_root
+from .experiments import experiment_root, capture_source, jsonable
 from .fastsac import FastSAC
 from .motion_metrics import count_hops
 from .training_terrain import ground_height
@@ -128,6 +128,12 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                 writer.append_data(np.asarray(frame))
             if not alive.any():
                 break
+            done = terminated | truncated
+            if done.any():
+                # mjlab requires every terminated world to be reset before the
+                # next batched step. Its first trial remains marked dead above:
+                # reset worlds keep simulating but never contribute new results.
+                env.reset(env_ids=done.nonzero().flatten())
     finally:
         if writer:
             writer.close()
@@ -188,12 +194,19 @@ def main():
                    proprio_only=cfg.get("proprio_only", False),
                    training_terrain_height=args.terrain_height,
                    training_terrain_style=args.terrain_style,
-                   yaw_bias_weight=cfg.get("yaw_bias_weight", 0))
+                   yaw_bias_weight=cfg.get("yaw_bias_weight", 0),
+                   reward_scale=cfg.get("reward_scale", 1))
     result = {"checkpoint": str(checkpoint), "cases": {}, "terrain_height_m": args.terrain_height,
              "terrain_style": args.terrain_style if args.terrain_height else "flat",
              "straightness_cases": ["slow", "forward", "fast", "backward", "straight", "straight_fast", "straight_back"],
              "sampling": f"{args.episodes} parallel independently perturbed starts per case; shared RNG seed 1000",
              "controller": "Direct velocity commands only. No heading or path feedback; world measurements are evaluation-only."}
+    (output / "config.json").write_text(json.dumps({
+        "arguments": vars(args), "environment": jsonable(env.cfg),
+        "source_archive": str(capture_source(root)),
+        "hardware": torch.cuda.get_device_name(0),
+        "runtime_environment": os.environ.get("BDXR_RUNTIME", "local"),
+    }, indent=2))
     try:
         for case in args.cases:
             reports, rows = run_case(env, agent, case, args.seconds,
@@ -220,6 +233,10 @@ def main():
                         f"speedMAE={np.mean([r['speed_mae'] for r in reports]):.3f}, "
                         f"yawMAE={np.mean([r['yaw_mae'] for r in reports]):.3f}, "
                         f"cross-track={np.mean([r['max_cross_track_m'] for r in reports]):.3f}m", flush=True)
+    except Exception as error:
+        (output / "error.json").write_text(json.dumps(
+            {"error_type": type(error).__name__, "error": str(error)}, indent=2))
+        raise
     finally:
         env.close()
 
