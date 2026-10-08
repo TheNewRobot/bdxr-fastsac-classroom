@@ -11,7 +11,8 @@ import numpy as np
 class CourseConfig:
     length: float = 12.0
     width: float = 1.6
-    obstacle_scale: float = 1.0
+    # Calibrated classroom heights: 17.5 mm pipe, 20 mm step, 18 mm threshold.
+    obstacle_scale: float = 0.5
     roughness: float = 0.015
     finish_height: float = 0.18
     seed: int = 263

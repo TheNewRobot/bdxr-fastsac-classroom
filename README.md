@@ -77,6 +77,10 @@ Launch the game with walking and optional hopping checkpoints:
 
 The local panel runs on port 8765. The notebook includes the Colab port-proxy
 integration. Falls reset the robot; simulation time and fall count accumulate.
+The calibrated course uses three 17.5–20 mm obstacles, rough ground and an
+18 cm ascent. Four route checkpoints must be crossed before the finish counts.
+Use `--course-config path/to/settings.json` to explore a harder course;
+`{"obstacle_scale": 1.0}` doubles the classroom obstacle heights.
 
 ## Credits
 

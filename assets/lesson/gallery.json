@@ -97,5 +97,13 @@
     "caption": "Fresh training, selected at 8,000 updates after 611 seconds training + 3.3 seconds setup on a local L40S. All 10 commands \u00d7 5 perturbed starts \u00d7 15 seconds passed the declared gate with zero falls. Forward mean maximum cross-track deviation: 0.169 m. These are five starting states, not five independent training seeds. Actual Colab remains untested.",
     "experiment": "experiments/2026-10-08_021859_184033_classroom_mirrored_fresh",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/7uhl689h"
+  },
+  {
+    "id": "course_run",
+    "title": "Desert Droid Run",
+    "video": "course_run/rollout.mp4",
+    "caption": "46.58 simulation seconds, zero falls, all three obstacles and the rough patch crossed before the raised finish. Classroom obstacles: 17.5\u201320 mm; ascent: 18 cm. Visually directed speed/yaw/mode commands with pauses for inspection; this is not autonomous navigation or a real-time human play test.",
+    "experiment": "experiments/2026-10-08_024023_102614_manual_course_trial",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/6qviug23"
   }
 ]
