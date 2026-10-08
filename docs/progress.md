@@ -13,14 +13,18 @@
   browser test passed. Reset/timer/finish contracts have unit tests.
 - The notebook screens hopping and repeated flat/on-step handovers before
   loading a pair automatically. Failed evaluations stay in the export.
+- The same passing walking checkpoint is used for handover tests and gameplay.
+  Standalone evaluations record checkpoint hashes and preserve previous results
+  and videos when rerun.
 
 The selected fresh walking policy and the retained matched style comparison
 passed the full command suite. The lesson includes a complete recorded course
 traversal using walking and hopping policies. Course checkpoints reject
 shortcuts around the obstacles.
 
-Remaining work: verification of the revised fine-tuning seed handling, hopping
-repeatability, and final notebook/browser integration. Some hopping repeats
+Fine-tuning seed handling and replay continuation have regression tests.
+Remaining work: hopping repeatability and final notebook/browser integration.
+Some hopping repeats
 failed despite a successful earlier policy; the recordings do not guarantee
 every new training run will work. Instructor recordings and student training
 results are labeled separately.
