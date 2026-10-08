@@ -1,6 +1,7 @@
 """Fine-tune each walking variation from one parent; never chain variations."""
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -10,6 +11,39 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from bdxr_classroom.experiments import config_path
+
+
+def environment_differences(parent, child, path=""):
+    if isinstance(parent, dict) and isinstance(child, dict):
+        return [difference for key in sorted(parent.keys() | child.keys())
+                for difference in environment_differences(
+                    parent.get(key), child.get(key), path + "/" + key)]
+    return [] if parent == child else [
+        {"path": path, "parent": parent, "variation": child}]
+
+
+def comparison_record(parent, output, variant):
+    parent_config = config_path(parent)
+    child_config = config_path(output)
+    config = json.loads(child_config.read_text())
+    differences = environment_differences(
+        json.loads(parent_config.with_name("environment.json").read_text()),
+        json.loads(child_config.with_name("environment.json").read_text()))
+    expected = {
+        "control": [],
+        "smoother": ["/rewards/action_rate_l2/weight"],
+        "higher_steps": ["/rewards/foot_swing_height/params/target_height"],
+    }[variant]
+    with parent.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    return {
+        "parent_checkpoint": str(parent.resolve()), "parent_sha256": digest,
+        "same_parent": Path(config["resume"]).resolve() == parent.resolve(),
+        "finetune": config["finetune"], "steps": config["steps"], "seed": config["seed"],
+        "resolved_environment_differences": differences,
+        "expected_difference_paths": expected,
+        "exact_expected_differences": [item["path"] for item in differences] == expected,
+    }
 
 
 def main():
@@ -50,9 +84,25 @@ def main():
             command.append("--mirror-replay")
         subprocess.run(command, cwd=ROOT, env=env, check=True)
         output = Path(pointer.read_text().strip())
+        record = comparison_record(parent, output, variant)
+        (output / "config/matched_comparison.json").write_text(
+            json.dumps(record, indent=2) + "\n")
+        if not record["same_parent"] or not record["exact_expected_differences"]:
+            raise RuntimeError(f"{name}: unexpected comparison configuration; inspect its audit")
         subprocess.run([sys.executable, "-m", "bdxr_classroom.command_evaluate",
                         str(output / "checkpoints/final.pt"), "--episodes", "5", "--seconds", "15"],
                        cwd=ROOT, env=env, check=True)
+        # A failed policy is still a completed experiment; evaluate the other variants.
+        checked = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/check_command_results.py"),
+             str(output / "evaluation/final_commands/summary.json")],
+            cwd=ROOT, env=env)
+        verdict_path = output / "evaluation/final_commands/selection_check.json"
+        if checked.returncode not in (0, 1) or not verdict_path.is_file():
+            raise RuntimeError(f"{name}: acceptance checker could not complete")
+        verdict = json.loads(verdict_path.read_text())
+        if verdict.get("passed") is not (checked.returncode == 0):
+            raise RuntimeError(f"{name}: inconsistent acceptance verdict")
 
 
 if __name__ == "__main__":
