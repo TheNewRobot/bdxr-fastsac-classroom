@@ -1,0 +1,10 @@
+{
+  "caption": "Recorded instructor comparison: one common parent, 3000 additional updates for both control and smoother. Smoother changes only the action-change penalty from 1 to 3. All three policies passed the full command suite. This is one training seed with five perturbed evaluation starts, not a multi-seed study.",
+  "runs": [
+    "2026-10-08_011011_547143_command_gyro_bias_reward",
+    "2026-10-08_011840_980187_gyro_variation_control",
+    "2026-10-08_012645_107148_gyro_variation_smoother"
+  ],
+  "provenance": "experiments/2026-10-08_015054_206599_policy_comparison/config/comparison.json",
+  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/wrrsfjea"
+}

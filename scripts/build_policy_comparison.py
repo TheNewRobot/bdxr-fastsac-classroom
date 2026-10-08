@@ -52,18 +52,19 @@ def main():
     fps = readers[0].get_meta_data()["fps"]
     if any(abs(reader.get_meta_data()["fps"] - fps) > .01 for reader in readers):
         raise ValueError("Comparison recordings must have the same frame rate")
-    height = 320 if len(readers) == 2 else 640
+    columns = 3 if len(readers) == 3 else 2
+    height = 640 if len(readers) == 4 else 320
     try:
         with imageio.get_writer(args.output, fps=fps, codec="libx264", quality=7) as writer:
             last_frames = [None] * len(readers)
             for frame_index in range(max(counts)):
-                canvas = Image.new("RGB", (960, height), "#edf1e9")
+                canvas = Image.new("RGB", (480 * columns, height), "#edf1e9")
                 draw = ImageDraw.Draw(canvas)
                 for index, (reader, record) in enumerate(zip(readers, records)):
                     ended = frame_index >= counts[index]
                     if not ended:
                         last_frames[index] = Image.fromarray(reader.get_data(frame_index)).resize((480, 320))
-                    x, y = index % 2 * 480, index // 2 * 320
+                    x, y = index % columns * 480, index // columns * 320
                     canvas.paste(last_frames[index], (x, y))
                     draw.rectangle((x, y, x + 480, y + 31), fill=colors[index])
                     falls = sum(t["fell"] for t in record["trials"])

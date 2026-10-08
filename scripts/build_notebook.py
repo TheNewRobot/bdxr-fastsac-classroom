@@ -206,6 +206,10 @@ The unchanged control receives the same extra training budget, so we can disting
 PREDICTION = "The motor commands will change less abruptly."  # @param {type:"string"}
 VARIATION_STEPS = 3000  # @param {type:"integer"}
 changed = ["--smoothness", 3] if EXPERIMENT == "smoother" else (["--swing-height", 0.09] if EXPERIMENT == "higher_steps" else [])
+example = WORK / "assets/lesson/style_comparison"
+print(json.loads((example / "provenance.json").read_text())["caption"])
+display(Video(str(example / "gyro_style_comparison.mp4"), embed=True, width=720))
+display(Image(filename=str(example / "gyro_style_comparison.png")))
 print("Prediction:", PREDICTION)
 VARIATION = train(EXPERIMENT, "--command-mode", "balanced", "--yaw-tracking", "rate",
                   "--yaw-std", 0.2, "--steps", VARIATION_STEPS, "--minutes", 10,
