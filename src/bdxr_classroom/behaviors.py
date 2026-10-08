@@ -3,7 +3,7 @@
 import math
 import torch
 
-from .training_terrain import ground_height
+from .training_terrain import ground_height, sampled_sole_clearance
 
 
 def imu_turn_rate(env):
@@ -62,7 +62,7 @@ def hop_phase(env):
     return torch.stack((angle.sin(), angle.cos()), dim=-1)
 
 
-def hop_height_tracking(env, height=0.04, flight_only=False):
+def hop_height_tracking(env, height=0.04, flight_only=False, clearance_mode="site"):
     """Request a short flight in the middle of each one-second cycle."""
     phase = (env.episode_length_buf * env.step_dt) % 1.0
     flight_phase = ((phase - 0.35) / 0.25).clamp(0, 1)
@@ -70,7 +70,8 @@ def hop_height_tracking(env, height=0.04, flight_only=False):
     robot = env.scene["robot"]
     foot_ids, _ = robot.find_sites(["left_foot", "right_foot"])
     positions = robot.data.site_pos_w[:, foot_ids]
-    actual = positions[..., 2] - ground_height(env, positions)
+    actual = (sampled_sole_clearance(env) if clearance_mode == "sole" else
+              positions[..., 2] - ground_height(env, positions))
     error = (actual - desired[:, None]).square().mean(-1)
     reward = torch.exp(-error / 0.025**2)
     if flight_only:

@@ -20,7 +20,10 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              yaw_tracking="full", yaw_std=0.2, course=None,
              linear_weight=None, swing_height=None, training_terrain_height=0.0,
              training_terrain_style="steps", yaw_bias_weight=0.0, reward_scale=1.0,
-             linear_tracking="instant", hop_height_reward="continuous"):
+             linear_tracking="instant", hop_height_reward="continuous",
+             hop_clearance="site"):
+    if hop_clearance not in ("site", "sole"):
+        raise ValueError("Hop clearance must use site or sole measurements")
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs
@@ -90,7 +93,8 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         cfg.rewards["track_linear_velocity"].weight = 2.0
         cfg.rewards["hop_height"] = RewardTermCfg(
             func=behaviors.hop_height_tracking, weight=8.0,
-            params={"height": hop_height, "flight_only": hop_height_reward == "flight"})
+            params={"height": hop_height, "flight_only": hop_height_reward == "flight",
+                    "clearance_mode": hop_clearance})
         cfg.rewards["hop_contacts"] = RewardTermCfg(func=behaviors.hop_contact_timing, weight=4.0)
         cfg.rewards["hop_landing"] = RewardTermCfg(func=behaviors.hop_landing_cost, weight=-1e-6)
         if hop_body_weight:
@@ -157,6 +161,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
                            render_mode="rgb_array" if render else None)
     env.training_terrain_height = training_terrain_height
     env.training_terrain_style = training_terrain_style
+    env.hop_clearance = hop_clearance
     if training_terrain_height:
         # Each Warp environment is an independent physics world. Give each robot
         # the same tile coordinates rather than mjlab's spaced display origins.

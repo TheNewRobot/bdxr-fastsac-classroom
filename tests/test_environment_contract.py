@@ -9,6 +9,36 @@ from bdxr_classroom.environment import make_env, step_and_reset
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
 class EnvironmentContract(unittest.TestCase):
+    def test_sole_measurement_detects_pipe_beneath_toe(self):
+        from mjlab.utils.lab_api.math import quat_apply
+        from bdxr_classroom.training_terrain import ground_height, sampled_sole_clearance
+        env = make_env(1, task_version="hop", training_terrain_height=.035,
+                       training_terrain_style="mixed", hop_clearance="sole")
+        try:
+            env.reset(seed=1000)
+            robot = env.scene["robot"]
+            ids, _ = robot.find_geoms(["left_foot_collision1"])
+            position = robot.data.geom_pos_w[0, ids[0]]
+            axis = quat_apply(robot.data.geom_quat_w[0, ids[0]],
+                              position.new_tensor([0., 0., 1.]))
+            half_length = env.sim.mj_model.geom_size[int(robot.indexing.geom_ids[ids[0]])][1]
+            root = robot.data.root_link_pos_w[0].clone()
+            root[0] += .65 - (position[0] + abs(axis[0]) * half_length)
+            state = torch.cat((root, root.new_tensor([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])))[None]
+            robot.write_root_state_to_sim(state)
+            _, rewards, _, _, _ = env.step(torch.zeros(1, 10, device=env.device))
+            foot_ids, _ = robot.find_sites(["left_foot", "right_foot"])
+            sites = robot.data.site_pos_w[:, foot_ids]
+            self.assertEqual(float(ground_height(env, sites).max()), 0)
+            over_pipe = sampled_sole_clearance(env)
+            env.training_terrain_height = 0
+            over_flat = sampled_sole_clearance(env)
+            self.assertTrue(((over_flat - over_pipe) > .03).all())
+            self.assertTrue(torch.isfinite(rewards).all())
+            self.assertEqual(env.observation_manager.compute_group("actor").shape, (1, 49))
+        finally:
+            env.close()
+
     def test_command_evaluation_continues_after_one_trial_falls(self):
         from bdxr_classroom.command_evaluate import run_case
         env = make_env(2, command_mode="balanced")

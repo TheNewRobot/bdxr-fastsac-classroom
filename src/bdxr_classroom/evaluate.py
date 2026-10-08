@@ -17,6 +17,7 @@ import torch
 from .environment import make_env
 from .fastsac import FastSAC
 from .experiments import experiment_root
+from .training_terrain import sampled_sole_clearance
 
 
 def main():
@@ -47,6 +48,7 @@ def main():
                    task_version=cfg.get("task_version", "v1"),
                    hop_height=cfg.get("hop_height", 0.04),
                    hop_height_reward=cfg.get("hop_height_reward", "continuous"),
+                   hop_clearance=cfg.get("hop_clearance", "site"),
                    hop_body_weight=cfg.get("hop_body_weight", 0.0),
                    proprio_only=cfg.get("proprio_only", False),
                    linear_weight=cfg.get("linear_weight"),
@@ -87,7 +89,8 @@ def main():
                     "reward": float(reward[0]),
                     "joint_angles": robot.joint_pos[0].cpu().numpy().tolist(),
                     "upright": float(-robot.projected_gravity_b[0, 2]),
-                    "foot_heights": robot.site_pos_w[0, foot_ids, 2].cpu().tolist(),
+                    "foot_heights": (sampled_sole_clearance(env)[0] if env.hop_clearance == "sole"
+                                     else robot.site_pos_w[0, foot_ids, 2]).cpu().tolist(),
                     "foot_contacts": (env.scene["feet_ground_contact"].data.found[0] > 0).cpu().flatten().tolist(),
                     "action_change_rms": float((actions - previous_action).square().mean().sqrt()),
                     "joint_torque_rms": float(robot.qfrc_actuator[0].square().mean().sqrt()),
@@ -154,6 +157,8 @@ def main():
         "checkpoint": str(path), "training_step": state["step"],
         "video_path": str(video_dir / "rollout.mp4") if not args.no_video else None,
         "target_speed": speed, "episodes": episode_reports,
+        "foot_height_measurement": ("Sampled collision-sole clearance" if cfg.get("hop_clearance") == "sole"
+                                    else "Foot reference-site height"),
         "initial_jitter_radians": args.initial_jitter,
         "fall_fraction": float(np.mean([r["fell"] for r in episode_reports])),
         "mean_speed": float(np.mean([r["mean_speed"] for r in episode_reports])),

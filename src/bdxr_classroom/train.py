@@ -45,6 +45,7 @@ def main():
     p.add_argument("--task-version", choices=["v1", "v2", "hop"], default="v2")
     p.add_argument("--hop-height", type=float, default=0.04)
     p.add_argument("--hop-height-reward", choices=["continuous", "flight"], default="continuous")
+    p.add_argument("--hop-clearance", choices=["site", "sole"], default="site")
     p.add_argument("--hop-body-weight", type=float, default=0.0)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--batch-size", type=int, default=4096)
@@ -80,7 +81,7 @@ def main():
                     "command_mode", "speed_min", "speed_max", "yaw_max", "yaw_weight",
                     "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
                     "training_terrain_height", "training_terrain_style", "yaw_bias_weight", "reward_scale",
-                    "linear_tracking", "hop_height_reward"]:
+                    "linear_tracking", "hop_height_reward", "hop_clearance"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
     cfg["experiment_path"] = str(out)
@@ -115,7 +116,8 @@ def main():
                  training_terrain_height=args.training_terrain_height,
                  training_terrain_style=args.training_terrain_style,
                  yaw_bias_weight=args.yaw_bias_weight, reward_scale=args.reward_scale,
-                 linear_tracking=args.linear_tracking, hop_height_reward=args.hop_height_reward)
+                 linear_tracking=args.linear_tracking, hop_height_reward=args.hop_height_reward,
+                 hop_clearance=args.hop_clearance)
     if not existing_run:
         write_manifest(out, cfg, env.cfg)
     else:
