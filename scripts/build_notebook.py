@@ -23,6 +23,7 @@ def main():
         cells.append(cell)
     bundle = io.BytesIO()
     with zipfile.ZipFile(bundle, "w", zipfile.ZIP_DEFLATED) as archive:
+        files = set()
         for pattern in ["src/**/*.py", "src/**/*.html", "configs/*.json",
                         "requirements*.txt", "scripts/setup.py", "scripts/check_command_results.py",
                         "scripts/check_hopping_results.py",
@@ -31,7 +32,14 @@ def main():
                         "assets/lesson/**/*"]:
             for path in ROOT.glob(pattern):
                 if path.is_file():
-                    archive.write(path, path.relative_to(ROOT))
+                    files.add(path)
+        for path in sorted(files):
+            info = zipfile.ZipInfo(path.relative_to(ROOT).as_posix(),
+                                   date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.create_system = 3
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, path.read_bytes())
     encoded = base64.b64encode(bundle.getvalue()).decode()
     md("""# Teach a little droid to walk
 ### 163A / 263A · BDX-R + FastSAC
