@@ -251,6 +251,8 @@ Choose a reward-setting experiment and fine-tune from the same baseline.
 
 Keep the speed and yaw command range. A prettier gait that loses backward walking is not an unqualified improvement.
 The unchanged control receives the same extra training budget, so we can distinguish a reward change from simply training longer.
+Changing reward weights also changes the score itself. Use falls, command
+tracking, and motion smoothness to judge whether the behavior improved.
 """)
     code('''EXPERIMENT = "smoother"  # @param ["smoother", "higher_steps", "control"]
 PREDICTION = "The motor commands will change less abruptly."  # @param {type:"string"}
