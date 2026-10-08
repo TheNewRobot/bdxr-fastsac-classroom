@@ -18,6 +18,8 @@ def main():
     parser.add_argument("--seed", type=int, default=263)
     parser.add_argument("--no-video", action="store_true")
     parser.add_argument("--name", default="course_validation")
+    parser.add_argument("--course-config", type=Path,
+                        help="Explicit course calibration settings, saved with the experiment")
     args = parser.parse_args()
     commands = json.loads(args.commands.read_text()) if args.commands else [
         {"seconds": 6, "speed": .3, "yaw": 0, "mode": "walk"},
@@ -30,7 +32,8 @@ def main():
     ]
     game = GameSession(args.walking, args.hopping, seed=args.seed,
                        render=not args.no_video, record=not args.no_video,
-                       operator="fixed_scripted_commands_no_feedback", name=args.name)
+                       operator="fixed_scripted_commands_no_feedback", name=args.name,
+                       course=json.loads(args.course_config.read_text()) if args.course_config else None)
     (game.output / "config/command_schedule.json").write_text(json.dumps(commands, indent=2))
     try:
         for command in commands:
