@@ -16,15 +16,24 @@ def digest(path):
 
 def history_verdict(records, walking_hash, hopping_hash):
     matching = [record for record in records
-                if record.get("valid_evaluation", True)
-                and record.get("walking_sha256") == walking_hash
-                and record.get("hopping_sha256") == hopping_hash]
-    passed = bool(matching) and all(
-        record.get("weights_unchanged") is True
-        and all(record.get("tests", {}).get(scope, {}).get("passed") is True
-                for scope in ("flat", "on_step"))
-        for record in matching)
-    return {"passed": passed, "evaluation_count": len(matching),
+                if record.get("walking_sha256") == walking_hash
+                and record.get("hopping_sha256") == hopping_hash
+                and record.get("weights_unchanged") is True]
+    completed = False
+    failure = False
+    evaluation_count = 0
+    for record in matching:
+        valid = {
+            scope: test for scope, test in record.get("tests", {}).items()
+            if test.get("valid_evaluation", record.get("valid_evaluation", True))
+            and isinstance(test.get("passed"), bool)
+        }
+        evaluation_count += bool(valid)
+        failure |= any(not test["passed"] for test in valid.values())
+        completed |= all(valid.get(scope, {}).get("passed") is True
+                         for scope in ("flat", "on_step"))
+    return {"passed": completed and not failure, "evaluation_count": evaluation_count,
+            "recorded_failure": failure,
             "walking_sha256": walking_hash, "hopping_sha256": hopping_hash,
             "scope": "Repeated flat/on-step handovers; full course traversal remains separate."}
 
@@ -42,7 +51,7 @@ def main():
     walking_hash, hopping_hash = digest(args.walking), digest(args.hopping)
     records = [json.loads(path.read_text()) for path in history.glob("*_pair.json")]
     previous = history_verdict(records, walking_hash, hopping_hash)
-    if previous["evaluation_count"] and not previous["passed"]:
+    if previous["recorded_failure"]:
         (args.output / "pair_selection.json").write_text(json.dumps(previous, indent=2))
         print("These exact weights have a recorded handover failure; retained in pair_history.")
         raise SystemExit(1)

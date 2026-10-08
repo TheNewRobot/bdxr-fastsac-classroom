@@ -37,3 +37,14 @@ class PairHistory(unittest.TestCase):
         verdict = module.history_verdict([error, good], "walk", "hop")
         self.assertTrue(verdict["passed"])
         self.assertEqual(verdict["evaluation_count"], 1)
+
+    def test_real_failure_survives_an_error_in_the_other_scope(self):
+        mixed = dict(walking_sha256="walk", hopping_sha256="hop",
+                     weights_unchanged=True, valid_evaluation=False,
+                     tests={"flat": {"passed": False, "valid_evaluation": True},
+                            "on_step": {"passed": False, "valid_evaluation": False}})
+        good = dict(walking_sha256="walk", hopping_sha256="hop", weights_unchanged=True,
+                    tests={"flat": {"passed": True}, "on_step": {"passed": True}})
+        verdict = module.history_verdict([mixed, good], "walk", "hop")
+        self.assertFalse(verdict["passed"])
+        self.assertTrue(verdict["recorded_failure"])
