@@ -213,7 +213,11 @@ class GameSession:
                "speed_command": self.speed, "yaw_command": self.yaw, "mode": self.stage,
                "action_change_rms": float((action - self.last_action).square().mean().sqrt()),
                "event": event, "falls": self.score.falls,
-               "base_above_feet": base_above_feet, "fall_reason": fall_reason}
+               "base_above_feet": base_above_feet, "fall_reason": fall_reason,
+               "foot_positions": robot.site_pos_w[0, self.foot_ids].cpu().tolist(),
+               "foot_contacts": (self.env.scene["feet_ground_contact"].data.found[0] > 0).flatten().cpu().tolist(),
+               "body_angular_velocity": robot.root_link_ang_vel_b[0].cpu().tolist(),
+               "hop_phase": self.hop_time % 1.0}
         self.last_action = action.clone()
         self.log.write(json.dumps(row) + "\n")
         if self.render_enabled and self.steps % 2 == 0:
