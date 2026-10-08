@@ -1,7 +1,9 @@
 """Check the declared full command suite; missing cases are failures."""
 
 import argparse
+import hashlib
 import json
+import math
 from pathlib import Path
 import statistics
 
@@ -14,6 +16,10 @@ def check(summary, targets):
         rows = summary["cases"].get(case, [])
         if len(rows) < targets["episodes_per_case"]:
             failures.append(f"{case}: missing evaluations")
+            continue
+        if any(not isinstance(r.get(key), (int, float)) or not math.isfinite(r[key])
+               for r in rows for key in ("duration_s", "speed_mae", "yaw_mae", "max_cross_track_m")):
+            failures.append(f"{case}: missing or nonfinite measurements")
             continue
         if any(r["fell"] for r in rows):
             failures.append(f"{case}: fall")
@@ -30,6 +36,21 @@ def check(summary, targets):
                 failures.append(f"{case}: worst-episode drift too large")
     return {"passed": not failures, "failures": failures, "targets": targets,
             "checkpoint": summary["checkpoint"]}
+
+
+def checkpoint_digest(path):
+    with Path(path).open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def select_checkpoint(candidates):
+    """Select only a passing report tied to the currently saved checkpoint."""
+    for candidate in candidates:
+        path = Path(candidate["checkpoint"])
+        if (candidate.get("passed") is True and path.is_file()
+                and candidate.get("checkpoint_sha256") == checkpoint_digest(path)):
+            return str(path)
+    return None
 
 
 if __name__ == "__main__":

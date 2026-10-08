@@ -134,6 +134,10 @@ if USE_WANDB and not (os.environ.get("WANDB_API_KEY") or Path.home().joinpath(".
     import getpass
     runtime_env["WANDB_API_KEY"] = getpass.getpass("Your W&B API key (not saved in this notebook): ")
 
+import sys
+sys.path.insert(0, str(WORK / "scripts"))
+from check_command_results import checkpoint_digest, select_checkpoint
+
 def run_module(module, *arguments):
     command = [PYTHON, "-u", "-m", module] + [str(value) for value in arguments]
     log_path = WORK / "last_command.log"
@@ -170,7 +174,7 @@ def show_motion(run, checkpoint="final", speed=None):
     report = json.loads((output / "evaluation.json").read_text())
     display(Video(report["video_path"], embed=True, width=640))
 
-def summarize_commands(run):
+def summarize_commands(run, expected_digest):
     import sys
     from statistics import mean
     sys.path.insert(0, str(WORK / "scripts"))
@@ -178,6 +182,10 @@ def summarize_commands(run):
     report = json.loads((run / "evaluation/final_commands/summary.json").read_text())
     targets = json.loads((WORK / "configs/evaluation_targets.json").read_text())
     verdict = check(report, targets)
+    checkpoint = run / "checkpoints/final.pt"
+    if checkpoint_digest(checkpoint) != expected_digest:
+        raise RuntimeError("Checkpoint changed during evaluation; evaluate a stable saved file.")
+    verdict.update(checkpoint=str(checkpoint), checkpoint_sha256=expected_digest)
     (run / "evaluation/final_commands/selection_check.json").write_text(json.dumps(verdict, indent=2))
     rows = []
     for case, trials in report["cases"].items():
@@ -220,10 +228,11 @@ We test the same policy at several speeds and turn rates. The plots show measure
 
 Lateral deviation is a straight-line check only. A curved path is expected when the command asks for a turn.
 """)
-    code('''run_module("bdxr_classroom.command_evaluate", BASELINE / "checkpoints/final.pt",
+    code('''baseline_digest = checkpoint_digest(BASELINE / "checkpoints/final.pt")
+run_module("bdxr_classroom.command_evaluate", BASELINE / "checkpoints/final.pt",
            "--cases", "slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence",
            "--episodes", 5, "--seconds", 15)
-BASELINE_CHECK = summarize_commands(BASELINE)
+BASELINE_CHECK = summarize_commands(BASELINE, baseline_digest)
 for case in ["forward", "sequence"]:
     display(Video(str(BASELINE / "videos/final_commands" / (case + ".mp4")), embed=True, width=640))
     display(Image(filename=str(BASELINE / "evaluation/final_commands" / (case + ".png"))))
@@ -261,18 +270,27 @@ CONTROL = VARIATION if EXPERIMENT == "control" else train(
     "--resume", BASELINE / "checkpoints/final.pt", "--finetune")
 from statistics import mean
 comparisons = [("control", CONTROL)] + ([] if CONTROL == VARIATION else [(EXPERIMENT, VARIATION)])
+walking_candidates = [BASELINE_CHECK]
 for label, experiment in comparisons:
+    digest_before = checkpoint_digest(experiment / "checkpoints/final.pt")
     run_module("bdxr_classroom.command_evaluate", experiment / "checkpoints/final.pt",
                "--cases", "slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence",
                "--episodes", 5, "--seconds", 15)
     report = json.loads((experiment / "evaluation/final_commands/summary.json").read_text())
-    summarize_commands(experiment)
+    walking_candidates.append(summarize_commands(experiment, digest_before))
     forward = report["cases"]["forward"]
     steps = json.loads((experiment / "metrics/timing.json").read_text())["step"]
     print(f"{label}: {steps} parallel simulation steps | action-change RMS = {mean(r['action_change_rms'] for r in forward):.3f}"
           f" | foot swing = {mean(r['swing_height_p95'] for r in forward):.3f} m"
           f" | cross-track = {mean(r['max_cross_track_m'] for r in forward):.3f} m")
     display(Video(str(experiment / "videos/final_commands/sequence.mp4"), embed=True, width=640))
+SELECTED_WALK_CHECKPOINT = select_checkpoint(walking_candidates)
+WALKING_VALIDATED = SELECTED_WALK_CHECKPOINT is not None
+if WALKING_VALIDATED:
+    print("Walking checkpoint selected for the game:", SELECTED_WALK_CHECKPOINT)
+else:
+    SELECTED_WALK_CHECKPOINT = str(BASELINE / "checkpoints/final.pt")
+    print("No walking checkpoint passed. The baseline remains available for exploratory play, not as a validated controller.")
 ''')
     md("""## 6 · Teach small hops
 
@@ -372,6 +390,9 @@ if TRAIN_HOPPING:
               "; ".join(result["failures"]))
     # Try passing candidates in order; a failed handover is not a usable pair.
     for candidate in selection["candidates"]:
+        if not WALKING_VALIDATED:
+            print("A passing walking checkpoint is needed before selecting a walking/hopping pair.")
+            break
         if not candidate["passed"]:
             continue
         selected = Path(candidate["checkpoint"])
@@ -381,7 +402,7 @@ if TRAIN_HOPPING:
         with pair_log.open("w") as log:
             checked = subprocess.run(
                 [PYTHON, str(WORK / "scripts/validate_policy_pair.py"),
-                 str(BASELINE / "checkpoints/final.pt"), str(selected),
+                 SELECTED_WALK_CHECKPOINT, str(selected),
                  "--output", str(pair_output)], cwd=WORK, env=runtime_env,
                 stdout=log, stderr=subprocess.STDOUT)
         print(pair_log.read_text()[-3000:])
@@ -451,11 +472,17 @@ The classroom obstacles are 17.5–20 mm high, followed by uneven ground and an 
 
 Use speed and yaw controls to steer. If you loaded a hopping policy, switch modes before obstacles and watch the transition state. There is no navigation controller.
 
+The default walking checkpoint is the first passing baseline, control, or
+variation. An unchanged continuation can improve a baseline that missed a check.
+
 **Fall → return to the start. Time and falls accumulate. Cross the three obstacles and rough patch, then reach the finish upright → win.** The four checkpoints prevent shortcuts. The scoreboard measures simulation time. A new game resets the score.
 """)
     code('''# @title Launch your playable validation course
-WALK_CHECKPOINT = str(BASELINE / "checkpoints/final.pt")  # @param {type:"string"}
-HOP_CHECKPOINT = SELECTED_HOP_CHECKPOINT or ""  # @param {type:"string"}
+# Optional paths: leave blank to use the checkpoints selected above.
+WALK_CHECKPOINT = ""  # @param {type:"string"}
+HOP_CHECKPOINT = ""  # @param {type:"string"}
+WALK_CHECKPOINT = WALK_CHECKPOINT or SELECTED_WALK_CHECKPOINT
+HOP_CHECKPOINT = HOP_CHECKPOINT or SELECTED_HOP_CHECKPOINT or ""
 GAME_PORT = 8765
 if "game_process" in globals() and game_process.poll() is None:
     game_process.terminate()
