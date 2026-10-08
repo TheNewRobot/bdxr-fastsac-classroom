@@ -95,6 +95,7 @@
     "learning_curve": "moving_hops/learning_curves.png",
     "caption": "Small flat-ground hops: about 1.6 cm clearance at the lowest collision-sole point. Mean forward speed 0.105 m/s against a 0.15 m/s command. A foot marker rises higher than the sole; this checkpoint has not cleared the obstacle course.",
     "experiment": "experiments/2026-10-08_004240_908180_moving_hops",
-    "measurement_audit": "experiments/2026-10-08_021536_596261_selected_hop_sole_audit"
+    "measurement_audit": "experiments/2026-10-08_021536_596261_selected_hop_sole_audit",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/hf830zex"
   }
 ]
