@@ -1,0 +1,18 @@
+{
+  "description": "A classroom hopping checkpoint screen, not proof of course traversal or precise command tracking.",
+  "required_cases": ["slow", "forward", "stop"],
+  "episodes_per_case": 5,
+  "seconds_per_case": 15,
+  "terrain_style": "mixed",
+  "terrain_height_m": 0.015,
+  "minimum_landed_hops": 5,
+  "minimum_peak_sole_clearance_m": 0.025,
+  "minimum_forward_speed_m_s": 0.05,
+  "maximum_stop_speed_m_s": 0.05,
+  "notes": [
+    "Every trial must finish without a fall and contain repeated landed hops.",
+    "The clearance screen exceeds the classroom's 20 mm obstacle height, but does not establish clearance at the right time or position.",
+    "Walking/hopping handovers, backward/turning commands, and full course traversal need separate evaluation.",
+    "Five perturbed starts are not five independent training seeds."
+  ]
+}
