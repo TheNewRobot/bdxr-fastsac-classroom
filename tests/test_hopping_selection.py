@@ -59,3 +59,29 @@ class HoppingSelection(unittest.TestCase):
             mutate(report)
             self.assertFalse(check(report, self.targets)["passed"])
         self.assertTrue(check(self.report, self.targets)["passed"])
+
+    def test_rerunning_does_not_erase_a_failure(self):
+        failure = copy.deepcopy(self.report)
+        failure["cases"]["forward"][0]["fell"] = True
+        result = choose([failure, self.report], self.targets)
+        self.assertIsNone(result["selected_checkpoint"])
+        self.assertEqual(result["candidates"][0]["evaluation_count"], 2)
+
+    def test_old_weights_cannot_qualify_a_replaced_checkpoint(self):
+        old = dict(self.report, checkpoint_sha256="old-weights")
+        current = {"earlier.pt": "new-weights"}
+        self.assertIsNone(choose([old], self.targets, current)["selected_checkpoint"])
+        new = dict(self.report, checkpoint_sha256="new-weights")
+        old_failure = copy.deepcopy(old)
+        old_failure["cases"]["stop"][0]["fell"] = True
+        result = choose([old_failure, new], self.targets, current)
+        self.assertEqual(result["selected_checkpoint"], "earlier.pt")
+        self.assertEqual(result["candidates"][0]["evaluation_count"], 1)
+
+    def test_moving_a_backup_does_not_forget_its_failures(self):
+        moved = dict(self.report, checkpoint_sha256="same-weights")
+        moved["cases"] = copy.deepcopy(self.report["cases"])
+        moved["cases"]["forward"][0]["fell"] = True
+        result = choose([moved], self.targets, {"new-location/earlier.pt": "same-weights"})
+        self.assertIsNone(result["selected_checkpoint"])
+        self.assertEqual(result["candidates"][0]["evaluation_count"], 1)
