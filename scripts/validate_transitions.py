@@ -17,6 +17,8 @@ def main():
     parser.add_argument("--seeds", type=int, default=5)
     parser.add_argument("--cycles", type=int, default=3)
     parser.add_argument("--speed", type=float, default=0.15)
+    parser.add_argument("--result-file", type=Path,
+                        help="Also save the suite report at this explicit path")
     parser.add_argument("--start-x", type=float,
                         help="Inject a starting position on the course; not full-traversal evidence")
     parser.add_argument("--start-height", type=float, default=0,
@@ -75,6 +77,9 @@ def main():
               "reports": reports, "passed": all(r["falls"] == 0 and r["all_modes_reached"] for r in reports)}
     path = Path(reports[0]["experiment"]) / "evaluation/transition_suite.json"
     path.write_text(json.dumps(result, indent=2))
+    if args.result_file:
+        args.result_file.parent.mkdir(parents=True, exist_ok=True)
+        args.result_file.write_text(json.dumps(result, indent=2))
     print(path)
     raise SystemExit(0 if result["passed"] else 1)
 

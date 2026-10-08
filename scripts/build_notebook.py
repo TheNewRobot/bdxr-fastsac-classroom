@@ -23,6 +23,7 @@ def main():
         for pattern in ["src/**/*.py", "src/**/*.html", "configs/*.json",
                         "requirements*.txt", "scripts/setup.py", "scripts/check_command_results.py",
                         "scripts/check_hopping_results.py",
+                        "scripts/validate_transitions.py", "scripts/validate_policy_pair.py",
                         "THIRD_PARTY_NOTICES.md",
                         "assets/lesson/**/*"]:
             for path in ROOT.glob(pattern):
@@ -286,7 +287,7 @@ The last stage measures the sole, rather than the foot marker, and practices on
 foot placements; it does not give the actor a terrain map. Inspect each stage;
 flat-floor success does not prove obstacle capability.
 
-Compare the final checkpoint with the earlier 1,000-step checkpoint. Each must
+Compare the final checkpoint with saved earlier checkpoints. Each must
 complete five trials per command without falling, land at least five hops per trial,
 and reach at least 2.5 cm sole clearance. Forward commands must move forward;
 stop must stay slow. The exact screen is saved with the results. Passing it does
@@ -295,6 +296,10 @@ not replace tests of turning, mode switches, or the full course.
 Repeated tests can differ. Keep every result: a later success does not erase
 an earlier failure. The notebook matches reports to the exact saved weights
 and selects only checkpoints that passed all their recorded screens.
+
+Before the game, test repeated walk/hop switches on flat ground and on a small
+step. Passing the hopping screen alone is not enough. A failed pair is not
+loaded automatically; its videos and reports stay in your results.
 """)
     code('''TRAIN_HOPPING = True  # @param {type:"boolean"}
 TINY_HOPS = MOVING_HOPS = HOP_RESULTS = None
@@ -326,7 +331,11 @@ if TRAIN_HOPPING:
     history = HOP_RESULTS / "evaluation/hopping_history"
     history.mkdir(exist_ok=True)
     current_checkpoints = {}
-    for filename in ["final.pt", "step_001000.pt"]:
+    final_step = json.loads((HOP_RESULTS / "metrics/timing.json").read_text())["step"]
+    filenames = ["final.pt"] + [
+        path.name for path in sorted((HOP_RESULTS / "checkpoints").glob("step_*.pt"), reverse=True)
+        if int(path.stem.split("_")[1]) != final_step]
+    for filename in filenames:
         checkpoint = HOP_RESULTS / "checkpoints" / filename
         if not checkpoint.exists():
             print("Checkpoint not reached before the training time limit:", filename)
@@ -361,7 +370,24 @@ if TRAIN_HOPPING:
         print(Path(result["checkpoint"]).name, "Passed" if result["passed"] else "Needs work",
               f"across {result['evaluation_count']} recorded evaluations:",
               "; ".join(result["failures"]))
-    SELECTED_HOP_CHECKPOINT = selection["selected_checkpoint"]
+    # Try passing candidates in order; a failed handover is not a usable pair.
+    for candidate in selection["candidates"]:
+        if not candidate["passed"]:
+            continue
+        selected = Path(candidate["checkpoint"])
+        print("Testing", selected.name, "with walking on flat ground and a 20 mm step...")
+        pair_output = HOP_RESULTS / "evaluation"
+        pair_log = pair_output / ("pair_check_" + str(time.time_ns()) + ".log")
+        with pair_log.open("w") as log:
+            checked = subprocess.run(
+                [PYTHON, str(WORK / "scripts/validate_policy_pair.py"),
+                 str(BASELINE / "checkpoints/final.pt"), str(selected),
+                 "--output", str(pair_output)], cwd=WORK, env=runtime_env,
+                stdout=log, stderr=subprocess.STDOUT)
+        print(pair_log.read_text()[-3000:])
+        if checked.returncode == 0:
+            SELECTED_HOP_CHECKPOINT = str(selected)
+            break
     if SELECTED_HOP_CHECKPOINT:
         selected = Path(SELECTED_HOP_CHECKPOINT)
         print("Selected for further testing in the game:", selected.name)
@@ -373,7 +399,7 @@ if TRAIN_HOPPING:
         display(Video(str(HOP_RESULTS / "videos" / Path(latest["evaluation_directory"]).name / "slow.mp4"),
                       embed=True, width=640))
     else:
-        print("No hopping checkpoint passed. Inspect the failures before using one in the game.")
+        print("No hopping pair passed all screens. The game will start with walking only; inspect the failures.")
     run_module("bdxr_classroom.plots", HOP_RESULTS)
     display(Image(filename=str(HOP_RESULTS / "metrics/learning_curves.png")))
 else:
@@ -399,6 +425,7 @@ def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
     folders = list(dict.fromkeys([BASELINE, VARIATION, CONTROL] +
                                  [run for run in [TINY_HOPS, MOVING_HOPS, HOP_RESULTS] if run]))
     folders += list((WORK / "experiments").glob("*_desert_droid_game"))
+    folders += list((WORK / "experiments").glob("*_transition_validation"))
     with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
         for folder in folders:
             for file in folder.rglob("*"):

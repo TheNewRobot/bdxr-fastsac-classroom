@@ -23,7 +23,7 @@ class NotebookExports(unittest.TestCase):
             work = Path(temporary)
             runs = []
             for name in ("baseline", "variation", "control", "tiny", "moving", "terrain",
-                         "desert_droid_game"):
+                         "desert_droid_game", "transition_validation"):
                 run = work / "experiments" / ("2026-01-01_" + name)
                 (run / "checkpoints").mkdir(parents=True)
                 # File-preservation fixtures, not purported trained policies.
