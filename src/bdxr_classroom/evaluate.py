@@ -180,7 +180,8 @@ def main():
         axs[0].set(ylabel="Body height (m)")
         for foot, label in enumerate(["Left foot", "Right foot"]):
             axs[1].plot(ts, [s["foot_heights"][foot] for s in first], label=label)
-        axs[1].set(ylabel="Foot site height (m)")
+        axs[1].set(ylabel=("Sampled sole clearance (m)" if cfg.get("hop_clearance") == "sole"
+                          else "Foot site height (m)"))
         axs[1].legend()
     else:
         axs[0].plot(ts, [s["speed"] for s in first], label="Measured")
