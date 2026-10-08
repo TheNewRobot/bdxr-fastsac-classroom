@@ -71,10 +71,12 @@ for item in gallery:
     curve = base64.b64encode((folder / item["learning_curve"]).read_bytes()).decode() if item.get("learning_curve") else None
     motion = base64.b64encode((folder / item["motion"]).read_bytes()).decode() if item.get("motion") else None
     plots = "".join(f'<img width="100%" src="data:image/png;base64,{data}">' for data in [curve, motion] if data)
+    wandb_link = (f'<p><a href="{html.escape(item["wandb_gallery"], quote=True)}" target="_blank">'
+                  'Open the recorded W&B run</a></p>') if item.get("wandb_gallery") else ""
     destination = legacy_cards if item["video"].startswith("legacy/") else cards
     destination.append(f'<article style="flex:1 1 320px;max-width:480px;padding:12px;border:1px solid #b9cebe;border-radius:12px">'
                  f'<h4>{html.escape(item["title"])}</h4><video controls loop playsinline width="100%" src="data:video/mp4;base64,{video}"></video>'
-                 f'<p>{html.escape(item["caption"])}</p><details><summary>Measured curves and motion</summary>{plots}</details></article>')
+                 f'<p>{html.escape(item["caption"])}</p>{wandb_link}<details><summary>Measured curves and motion</summary>{plots}</details></article>')
 display(HTML('<div style="display:flex;flex-wrap:wrap;gap:12px">' + "".join(cards) + "</div>"))
 display(HTML('<details><summary>Earlier experiments: useful failures and preliminary behaviors</summary>'
              '<div style="display:flex;flex-wrap:wrap;gap:12px">' + "".join(legacy_cards) + "</div></details>"))
@@ -147,7 +149,7 @@ def run_module(module, *arguments):
         try:
             for line in process.stdout:
                 log.write(line)
-                if line.startswith(("step=", "Experiment:", "forward:", "backward:", "sequence:")) or "Error" in line:
+                if line.startswith(("step=", "Experiment:", "forward:", "backward:", "sequence:")) or "Error" in line or "View run" in line:
                     print(line.rstrip())
             result = process.wait()
         except KeyboardInterrupt:
@@ -265,20 +267,24 @@ Choose a reward-setting experiment and fine-tune from the same baseline.
 | Experiment | Only changed behavior setting |
 |---|---|
 | Smoother | Action-change penalty ×3 |
-| Higher steps | Swing-foot target from 6 to 9 cm |
+| Higher target | Swing-foot target from 6 to 7.5 cm |
 | Control | No changed setting; same extra training |
 
 Keep the speed and yaw command range. A prettier gait that loses backward walking is not an unqualified improvement.
 The unchanged control receives the same extra training budget, so we can distinguish a reward change from simply training longer.
 Changing reward weights also changes the score itself. Use falls, command
 tracking, and motion smoothness to judge whether the behavior improved.
+In the recorded comparison, raising the target did not raise measured foot
+swing. A reward target is an incentive, not a guaranteed movement.
 """)
     code('''EXPERIMENT = "smoother"  # @param ["smoother", "higher_steps", "control"]
 PREDICTION = "The motor commands will change less abruptly."  # @param {type:"string"}
 VARIATION_STEPS = 3000  # @param {type:"integer"}
-changed = ["--smoothness", 3] if EXPERIMENT == "smoother" else (["--swing-height", 0.09] if EXPERIMENT == "higher_steps" else [])
+changed = ["--smoothness", 3] if EXPERIMENT == "smoother" else (["--swing-height", 0.075] if EXPERIMENT == "higher_steps" else [])
 example = WORK / "assets/lesson/style_comparison"
-print(json.loads((example / "provenance.json").read_text())["caption"])
+style_provenance = json.loads((example / "provenance.json").read_text())
+print(style_provenance["caption"])
+display(HTML(f'<a href="{html.escape(style_provenance["wandb_gallery"], quote=True)}" target="_blank">Open the recorded W&B comparison</a>'))
 display(Video(str(example / "walking_style_comparison.mp4"), embed=True, width=720))
 display(Image(filename=str(example / "walking_style_comparison.png")))
 print("Prediction:", PREDICTION)
