@@ -53,14 +53,20 @@ python scripts/setup.py
 export PYTHONPATH="$PWD/src"
 export MUJOCO_GL=egl
 .venv/bin/python -m bdxr_classroom.train \
-  --name command_walking --command-mode balanced --yaw-tracking rate --compile
+  --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
+  --steps 8000 --minutes 15 --command-mode balanced \
+  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 2 --mirror-replay --compile
 ```
 
-The trainer prints the actual timestamped experiment path. To evaluate it:
+These settings match the notebook's walking recipe. Runtime depends on the GPU;
+the time limit can stop training before 8,000 steps. The trainer prints the
+actual timestamped experiment path. To evaluate it:
 
 ```bash
 .venv/bin/python -m bdxr_classroom.command_evaluate \
   experiments/<timestamp>_command_walking/checkpoints/final.pt
+python scripts/check_command_results.py \
+  experiments/<timestamp>_command_walking/evaluation/final_commands/summary.json
 ```
 
 Resume with `--resume .../checkpoints/resume.pt`; policy, critics, optimizers,

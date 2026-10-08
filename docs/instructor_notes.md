@@ -23,6 +23,9 @@ Evaluation position measurements do not become policy inputs.
 Changing the speed command differs from retraining a reward setting.
 Use the same baseline and equal training budgets for parameter comparisons.
 Recheck backward motion, stops and turns after a style change.
+An unchanged continuation can also get worse: more updates do not guarantee
+better control. Use the acceptance table to decide which policies to keep,
+and discuss failed experiments instead of hiding them.
 
 Hopping phase is a command. Foot clearance is not body jump height, and a
 successful flat-floor hop does not prove obstacle clearance. Mode transitions
