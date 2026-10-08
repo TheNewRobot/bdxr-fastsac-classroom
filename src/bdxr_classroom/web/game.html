@@ -59,7 +59,7 @@ function stopRobot(){desiredMode='walk';drive(0,0)}
 function camera(view){send({action:'camera',view})}
 function clearControls(){keys.clear();lastDrive='';desiredMode='walk';$('speed').value=0;$('yaw').value=0;labels()}
 function newGame(){clearControls();send({action:'new'})}
-function loadPolicies(){send({action:'load',walking:$('walking').value.trim(),hopping:$('hopping').value.trim()})}
+function loadPolicies(){clearControls();send({action:'load',walking:$('walking').value.trim(),hopping:$('hopping').value.trim()})}
 ['speed','yaw'].forEach(id=>$(id).addEventListener('input',()=>drive(Number($('speed').value),Number($('yaw').value))));
 function keyboard(){let speed=(keys.has('KeyW')?.3:0)-(keys.has('KeyS')?.2:0),yaw=(keys.has('KeyA')?.4:0)-(keys.has('KeyD')?.4:0);const encoded=JSON.stringify([speed,yaw]);if(encoded!==lastDrive){lastDrive=encoded;drive(speed,yaw)}}
 window.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(['KeyW','KeyS','KeyA','KeyD'].includes(e.code)){e.preventDefault();keys.add(e.code);keyboard()}if(e.code==='Space'&&!e.repeat){e.preventDefault();chooseMode(desiredMode==='walk'?'hop':'walk')}});

@@ -23,11 +23,15 @@ traversal using walking and hopping policies. Course checkpoints reject
 shortcuts around the obstacles.
 
 Fine-tuning seed handling and replay continuation have regression tests.
-Remaining work: hopping repeatability and final notebook/browser integration.
-Some hopping repeats
-failed despite a successful earlier policy; the recordings do not guarantee
-every new training run will work. Instructor recordings and student training
-results are labeled separately.
+The selected hopping checkpoint passed repeated terrain screens and flat/on-step
+handovers. Current notebook integration passed using completed real training,
+with fresh hopping checks, live browser interaction and resumable export.
+Buttons, keyboard controls, key release and focus-loss stopping were exercised
+against the simulator. A further fresh training run is underway.
+
+Some earlier hopping repeats failed; those results remain in the experiment
+history. The recordings do not guarantee every new training run will work.
+Instructor recordings and student training results are labeled separately.
 
 Actual Google Colab testing is separate from local validation and remains
 unperformed. Detailed logs and development records stay in ignored experiment
