@@ -161,6 +161,7 @@ def show_motion(run, checkpoint="final"):
     display(Video(report["video_path"], embed=True, width=640))
 
 def summarize_commands(run):
+    import sys
     from statistics import mean
     sys.path.insert(0, str(WORK / "scripts"))
     from check_command_results import check
@@ -206,6 +207,8 @@ display(Image(filename=str(BASELINE / "metrics/learning_curves.png")))
 We test the same policy at several speeds and turn rates. The plots show measured speed/yaw rate and world trajectories.
 
 **Position and heading are evaluation measurements, not actor inputs.** Check drift as well as falls. Repeated starting states test one trained policy; they are not independent training runs.
+
+Lateral deviation is a straight-line check only. A curved path is expected when the command asks for a turn.
 """)
     code('''run_module("bdxr_classroom.command_evaluate", BASELINE / "checkpoints/final.pt",
            "--cases", "slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence",
@@ -268,20 +271,44 @@ Hopping adds a rhythm command and rewards foot clearance and landing. Feet risin
 A marker above the foot can rise while the heel stays close to the floor.
 Check the lowest sole clearance and contact state before claiming that a hop can clear an obstacle.
 
-This is an extended lab: first learn small stationary hops, then practice moving hops. Inspect both stages. Flat-floor success does not prove the robot can clear the game obstacles.
+This extended lab uses a curriculum: stationary hops → moving hops → clearance over small physical obstacles.
+The last stage measures the sole, rather than the foot marker. Inspect each stage; flat-floor success does not prove obstacle capability.
 """)
     code('''TRAIN_HOPPING = True  # @param {type:"boolean"}
 TINY_HOPS = HOP_RESULTS = None
 if TRAIN_HOPPING:
     TINY_HOPS = train("tiny_hops", "--task-version", "hop", "--speed", 0,
                      "--hop-height", 0.04, "--steps", 4000, "--minutes", 10)
-    HOP_RESULTS = train("moving_hops", "--task-version", "hop", "--speed", 0,
+    show_motion(TINY_HOPS)
+    MOVING_HOPS = train("moving_hops", "--task-version", "hop", "--speed", 0,
                         "--command-mode", "balanced", "--speed-min", -0.1, "--speed-max", 0.3,
                         "--yaw-max", 0.3, "--yaw-tracking", "rate", "--yaw-std", 0.2,
                         "--hop-height", 0.07, "--hop-body-weight", 6, "--linear-weight", 6,
                         "--steps", 6000, "--minutes", 15,
                         "--resume", TINY_HOPS / "checkpoints/final.pt", "--finetune")
+    show_motion(MOVING_HOPS)
+    HOP_RESULTS = train("terrain_hops", "--task-version", "hop", "--speed", 0.3,
+                        "--command-mode", "balanced", "--speed-min", -0.1, "--speed-max", 0.3,
+                        "--yaw-max", 0.3, "--yaw-tracking", "rate", "--yaw-std", 0.2,
+                        "--hop-height", 0.04, "--hop-body-weight", 6, "--linear-weight", 6,
+                        "--hop-clearance", "sole", "--hop-height-reward", "flight", "--mirror-replay",
+                        "--training-terrain-height", 0.015, "--training-terrain-style", "mixed",
+                        "--steps", 2000, "--minutes", 10,
+                        "--resume", MOVING_HOPS / "checkpoints/final.pt", "--finetune")
     show_motion(HOP_RESULTS)
+    run_module("bdxr_classroom.command_evaluate", HOP_RESULTS / "checkpoints/final.pt",
+               "--cases", "slow", "forward", "stop", "--episodes", 5, "--seconds", 15,
+               "--terrain-height", 0.015, "--terrain-style", "mixed")
+    hop_report = json.loads((HOP_RESULTS / "evaluation/final_commands_mixed_0.015/summary.json").read_text())
+    from statistics import mean
+    for case, trials in hop_report["cases"].items():
+        print(f"{case}: falls {sum(t['fell'] for t in trials)}/{len(trials)}, "
+              f"mean landed hops {mean(t['landed_hops'] for t in trials):.1f}, "
+              f"mean peak sole clearance {100*mean(t['peak_simultaneous_foot_clearance'] for t in trials):.1f} cm, "
+              f"mean speed {mean(t['mean_speed'] for t in trials):.2f} m/s")
+    display(Video(str(HOP_RESULTS / "videos/final_commands_mixed_0.015/slow.mp4"), embed=True, width=640))
+    run_module("bdxr_classroom.plots", HOP_RESULTS)
+    display(Image(filename=str(HOP_RESULTS / "metrics/learning_curves.png")))
 else:
     print("Hopping training skipped. You can load an existing compatible checkpoint in the game.")
 ''')
