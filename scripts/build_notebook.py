@@ -1,360 +1,338 @@
-"""Build the uploadable lesson with a small embedded source-code bundle."""
+"""Build the portable lesson with curated media, source, and the playable game."""
 
 import base64
 import io
-import zipfile
 from pathlib import Path
-
+import zipfile
 import nbformat as nbf
 
 ROOT = Path(__file__).resolve().parents[1]
-cells = []
-
-
-def md(text):
-    cells.append(nbf.v4.new_markdown_cell(text))
-
-
-def code(text):
-    cells.append(nbf.v4.new_code_cell(text))
 
 
 def main():
+    cells = []
+    def md(text):
+        cells.append(nbf.v4.new_markdown_cell(text))
+    def code(text, hidden=False):
+        cell = nbf.v4.new_code_cell(text)
+        if hidden:
+            cell.metadata["cellView"] = "form"
+        cells.append(cell)
     bundle = io.BytesIO()
-    with zipfile.ZipFile(bundle, "w", zipfile.ZIP_DEFLATED) as z:
-        for pattern in ["src/**/*.py", "configs/*.json", "scripts/setup.py",
-                        "requirements.txt", "requirements.lock.txt", "THIRD_PARTY_NOTICES.md",
-                        "examples/**/*", "docs/comparison.png"]:
+    with zipfile.ZipFile(bundle, "w", zipfile.ZIP_DEFLATED) as archive:
+        for pattern in ["src/**/*.py", "src/**/*.html", "configs/*.json",
+                        "requirements*.txt", "scripts/setup.py", "THIRD_PARTY_NOTICES.md",
+                        "assets/lesson/**/*"]:
             for path in ROOT.glob(pattern):
                 if path.is_file():
-                    z.write(path, path.relative_to(ROOT))
+                    archive.write(path, path.relative_to(ROOT))
     encoded = base64.b64encode(bundle.getvalue()).decode()
     md("""# Teach a little droid to walk
-### 163A / 263A · Robotics 101 · BDX-R + FastSAC
+### 163A / 263A · BDX-R + FastSAC
 
-**Your challenge:** help BDX-R stay balanced, move forward, and change its walking behavior.
+**Watch → train → measure → change one thing → play.**
 
-We will **watch → train → compare → explain**. You will produce your own videos and measurements.
+Train a low-level robot controller, compare its motion, then load your checkpoint into a small desert obstacle course.
 
-**Project credits:** [BDX-R](https://github.com/BDX-R/BDX-R-MjLab) supplies the robot and starting task; [Holosoma / FastSAC](https://younggyo.me/fastsac-humanoid/) supplies the learning components; mjlab and MuJoCo Warp simulate the physics.
+**Credits:** [BDX-R](https://github.com/BDX-R/BDX-R-MjLab) supplies the complete robot; [Holosoma / FastSAC](https://younggyo.me/fastsac-humanoid/) supplies the learning components; mjlab and MuJoCo Warp simulate physics.
 
-**Validation status:** the GPU simulation and training adapter have been exercised locally on an NVIDIA L40S. Actual Google Colab execution is still pending. Training time on your assigned GPU can differ.
+**Testing:** local L40S testing is recorded in the repository. Actual Google Colab execution remains pending. A 15-minute training budget is not a guarantee for every GPU, seed, or behavior.
 """)
-    preview = ROOT / "artifacts/robot_preview.png"
-    if preview.exists():
-        cell = nbf.v4.new_markdown_cell("![Our complete BDX-R robot](attachment:robot.png)\n\n*Rendered locally from the BDX-R model. This image is not a trained walking result.*")
-        cell["attachments"] = {"robot.png": {"image/png": base64.b64encode(preview.read_bytes()).decode()}}
-        cells.append(cell)
-    md("""## 1 · Watch the goal
+    md("""## 1 · Set up
 
-Play the upstream simulation demonstration. Notice the feet, knees, and body.
-
-**Before we start:** What must the robot control to move without falling?
-
-This is a **credited upstream demonstration**, not a result trained by our notebook.
-""")
-    code("""from IPython.display import Video, display
-display(Video(url="https://github.com/user-attachments/assets/af664888-200a-4969-a248-1ef59d8b259c",
-              width=720))
-""")
-    md("""## 2 · Prepare your workspace
-
-In Colab, select **Runtime → Change runtime type → GPU**.
-
-The next cells unpack this lesson's source code and install the robot and simulator. No repository publication is required: the small code bundle is included in this notebook. Upstream robot assets are downloaded from pinned revisions.
-
-Installation and first-time GPU compilation take additional time. We measure those separately from training.
+Select **Runtime → Change runtime type → GPU**. This notebook includes the lesson source and selected media; it downloads pinned upstream robot assets.
 """)
     code(f'''# @title Unpack the lesson
-import base64, io, os, sys, zipfile
+import base64, io, zipfile, json, time, os, subprocess
 from pathlib import Path
-
+from IPython.display import display, Video, Image, HTML, IFrame
 WORK = Path("/content/bdxr_classroom") if Path("/content").exists() else Path.cwd() / "bdxr_classroom_lab"
 WORK.mkdir(parents=True, exist_ok=True)
 SOURCE_BUNDLE = "{encoded}"
 with zipfile.ZipFile(io.BytesIO(base64.b64decode(SOURCE_BUNDLE))) as archive:
     archive.extractall(WORK)
 print("Lesson files:", WORK)
-''')
-    cells[-1]["metadata"]["cellView"] = "form"
-    if (ROOT / "examples/baseline").exists():
-        md("""### Recorded classroom examples
+''', hidden=True)
+    md("""### Watch recorded experiments
 
-These videos are **real policies trained for this lesson on the instructor's L40S GPU**. They are included so you can inspect the behaviors before training your own robot.
-
-The baseline is trained from scratch; variations are labeled in their records. The small saved `policy.pt` files are **inference-only**—they are not full training checkpoints.
+These are actual instructor recordings. Captions distinguish preliminary experiments from selected command policies. A video that looks attractive does not by itself establish straightness or command-following.
 """)
-        code("""# @title Watch the recorded examples
-import html, json
-from IPython.display import HTML, Image
-
+    code('''# @title Recorded videos and real learning curves
+import html
+gallery = json.loads((WORK / "assets/lesson/gallery.json").read_text())
 cards = []
-for name, title in [("baseline", "Walking"), ("slower", "Slower walking"),
-                    ("faster", "Faster walking"), ("smoother", "Smoother walking"),
-                    ("hopping", "Small hops"), ("hopping_taller", "Higher hop target")]:
-    folder = WORK / "examples" / name
-    if not (folder / "rollout.mp4").exists():
-        continue
-    report = json.loads((folder / "evaluation.json").read_text())
-    config = json.loads((folder / "provenance.json").read_text())["config"]
-    video = base64.b64encode((folder / "rollout.mp4").read_bytes()).decode()
-    setting = (f"Foot-height target {config['hop_height'] * 100:.0f} cm"
-               if config["task_version"] == "hop"
-               else f"Speed target {config['speed']:.2f} m/s; action penalty ×{config['smoothness']}")
-    caption = f"{setting} · {report['label']} · falls in {report['fall_fraction']:.0%} of evaluated episodes"
-    cards.append(f'<div style="flex:1 1 310px;max-width:460px;padding:12px;border:1px solid #d7e7dc;border-radius:12px">'
-                 f'<h4>{html.escape(title)}</h4><video controls loop playsinline width="100%" '
-                 f'src="data:video/mp4;base64,{video}"></video><p>{html.escape(caption)}</p></div>')
-display(HTML('<div style="display:flex;flex-wrap:wrap;gap:12px">' + ''.join(cards) + '</div>'))
-if (WORK / "docs/comparison.png").exists():
-    display(Image(filename=str(WORK / "docs/comparison.png"), width=900))
-    print("Instructor measurements. Control = unchanged settings with the same extra training budget.")
-""")
-        cells[-1]["metadata"]["cellView"] = "form"
-    code("""# @title Install and check the simulator
-import subprocess, time
-
+legacy_cards = []
+for item in gallery:
+    folder = WORK / "assets/lesson"
+    video = base64.b64encode((folder / item["video"]).read_bytes()).decode()
+    curve = base64.b64encode((folder / item["learning_curve"]).read_bytes()).decode() if item.get("learning_curve") else None
+    motion = base64.b64encode((folder / item["motion"]).read_bytes()).decode() if item.get("motion") else None
+    plots = "".join(f'<img width="100%" src="data:image/png;base64,{data}">' for data in [curve, motion] if data)
+    destination = legacy_cards if item["video"].startswith("legacy/") else cards
+    destination.append(f'<article style="flex:1 1 320px;max-width:480px;padding:12px;border:1px solid #b9cebe;border-radius:12px">'
+                 f'<h4>{html.escape(item["title"])}</h4><video controls loop playsinline width="100%" src="data:video/mp4;base64,{video}"></video>'
+                 f'<p>{html.escape(item["caption"])}</p><details><summary>Measured curves and motion</summary>{plots}</details></article>')
+display(HTML('<div style="display:flex;flex-wrap:wrap;gap:12px">' + "".join(cards) + "</div>"))
+display(HTML('<details><summary>Earlier experiments: useful failures and preliminary behaviors</summary>'
+             '<div style="display:flex;flex-wrap:wrap;gap:12px">' + "".join(legacy_cards) + "</div></details>"))
+''', hidden=True)
+    code('''# @title Install pinned dependencies
 setup_start = time.monotonic()
-print("Installing the lesson environment. This may take several minutes.")
-with (WORK / "installation.log").open("w") as log:
-    result = subprocess.run([sys.executable, str(WORK / "scripts/setup.py")],
-                            cwd=WORK, stdout=log, stderr=subprocess.STDOUT)
+setup_log = WORK / "setup.log"
+with setup_log.open("w") as log:
+    result = subprocess.run(["python", "scripts/setup.py"], cwd=WORK, stdout=log, stderr=subprocess.STDOUT)
 if result.returncode:
-    print((WORK / "installation.log").read_text()[-6000:])
-    raise RuntimeError("Installation failed; see installation.log above.")
-PYTHON = WORK / ".venv/bin/python"
-RUN_ENV = dict(os.environ, PYTHONPATH=str(WORK / "src"), MUJOCO_GL="egl",
-               BDXR_RUNTIME="google-colab" if Path("/content").exists() else "local")
-print(f"Installation/checks: {(time.monotonic() - setup_start) / 60:.1f} minutes")
+    print(setup_log.read_text()[-6000:])
+    raise RuntimeError("Setup failed; see setup.log")
+PYTHON = str(WORK / ".venv/bin/python")
+runtime_env = dict(os.environ, PYTHONPATH=str(WORK / "src"), MUJOCO_GL="egl",
+                   BDXR_RUNTIME="colab" if Path("/content").exists() else "local_notebook")
+gpu = subprocess.check_output([PYTHON, "-c", "import torch,json; print(json.dumps(dict(name=torch.cuda.get_device_name(0),gib=torch.cuda.get_device_properties(0).total_memory/2**30)))"],
+                             cwd=WORK, env=runtime_env, text=True)
+gpu = json.loads(gpu)
+print("GPU:", gpu)
+print("Setup seconds:", round(time.monotonic() - setup_start))
+''', hidden=True)
+    md("""## 2 · What does the robot learn?
+
+| Part | Meaning |
+|---|---|
+| Observation | Angular velocity, gravity direction, joint positions/velocities, previous actions, and requested speed/yaw rate |
+| Action | Ten leg-joint position commands; motor controllers generate forces |
+| Reward | Encourages command tracking and balance; penalizes unwanted motion |
+| Actor | Chooses actions from proprioception and commands |
+| Critic | Uses additional simulator information during training to estimate future value |
+| Replay | Reuses collected experience to improve the networks |
+
+**The actor does not receive true base linear velocity, world position, absolute heading, or a terrain map.** The critic may use privileged observations. Only the actor controls the robot during evaluation and play.
+
+Positive yaw-rate commands turn left; negative commands turn right. Zero yaw asks for no rotation—it is not an external heading-correction controller.
+
+SAC learns actions with high estimated future reward while encouraging exploration. Replay lets it learn from earlier experience. We use SAC here; the older reference notebook used PPO.
 """)
-    md("""## 3 · Choose one baseline
-
-An **observation** tells the policy about the robot. An **action** requests joint positions; motor controllers turn those targets into forces. A **reward** scores the resulting behavior.
-
-The baseline asks for forward walking at **0.3 m/s**. Keep this setting for the first run.
-Keep the seed unchanged for your first comparison so the runs are easier to compare.
-
-W&B is optional for students. The notebook always saves local curves and videos.
-""")
-    code("""TARGET_SPEED = 0.3  # @param {type:"number"}
-TRAIN_MINUTES = 15  # @param {type:"number"}
-USE_WANDB = False  # @param {type:"boolean"}
-TRAIN_SEED = 7  # @param {type:"integer"}
-
-gpu_info = subprocess.check_output(
-    [str(PYTHON), "-c", "import torch; p=torch.cuda.get_device_properties(0); print(p.total_memory//(1024**3))"],
-    cwd=WORK, env=RUN_ENV, text=True)
-gpu_gib = int(gpu_info.strip())
-# A fixed, measured classroom preset; larger batches are an instructor extension.
+    code('''# @title How the controller learns and plays
+display(HTML((WORK / "assets/lesson/controller.svg").read_text()))
+''', hidden=True)
+    code('''# @title Training settings
 NUM_ENVS = 512
 BATCH_SIZE = 2048
-if USE_WANDB and not RUN_ENV.get("WANDB_API_KEY"):
-    import getpass, netrc
-    try:
-        existing_login = netrc.netrc().authenticators("api.wandb.ai")
-    except (FileNotFoundError, netrc.NetrcParseError):
-        existing_login = None
-    if not existing_login:
-        RUN_ENV["WANDB_API_KEY"] = getpass.getpass("Your W&B API key (hidden): ")
+TRAIN_SEED = 7
+TRAIN_MINUTES = 15  # @param {type:"number"}
+TRAIN_STEPS = 10000  # @param {type:"integer"}
+USE_WANDB = False  # @param {type:"boolean"}
 WANDB_MODE = "online" if USE_WANDB else "disabled"
-print(f"{NUM_ENVS} parallel robots; up to {TRAIN_MINUTES} training minutes.")
-""")
-    md("""## 4 · Teach it to walk
+if USE_WANDB and not (os.environ.get("WANDB_API_KEY") or Path.home().joinpath(".netrc").exists()):
+    import getpass
+    runtime_env["WANDB_API_KEY"] = getpass.getpass("Your W&B API key (not saved in this notebook): ")
 
-Many simulated robots collect experience at once. FastSAC stores that experience and uses it to improve the policy.
-
-**Watch for:** increasing episode duration, forward motion, and fewer falls. A high reward by itself is not proof of walking.
-
-The run saves intermediate policies and a continuation checkpoint. If you interrupt it, wait for checkpoint saving to finish.
-""")
-    code("""def run_module(module, *args):
-    command = [str(PYTHON), "-u", "-m", module, *map(str, args)]
+def run_module(module, *arguments):
+    command = [PYTHON, "-u", "-m", module] + [str(value) for value in arguments]
     log_path = WORK / "last_command.log"
-    with log_path.open("w") as log:
-        process = subprocess.Popen(command, cwd=WORK, env=RUN_ENV,
-                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    with log_path.open("w", buffering=1) as log:
+        process = subprocess.Popen(command, cwd=WORK, env=runtime_env, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, text=True, bufsize=1)
         try:
             for line in process.stdout:
                 log.write(line)
-                log.flush()
-                if line.startswith("step=") or "Traceback" in line or "Error" in line:
+                if line.startswith(("step=", "Experiment:", "forward:", "backward:", "sequence:")) or "Error" in line:
                     print(line.rstrip())
-            returncode = process.wait()
+            result = process.wait()
         except KeyboardInterrupt:
             process.terminate()
             process.wait()
             raise
-    if returncode:
+    if result:
         print(log_path.read_text()[-6000:])
-        raise RuntimeError(f"Command failed; full log: {log_path}")
+        raise RuntimeError("Command failed; inspect last_command.log")
 
-RUN_NAME = "walk_" + time.strftime("%H%M%S")
-run_module("bdxr_classroom.train", "--name", RUN_NAME,
-           "--num-envs", NUM_ENVS, "--batch-size", BATCH_SIZE,
-           "--steps", 6000, "--minutes", TRAIN_MINUTES,
-           "--speed", TARGET_SPEED, "--seed", TRAIN_SEED,
-           "--compile", "--wandb-mode", WANDB_MODE)
-BASELINE = WORK / "runs" / RUN_NAME
-print("Saved results:", BASELINE)
+def train(name, *arguments):
+    pointer = WORK / "last_experiment.txt"
+    run_module("bdxr_classroom.train", "--name", name,
+               "--num-envs", NUM_ENVS, "--batch-size", BATCH_SIZE, "--seed", TRAIN_SEED,
+               "--compile", "--wandb-mode", WANDB_MODE, "--result-file", pointer, *arguments)
+    return Path(pointer.read_text().strip())
+
+def show_motion(run, checkpoint="final"):
+    run_module("bdxr_classroom.evaluate", run / "checkpoints" / (checkpoint + ".pt"), "--episodes", 1)
+    report = json.loads((run / "evaluation" / ("eval_" + checkpoint) / "evaluation.json").read_text())
+    display(Video(report["video_path"], embed=True, width=640))
+''')
+    md("""## 3 · Train the command-walking baseline
+
+Simulated robots practice forward/backward speeds, stops, and turns. Many environments collect experience in parallel.
+
+Predict: what would a robot do if speed tracking mattered but turning error barely mattered?
 """)
-    md("""## 5 · Before and after
-
-We evaluate the policy with exploration disabled. The first episode is shown in the video; the report includes **all** evaluated episodes.
-
-An initial policy may fall quickly. A final policy may still need more training—describe what you actually observe.
-""")
-    code("""run_module("bdxr_classroom.evaluate", BASELINE / "initial.pt", "--episodes", 3)
-run_module("bdxr_classroom.evaluate", BASELINE / "final.pt", "--episodes", 5)
-print("BEFORE: initial policy")
-display(Video(str(BASELINE / "eval_initial/rollout.mp4"), embed=True, width=640))
-print("AFTER: trained policy")
-display(Video(str(BASELINE / "eval_final/rollout.mp4"), embed=True, width=640))
-""")
-    md("""## 6 · Measure what changed
-
-- **Learning curves:** how reward, episode duration, and speed evolve.
-- **Motion plots:** achieved speed and left/right knee angles.
-- **Evaluation report:** falls and speed across several starting orientations.
-
-The knee-angle plot connects this learning experiment to kinematics: changing joint configurations produces the observed leg motion.
-""")
-    code("""import json
-from IPython.display import Image
-
+    code('''BASELINE = train("command_walking_baseline",
+                 "--command-mode", "balanced", "--yaw-tracking", "rate", "--yaw-std", 0.2,
+                 "--steps", TRAIN_STEPS, "--minutes", TRAIN_MINUTES)
+print("Your experiment:", BASELINE)
+print("Before learning:")
+show_motion(BASELINE, "initial")
+print("After learning:")
+show_motion(BASELINE)
 run_module("bdxr_classroom.plots", BASELINE)
-display(Image(filename=str(BASELINE / "learning_curves.png")))
-display(Image(filename=str(BASELINE / "eval_final/motion.png")))
-evaluation = json.loads((BASELINE / "eval_final/evaluation.json").read_text())
-print("Target speed:", evaluation["target_speed"])
-print("Mean achieved speed:", round(evaluation["mean_speed"], 3))
-print("Fraction of episodes with a fall:", evaluation["fall_fraction"])
-print("Measured training time:", json.loads((BASELINE / "timing.json").read_text()))
+display(Image(filename=str(BASELINE / "metrics/learning_curves.png")))
+''')
+    md("""## 4 · Check what actually works
+
+We test the same policy at several speeds and turn rates. The plots show measured speed/yaw rate and world trajectories.
+
+**Position and heading are evaluation measurements, not actor inputs.** Check drift as well as falls. Repeated starting states test one trained policy; they are not independent training runs.
 """)
-    md("""## 7 · Change one thing
+    code('''run_module("bdxr_classroom.command_evaluate", BASELINE / "checkpoints/final.pt",
+           "--cases", "slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence",
+           "--episodes", 5, "--seconds", 15)
+for case in ["forward", "sequence"]:
+    display(Video(str(BASELINE / "videos/final_commands" / (case + ".mp4")), embed=True, width=640))
+    display(Image(filename=str(BASELINE / "evaluation/final_commands" / (case + ".png"))))
+print("Measured timing:", json.loads((BASELINE / "metrics/timing.json").read_text()))
+''')
+    md("""## 5 · Change one thing
 
-Choose one experiment and write a prediction.
+Commanding the robot to walk faster is different from training a new style.
+Choose a reward-setting experiment and fine-tune from the same baseline.
 
-| Experiment | Change | Keep fixed |
-|---|---|---|
-| Slower walking | Target speed | Reward weights and evaluation procedure |
-| Faster walking | Target speed | Reward weights and evaluation procedure |
-| Smoother walking | Penalty on abrupt action changes | Target speed and evaluation procedure |
-
-This cell **fine-tunes** the baseline. It is not a second independent training-from-scratch run. The replay buffer starts fresh because the task has changed.
-
-For a fairer experiment, also continue the unchanged baseline for the same number of steps. That is a **control**: it helps separate a setting's effect from extra training. The instructor results include this comparison.
-""")
-    code("""EXPERIMENT = "smoother"  # @param ["smoother", "slower", "faster"]
-PREDICTION = "The leg motion will become less abrupt."  # @param {type:"string"}
-VARIATION_MINUTES = 5  # @param {type:"number"}
-
-speed_offset = {"slower": -0.15, "faster": 0.15, "smoother": 0.0}[EXPERIMENT]
-variation_speed = max(0.05, TARGET_SPEED + speed_offset)
-smoothness = 3.0 if EXPERIMENT == "smoother" else 1.0
-VAR_NAME = EXPERIMENT + "_" + time.strftime("%H%M%S")
-print("Prediction:", PREDICTION)
-run_module("bdxr_classroom.train", "--name", VAR_NAME,
-           "--num-envs", NUM_ENVS, "--batch-size", BATCH_SIZE,
-           "--steps", 2000, "--minutes", VARIATION_MINUTES,
-           "--speed", variation_speed, "--smoothness", smoothness, "--seed", TRAIN_SEED,
-           "--resume", BASELINE / "final.pt", "--finetune",
-           "--compile", "--wandb-mode", WANDB_MODE)
-VARIATION = WORK / "runs" / VAR_NAME
-run_module("bdxr_classroom.evaluate", VARIATION / "final.pt", "--episodes", 5)
-display(Video(str(VARIATION / "eval_final/rollout.mp4"), embed=True, width=640))
-display(Image(filename=str(VARIATION / "eval_final/motion.png")))
-""")
-    md("""## 8 · Explain your result
-
-1. What changed in the video? Describe a specific motion.
-2. Which measured result supports your observation?
-3. Did the robot meet its target without falling?
-4. Did the experiment match your prediction?
-
-""")
-    md("""### Optional extension · Small hops
-
-The hopping task adds a **rhythm signal** and rewards coordinated foot clearance and landing. It still learns its motor commands with SAC.
-
-Our tested route has two stages: learn tiny hops, then fine-tune with a higher foot and body-height target. The target height is an objective, not a guarantee of achieved jump height.
-
-The recorded gallery also shows a follow-up changing only the foot-height target from 7 to 10 cm. Measured foot clearance increases; this does not mean the body jumps 10 cm.
-
-Leave this switched off for the short class demo and use the recorded hopping example. Switch it on for an extended lab. We exclude the initial drop onto the floor when counting hops, and require an upright landing.
-""")
-    code("""# @title Optional: train the hopping extension
-TRAIN_HOPPING = False  # @param {type:"boolean"}
-HOP_RESULTS = None
-if TRAIN_HOPPING:
-    HOP_ENVS = 1024 if gpu_gib >= 8 else 512
-    HOP_BATCH = 4096 if gpu_gib >= 8 else 2048
-    tiny_name = "tiny_hops_" + time.strftime("%H%M%S")
-    run_module("bdxr_classroom.train", "--name", tiny_name,
-               "--task-version", "hop", "--speed", 0,
-               "--num-envs", HOP_ENVS, "--batch-size", HOP_BATCH,
-               "--seed", 42,
-               "--steps", 4000, "--minutes", 10, "--compile", "--wandb-mode", WANDB_MODE)
-    tiny_path = WORK / "runs" / tiny_name
-    hop_name = "hops_" + time.strftime("%H%M%S")
-    run_module("bdxr_classroom.train", "--name", hop_name,
-               "--task-version", "hop", "--speed", 0,
-               "--hop-height", 0.07, "--hop-body-weight", 6,
-               "--num-envs", HOP_ENVS, "--batch-size", HOP_BATCH,
-               "--seed", 42,
-               "--steps", 3000, "--minutes", 5,
-               "--resume", tiny_path / "final.pt", "--finetune",
-               "--compile", "--wandb-mode", WANDB_MODE)
-    HOP_RESULTS = WORK / "runs" / hop_name
-    run_module("bdxr_classroom.evaluate", HOP_RESULTS / "final.pt", "--episodes", 5)
-    display(Video(str(HOP_RESULTS / "eval_final/rollout.mp4"), embed=True, width=640))
-    display(Image(filename=str(HOP_RESULTS / "eval_final/motion.png")))
-    print(json.loads((HOP_RESULTS / "eval_final/evaluation.json").read_text()))
-else:
-    print("Optional training skipped. The recorded examples remain available above.")
-""")
-    md("""## 9 · The important ideas
-
-| Concept | Meaning in this lesson |
+| Experiment | Only changed behavior setting |
 |---|---|
-| State / observation | Joint positions and velocities, body motion, and the requested speed |
-| Policy / actor | A neural network choosing ten leg-joint position commands |
-| Physics engine | MuJoCo Warp calculates motion and contact forces |
-| Reward | Encourages speed tracking, upright posture, and useful foot motion; penalizes unwanted motion |
-| Critic | Learns to estimate the future value of actions |
-| Replay buffer | Reuses experience collected by simulated robots |
-| Exploration | Tries different actions during training |
-| Evaluation | Tests the learned behavior without exploratory action noise |
+| Smoother | Action-change penalty ×3 |
+| Higher steps | Swing-foot target from 6 to 9 cm |
+| Control | No changed setting; same extra training |
 
-**SAC** means *Soft Actor-Critic*. It learns an actor and a critic and includes an entropy term encouraging exploration. FastSAC adapts this approach for large parallel batches.
-
-**Kinematics and dynamics:** joint angles describe configuration; their evolution describes motion. Forces, gravity, and contacts determine whether that motion is physically achievable.
-
-**The lesson:** the robot learns the objective we implement. We must inspect its behavior, not just its score. Five evaluations test one trained policy from different starting states; they are not five independent training runs.
+Keep the speed and yaw command range. A prettier gait that loses backward walking is not an unqualified improvement.
+The unchanged control receives the same extra training budget, so we can distinguish a reward change from simply training longer.
 """)
-    md("""## 10 · Save your work
+    code('''EXPERIMENT = "smoother"  # @param ["smoother", "higher_steps", "control"]
+PREDICTION = "The motor commands will change less abruptly."  # @param {type:"string"}
+VARIATION_STEPS = 3000  # @param {type:"integer"}
+changed = ["--smoothness", 3] if EXPERIMENT == "smoother" else (["--swing-height", 0.09] if EXPERIMENT == "higher_steps" else [])
+print("Prediction:", PREDICTION)
+VARIATION = train(EXPERIMENT, "--command-mode", "balanced", "--yaw-tracking", "rate",
+                  "--yaw-std", 0.2, "--steps", VARIATION_STEPS, "--minutes", 10,
+                  "--resume", BASELINE / "checkpoints/final.pt", "--finetune", *changed)
+CONTROL = VARIATION if EXPERIMENT == "control" else train(
+    "unchanged_control", "--command-mode", "balanced", "--yaw-tracking", "rate",
+    "--yaw-std", 0.2, "--steps", VARIATION_STEPS, "--minutes", 10,
+    "--resume", BASELINE / "checkpoints/final.pt", "--finetune")
+from statistics import mean
+comparisons = [("control", CONTROL)] + ([] if CONTROL == VARIATION else [(EXPERIMENT, VARIATION)])
+for label, experiment in comparisons:
+    run_module("bdxr_classroom.command_evaluate", experiment / "checkpoints/final.pt",
+               "--cases", "slow", "forward", "fast", "backward", "stop", "turn_left", "turn_right", "left", "right", "sequence",
+               "--episodes", 5, "--seconds", 15)
+    report = json.loads((experiment / "evaluation/final_commands/summary.json").read_text())
+    forward = report["cases"]["forward"]
+    updates = json.loads((experiment / "metrics/timing.json").read_text())["step"]
+    print(f"{label}: {updates} updates | action-change RMS = {mean(r['action_change_rms'] for r in forward):.3f}"
+          f" | foot swing = {mean(r['swing_height_p95'] for r in forward):.3f} m"
+          f" | cross-track = {mean(r['max_cross_track_m'] for r in forward):.3f} m")
+    display(Video(str(experiment / "videos/final_commands/sequence.mp4"), embed=True, width=640))
+''')
+    md("""## 6 · Teach small hops
 
-The ZIP includes your videos, plots, configurations, and compact training checkpoints. The larger `resume.pt` file includes replay data and remains in the run folder; copy it to persistent storage separately if you want to continue training later.
+Hopping adds a rhythm command and rewards foot clearance and landing. Feet rising is not the same as the body jumping that distance.
+
+This is an extended lab: first learn small stationary hops, then practice moving hops. Inspect both stages. Flat-floor success does not prove the robot can clear the game obstacles.
 """)
-    code("""import zipfile
-download_path = WORK / "my_bdxr_results.zip"
-with zipfile.ZipFile(download_path, "w", zipfile.ZIP_DEFLATED) as archive:
-    for folder in [BASELINE, VARIATION] + ([HOP_RESULTS] if HOP_RESULTS else []):
-        for file in folder.rglob("*"):
-            if file.is_file() and "wandb" not in file.parts and file.name != "resume.pt":
-                archive.write(file, file.relative_to(WORK))
-print("Saved:", download_path)
+    code('''TRAIN_HOPPING = True  # @param {type:"boolean"}
+TINY_HOPS = HOP_RESULTS = None
+if TRAIN_HOPPING:
+    TINY_HOPS = train("tiny_hops", "--task-version", "hop", "--speed", 0,
+                     "--hop-height", 0.04, "--steps", 4000, "--minutes", 10)
+    HOP_RESULTS = train("moving_hops", "--task-version", "hop", "--speed", 0,
+                        "--command-mode", "balanced", "--speed-min", -0.1, "--speed-max", 0.3,
+                        "--yaw-max", 0.3, "--yaw-tracking", "rate", "--yaw-std", 0.2,
+                        "--hop-height", 0.07, "--hop-body-weight", 6, "--linear-weight", 6,
+                        "--steps", 6000, "--minutes", 15,
+                        "--resume", TINY_HOPS / "checkpoints/final.pt", "--finetune")
+    show_motion(HOP_RESULTS)
+else:
+    print("Hopping training skipped. You can load an existing compatible checkpoint in the game.")
+''')
+    md("""## 7 · Explain your results
+
+1. Which commands work, and which fail?
+2. Does zero yaw produce straight walking? Point to the trajectory.
+3. Did your parameter change do what you predicted?
+4. Why might a hopping policy fail when switched in mid-stride?
+
+**Kinematics:** joint configurations and their trajectories describe motion.
+**Dynamics:** forces, gravity, and contacts determine whether that motion works.
+**SAC:** the actor learns actions, critics estimate future value, and entropy encourages exploration.
+
+Save your recordings and checkpoint before disconnecting the runtime.
+""")
+    code('''def export_results():
+    destination = WORK / "my_bdxr_results.zip"
+    folders = list(dict.fromkeys([BASELINE, VARIATION, CONTROL] +
+                                 [run for run in [TINY_HOPS, HOP_RESULTS] if run]))
+    folders += list((WORK / "experiments").glob("*_desert_droid_game"))
+    with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
+        for folder in folders:
+            for file in folder.rglob("*"):
+                if file.is_file() and "wandb" not in file.parts and file.name != "resume.pt":
+                    archive.write(file, file.relative_to(WORK))
+    print("Saved:", destination)
+    try:
+        from google.colab import files
+        files.download(str(destination))
+    except ImportError:
+        print("Retrieve this ZIP locally.")
+    return destination
+
+export_results()
+print("Full replay checkpoints remain in experiments/*/checkpoints/resume.pt; copy them to persistent storage to resume training.")
+''')
+    md("""## 8 · Play: Desert Droid Run
+
+Load your learned controller into a desert outpost with **three obstacles, rough ground, and a raised finish beacon**. The course is designed around roughly 45 seconds of normal-paced traversal; policy ability and player skill determine the actual result.
+
+Use speed and yaw controls to steer. If you loaded a hopping policy, switch modes before obstacles and watch the transition state. There is no navigation controller.
+
+**Fall → return to the start. Time and falls accumulate. Reach the finish upright → win.** The scoreboard measures simulation time. A new game resets the score.
+""")
+    code('''# @title Launch your playable validation course
+WALK_CHECKPOINT = str(BASELINE / "checkpoints/final.pt")  # @param {type:"string"}
+HOP_CHECKPOINT = str(HOP_RESULTS / "checkpoints/final.pt") if HOP_RESULTS else ""  # @param {type:"string"}
+GAME_PORT = 8765
+if "game_process" in globals() and game_process.poll() is None:
+    game_process.terminate()
+    game_process.wait(timeout=30)
+command = [PYTHON, "-u", "-m", "bdxr_classroom.game_server",
+           "--walking", WALK_CHECKPOINT, "--port", str(GAME_PORT)]
+if HOP_CHECKPOINT:
+    command += ["--hopping", HOP_CHECKPOINT]
+game_log = (WORK / "game_server.log").open("w")
+game_process = subprocess.Popen(command, cwd=WORK, env=runtime_env,
+                                stdout=game_log, stderr=subprocess.STDOUT)
+import urllib.request
+for _ in range(120):
+    if game_process.poll() is not None:
+        raise RuntimeError((WORK / "game_server.log").read_text()[-4000:])
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{GAME_PORT}/api/state", timeout=1) as response:
+            status = json.load(response)
+        if status.get("ready"):
+            break
+        if status.get("error"):
+            raise RuntimeError(status["error"])
+    except OSError:
+        pass
+    time.sleep(0.5)
+else:
+    raise RuntimeError("Game initialization timed out; inspect game_server.log")
 try:
-    from google.colab import files
-    files.download(str(download_path))
+    from google.colab import output
+    output.serve_kernel_port_as_iframe(GAME_PORT, height=950)
 except ImportError:
-    print("Outside Colab: retrieve the ZIP from the path above.")
-""")
+    display(IFrame(f"http://127.0.0.1:{GAME_PORT}", width="100%", height=950))
+print("Game logs and recordings:", status["experiment"])
+print("After playing, pause the game and run export_results() again to include the gameplay files.")
+''')
     nb = nbf.v4.new_notebook(cells=cells, metadata={
         "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
-        "language_info": {"name": "python"},
-        "colab": {"name": "BDXR_Walking_101.ipynb"},
-        "accelerator": "GPU",
-    })
+        "language_info": {"name": "python"}, "accelerator": "GPU",
+        "colab": {"name": "BDXR_Walking_101.ipynb"}})
     nbf.validate(nb)
     dest = ROOT / "notebooks/BDXR_Walking_101.ipynb"
     nbf.write(nb, dest)

@@ -11,6 +11,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--work", default="/tmp/bdxr-colab-check")
     p.add_argument("--kernel", default="bdxr-validation")
+    p.add_argument("--game-port", type=int, default=18765)
     p.add_argument("--full", action="store_true", help="Run the full 512-environment lesson with W&B")
     args = p.parse_args()
     root = Path(__file__).resolve().parents[1]
@@ -33,11 +34,16 @@ def main():
         if args.full:
             source = source.replace("USE_WANDB = False", "USE_WANDB = True")
         else:
+            source = source.replace("TRAIN_STEPS = 10000", "TRAIN_STEPS = 60")
+            source = source.replace("VARIATION_STEPS = 3000", "VARIATION_STEPS = 60")
+            source = source.replace("TRAIN_HOPPING = True", "TRAIN_HOPPING = False")
             source = source.replace('"--steps", 6000', '"--steps", 60')
             source = source.replace('"--steps", 2000', '"--steps", 60')
             source = source.replace('"--episodes", 3', '"--episodes", 1')
             source = source.replace('"--episodes", 5', '"--episodes", 1')
+            source = source.replace('"--seconds", 15', '"--seconds", 2')
             source = source.replace('"--compile", ', "")
+        source = source.replace("GAME_PORT = 8765", f"GAME_PORT = {args.game_port}")
         cell.source = source
     nb.metadata.kernelspec.name = args.kernel
     client = NotebookClient(nb, timeout=1800 if args.full else 600, kernel_name=args.kernel,

@@ -86,5 +86,14 @@
     "caption": "Selected command-walking checkpoint: 10 commands \u00d7 5 perturbed starts \u00d7 15 seconds, no falls. Forward mean maximum cross-track deviation 0.084 m. Fine-tuned from earlier policies; this is not a fresh 15-minute run.",
     "experiment": "experiments/2026-10-08_003614_607667_command_balanced_sampling",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/0ajaor7w"
+  },
+  {
+    "id": "moving_hops",
+    "title": "Moving Hops",
+    "video": "moving_hops/rollout.mp4",
+    "motion": "moving_hops/motion.png",
+    "learning_curve": "moving_hops/learning_curves.png",
+    "caption": "Moving hops on flat ground: 14 settled landings in each of five 15-second trials. Mean forward speed 0.105 m/s against a 0.15 m/s command. This checkpoint has not cleared the obstacle course.",
+    "experiment": "experiments/2026-10-08_004240_908180_moving_hops"
   }
 ]
