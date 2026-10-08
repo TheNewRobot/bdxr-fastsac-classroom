@@ -62,7 +62,8 @@ def hop_phase(env):
     return torch.stack((angle.sin(), angle.cos()), dim=-1)
 
 
-def hop_height_tracking(env, height=0.04, flight_only=False, clearance_mode="site"):
+def hop_height_tracking(env, height=0.04, flight_only=False, clearance_mode="site",
+                        bilateral=False):
     """Request a short flight in the middle of each one-second cycle."""
     phase = (env.episode_length_buf * env.step_dt) % 1.0
     flight_phase = ((phase - 0.35) / 0.25).clamp(0, 1)
@@ -72,7 +73,10 @@ def hop_height_tracking(env, height=0.04, flight_only=False, clearance_mode="sit
     positions = robot.data.site_pos_w[:, foot_ids]
     actual = (sampled_sole_clearance(env) if clearance_mode == "sole" else
               positions[..., 2] - ground_height(env, positions))
-    error = (actual - desired[:, None]).square().mean(-1)
+    foot_errors = (actual - desired[:, None]).square()
+    # A bilateral hop must lift both feet. Averaging can reward one high foot
+    # while the other remains on the ground.
+    error = foot_errors.max(-1).values if bilateral else foot_errors.mean(-1)
     reward = torch.exp(-error / 0.025**2)
     if flight_only:
         # Award the height objective during the requested flight, rather than
