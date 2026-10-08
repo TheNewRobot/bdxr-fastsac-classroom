@@ -35,6 +35,7 @@ def main():
     p.add_argument("--yaw-std", type=float, default=0.2)
     p.add_argument("--yaw-bias-weight", type=float, default=0.0)
     p.add_argument("--linear-weight", type=float)
+    p.add_argument("--reward-scale", type=float, default=1.0)
     p.add_argument("--swing-height", type=float)
     p.add_argument("--training-terrain-height", type=float, default=0.0)
     p.add_argument("--training-terrain-style", choices=["steps", "mixed"], default="steps")
@@ -76,7 +77,7 @@ def main():
                     "actor_hidden", "critic_hidden", "gamma", "compile", "amp",
                     "command_mode", "speed_min", "speed_max", "yaw_max", "yaw_weight",
                     "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
-                    "training_terrain_height", "training_terrain_style", "yaw_bias_weight"]:
+                    "training_terrain_height", "training_terrain_style", "yaw_bias_weight", "reward_scale"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
     cfg["experiment_path"] = str(out)
@@ -110,7 +111,7 @@ def main():
                  linear_weight=args.linear_weight, swing_height=args.swing_height,
                  training_terrain_height=args.training_terrain_height,
                  training_terrain_style=args.training_terrain_style,
-                 yaw_bias_weight=args.yaw_bias_weight)
+                 yaw_bias_weight=args.yaw_bias_weight, reward_scale=args.reward_scale)
     if not existing_run:
         write_manifest(out, cfg, env.cfg)
     else:

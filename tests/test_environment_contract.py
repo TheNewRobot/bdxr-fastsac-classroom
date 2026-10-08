@@ -9,6 +9,33 @@ from bdxr_classroom.environment import make_env, step_and_reset
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
 class EnvironmentContract(unittest.TestCase):
+    def test_command_evaluation_continues_after_one_trial_falls(self):
+        from bdxr_classroom.command_evaluate import run_case
+        env = make_env(2, command_mode="balanced")
+
+        class TestController:
+            injected = False
+
+            def act(self, obs, deterministic=False):
+                if not self.injected:
+                    # Explicit test-only fall in world 1; world 0 stays upright.
+                    state = torch.tensor(
+                        [[0, 0, .1, .7071068, .7071068, 0, 0, 0, 0, 0, 0, 0, 0]], device="cuda")
+                    env.scene["robot"].write_root_state_to_sim(
+                        state, env_ids=torch.tensor([1], device="cuda"))
+                    self.injected = True
+                return torch.zeros(2, 10, device="cuda")
+
+        try:
+            reports, rows = run_case(env, TestController(), "stop", .2)
+            self.assertFalse(reports[0]["fell"])
+            self.assertAlmostEqual(reports[0]["duration_s"], .2)
+            self.assertTrue(reports[1]["fell"])
+            self.assertLess(reports[1]["duration_s"], .2)
+            self.assertEqual(sum(row["fell"] for row in rows if row["episode"] == 1), 1)
+        finally:
+            env.close()
+
     def test_mixed_terrain_reward_height_matches_physics(self):
         import mujoco
         import numpy as np

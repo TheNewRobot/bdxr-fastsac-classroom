@@ -19,7 +19,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              speed_max=0.5, yaw_max=0.6, yaw_weight=4.0, proprio_only=False,
              yaw_tracking="full", yaw_std=0.2, course=None,
              linear_weight=None, swing_height=None, training_terrain_height=0.0,
-             training_terrain_style="steps", yaw_bias_weight=0.0):
+             training_terrain_style="steps", yaw_bias_weight=0.0, reward_scale=1.0):
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs
@@ -104,6 +104,12 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         cfg.rewards["yaw_bias"] = RewardTermCfg(
             func=behaviors.yaw_bias_tracking, weight=yaw_bias_weight,
             params={"std": .025, "time_constant": .3})
+    if reward_scale <= 0:
+        raise ValueError("Reward scale must be positive")
+    # Preserve relative objectives while keeping returns inside the categorical
+    # critic's support. Stronger hopping weights can otherwise saturate its top bin.
+    for reward in cfg.rewards.values():
+        reward.weight *= reward_scale
     allowed = {"base_ang_vel", "projected_gravity", "joint_pos", "joint_vel", "actions", "command", "hop_phase"}
     if not set(cfg.observations["actor"].terms) <= allowed:
         raise ValueError("Unexpected observation in proprioceptive policy")
