@@ -67,6 +67,8 @@ def main():
     args = p.parse_args()
     cfg = vars(args)
     cfg["runtime_environment"] = os.environ.get("BDXR_RUNTIME", "local")
+    cfg["random_stream_mode"] = ("new_seed" if args.finetune or not args.resume
+                                 else "checkpoint")
     cfg["hardware"] = torch.cuda.get_device_name(0)
     torch.set_num_threads(4)
     torch.set_float32_matmul_precision("high")
@@ -138,7 +140,8 @@ def main():
                     env.action_manager.total_action_dim, cfg)
     step = 0
     if args.resume:
-        previous = agent.load(args.resume, replay=not args.finetune)
+        previous = agent.load(args.resume, replay=not args.finetune,
+                              restore_rng=not args.finetune)
         step = 0 if args.finetune else previous
     setup_seconds = time.monotonic() - setup_start
     checkpoints = out / "checkpoints"

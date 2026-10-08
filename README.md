@@ -72,6 +72,8 @@ python scripts/check_command_results.py \
 Resume with `--resume .../checkpoints/resume.pt`; policy, critics, optimizers,
 normalization and replay are restored, while simulation episodes restart.
 Use `--finetune` to start a new experiment from a compatible training checkpoint.
+Fine-tuning uses the requested seed for a new random stream; resuming restores
+the checkpoint's random stream.
 W&B is on by default; students can use `--wandb-mode disabled`.
 
 Launch the game with walking and optional hopping checkpoints:
