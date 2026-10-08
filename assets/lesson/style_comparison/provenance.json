@@ -1,10 +1,10 @@
 {
-  "caption": "Recorded instructor comparison: one common parent, 3000 additional updates for both control and smoother. Smoother changes only the action-change penalty from 1 to 3. All three policies passed the full command suite. This is one training seed with five perturbed evaluation starts, not a multi-seed study.",
+  "caption": "Recorded instructor comparison: fresh 8000-update parent, then 3000 additional updates each for control and smoother. Only the action-change penalty changes (1 to 3). All three pass the full command suite. Smoother reduces forward action-change RMS by about 17% versus control, but has greater lateral drift. One training seed; five perturbed evaluation starts.",
   "runs": [
-    "2026-10-08_011011_547143_command_gyro_bias_reward",
-    "2026-10-08_011840_980187_gyro_variation_control",
-    "2026-10-08_012645_107148_gyro_variation_smoother"
+    "2026-10-08_021859_184033_classroom_mirrored_fresh",
+    "2026-10-08_023847_662154_fresh_mirror8k_variation_control",
+    "2026-10-08_024547_119325_fresh_mirror8k_variation_smoother"
   ],
-  "provenance": "experiments/2026-10-08_015054_206599_policy_comparison/config/comparison.json",
-  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/wrrsfjea"
+  "provenance": "experiments/2026-10-08_025516_525568_policy_comparison/config/comparison.json",
+  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/97niuyes"
 }
