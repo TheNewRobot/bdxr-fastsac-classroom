@@ -23,7 +23,8 @@ def main():
     args = p.parse_args()
     with wandb.init(project=args.project, name=args.name, job_type="evaluation") as run:
         table = wandb.Table(columns=["experiment", "case", "mean_speed", "falls",
-                                    "speed_mae", "yaw_mae", "max_cross_track", "landed_hops"])
+                                    "speed_mae", "yaw_mae", "max_cross_track", "landed_hops",
+                                    "peak_foot_clearance_m", "foot_height_measurement"])
         for directory in args.evaluations:
             directory = Path(directory)
             command_report = (directory / "summary.json").exists()
@@ -41,7 +42,9 @@ def main():
                                    statistics.mean(r["speed_mae"] for r in rows),
                                    statistics.mean(r["yaw_mae"] for r in rows),
                                    max(r["max_cross_track_m"] for r in rows),
-                                   sum(r.get("landed_hops", 0) for r in rows))
+                                   sum(r.get("landed_hops", 0) for r in rows),
+                                   statistics.mean(r.get("peak_simultaneous_foot_clearance", 0) for r in rows),
+                                   result.get("foot_height_measurement", "Legacy foot reference-site height"))
                     video = root / "videos" / directory.name / f"{case}.mp4"
                     if video.exists():
                         run.log({f"{label}/{case}/video": wandb.Video(str(video), format="mp4")})
@@ -51,7 +54,9 @@ def main():
             else:
                 table.add_data(label, "rollout", result["mean_speed"],
                                sum(r["fell"] for r in result["episodes"]), None, None, None,
-                               sum(r.get("landed_hops", 0) for r in result["episodes"]))
+                               sum(r.get("landed_hops", 0) for r in result["episodes"]),
+                               statistics.mean(r.get("steady_peak_min_foot_height", 0) for r in result["episodes"]),
+                               result.get("foot_height_measurement", "Legacy foot reference-site height"))
                 run.log({f"{label}/video": wandb.Video(str(result.get("video_path") or directory / "rollout.mp4"), format="mp4"),
                          f"{label}/motion": wandb.Image(str(directory / "motion.png"))})
             curve = directory / "learning_curves.png"
