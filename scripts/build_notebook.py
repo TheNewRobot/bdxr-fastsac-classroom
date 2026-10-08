@@ -288,6 +288,10 @@ complete five trials per command without falling, land at least five hops per tr
 and reach at least 2.5 cm sole clearance. Forward commands must move forward;
 stop must stay slow. The exact screen is saved with the results. Passing it does
 not replace tests of turning, mode switches, or the full course.
+
+Repeated tests can differ. Keep every result: a later success does not erase
+an earlier failure. The notebook matches reports to the exact saved weights
+and selects only checkpoints that passed all their recorded screens.
 """)
     code('''TRAIN_HOPPING = True  # @param {type:"boolean"}
 TINY_HOPS = MOVING_HOPS = HOP_RESULTS = None
@@ -311,31 +315,47 @@ if TRAIN_HOPPING:
                         "--training-terrain-height", 0.015, "--training-terrain-style", "mixed",
                         "--steps", 2000, "--minutes", 10,
                         "--resume", MOVING_HOPS / "checkpoints/final.pt", "--finetune")
-    import sys
+    import sys, hashlib
     sys.path.insert(0, str(WORK / "scripts"))
     from check_hopping_results import choose
     from statistics import mean
-    hop_reports = []
+    history = HOP_RESULTS / "evaluation/hopping_history"
+    history.mkdir(exist_ok=True)
+    current_checkpoints = {}
     for filename in ["final.pt", "step_001000.pt"]:
         checkpoint = HOP_RESULTS / "checkpoints" / filename
         if not checkpoint.exists():
             print("Checkpoint not reached before the training time limit:", filename)
             continue
+        with checkpoint.open("rb") as stream:
+            digest = hashlib.file_digest(stream, "sha256").hexdigest()
+        current_checkpoints[str(checkpoint)] = digest
+        folder = f"{checkpoint.stem}_commands_mixed_0.015_{time.time_ns()}"
+        output = HOP_RESULTS / "evaluation" / folder
         run_module("bdxr_classroom.command_evaluate", checkpoint,
                    "--cases", "slow", "forward", "stop", "--episodes", 5, "--seconds", 15,
-                   "--terrain-height", 0.015, "--terrain-style", "mixed")
-        folder = checkpoint.stem + "_commands_mixed_0.015"
-        report = json.loads((HOP_RESULTS / "evaluation" / folder / "summary.json").read_text())
-        hop_reports.append(report)
+                   "--terrain-height", 0.015, "--terrain-style", "mixed", "--output", output)
+        with checkpoint.open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != digest:
+                raise RuntimeError("Checkpoint changed during evaluation; retry with stable saved weights.")
+        report = json.loads((output / "summary.json").read_text())
+        report.update(checkpoint_sha256=digest, evaluation_directory=str(output),
+                      evaluated_at_ns=time.time_ns())
+        (output / "summary.json").write_text(json.dumps(report, indent=2))
+        (history / (folder + ".json")).write_text(json.dumps(report, indent=2))
         for case, trials in report["cases"].items():
             print(f"{filename}, {case}: falls {sum(t['fell'] for t in trials)}/{len(trials)}, "
                      f"mean landed hops {mean(t['landed_hops'] for t in trials):.1f}, "
                      f"mean peak sole clearance {100*mean(t['peak_simultaneous_foot_clearance'] for t in trials):.1f} cm, "
                      f"mean speed {mean(t['mean_speed'] for t in trials):.2f} m/s")
-    selection = choose(hop_reports, json.loads((WORK / "configs/hopping_targets.json").read_text()))
+    hop_reports = [json.loads(file.read_text()) for file in sorted(history.glob("*.json"))]
+    hop_reports.sort(key=lambda report: report.get("evaluated_at_ns", 0))
+    selection = choose(hop_reports, json.loads((WORK / "configs/hopping_targets.json").read_text()),
+                       current_checkpoints)
     (HOP_RESULTS / "evaluation/checkpoint_selection.json").write_text(json.dumps(selection, indent=2))
-    for result in selection["checks"]:
+    for result in selection["candidates"]:
         print(Path(result["checkpoint"]).name, "Passed" if result["passed"] else "Needs work",
+              f"across {result['evaluation_count']} recorded evaluations:",
               "; ".join(result["failures"]))
     SELECTED_HOP_CHECKPOINT = selection["selected_checkpoint"]
     if SELECTED_HOP_CHECKPOINT:
@@ -344,7 +364,9 @@ if TRAIN_HOPPING:
         show_motion(HOP_RESULTS, selected.stem)
         print("Body rise, sole clearance, and knee angles are different quantities.")
         display(Image(filename=str(HOP_RESULTS / "evaluation" / ("eval_" + selected.stem) / "motion.png")))
-        display(Video(str(HOP_RESULTS / "videos" / (selected.stem + "_commands_mixed_0.015") / "slow.mp4"),
+        latest = next(report for report in reversed(hop_reports)
+                      if report["checkpoint_sha256"] == current_checkpoints[str(selected)])
+        display(Video(str(HOP_RESULTS / "videos" / Path(latest["evaluation_directory"]).name / "slow.mp4"),
                       embed=True, width=640))
     else:
         print("No hopping checkpoint passed. Inspect the failures before using one in the game.")
