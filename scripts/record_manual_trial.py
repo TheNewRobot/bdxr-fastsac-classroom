@@ -22,8 +22,9 @@ def main():
     parser.add_argument("walking")
     parser.add_argument("hopping")
     parser.add_argument("--course-config", type=Path)
+    parser.add_argument("--seed", type=int, default=263)
     args = parser.parse_args()
-    game = GameSession(args.walking, args.hopping,
+    game = GameSession(args.walking, args.hopping, seed=args.seed,
                        course=json.loads(args.course_config.read_text()) if args.course_config else None,
                        operator="manual_visual_commands_with_pauses", name="manual_course_trial")
     preview_count = 0

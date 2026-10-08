@@ -15,6 +15,7 @@ import torch
 
 from .command_evaluate import load_agent, set_command
 from .course import CourseConfig
+from .course_progress import CourseProgress
 from .environment import make_env
 from .experiments import create_experiment, write_manifest
 
@@ -118,6 +119,7 @@ class GameSession:
     def reset_robot(self):
         self.env.reset(seed=self.seed + self.score.falls)
         self.posture = PostureMonitor()
+        self.progress = CourseProgress()
         self.stage = "walk"
         self.requested_mode = "walk"
         self.requested_speed = self.requested_yaw = 0.0
@@ -195,6 +197,8 @@ class GameSession:
         self.steps += 1
         robot = self.env.scene["robot"].data
         position = robot.root_link_pos_w[0].cpu().tolist()
+        feet = robot.site_pos_w[0, self.foot_ids].cpu().tolist()
+        self.progress.update(feet)
         upright = float(-robot.projected_gravity_b[0, 2])
         contact = bool((self.env.scene["feet_ground_contact"].data.found > 0).any())
         # Scoring-only measurements: a collapsed robot should reset even if the
@@ -206,7 +210,8 @@ class GameSession:
         fall_reason = ("training_termination" if bool(terminated[0]) else
                        "course_bounds" if outside else "collapsed_posture" if collapsed else None)
         fell = fall_reason is not None
-        at_finish = (not self.flat and position[0] >= self.course.length - .35 and abs(position[1]) < .65 and
+        at_finish = (not self.flat and self.progress.complete and
+                     position[0] >= self.course.length - .35 and abs(position[1]) < .65 and
                      position[2] > self.course.finish_height + .16 and upright > .9 and contact)
         event = self.score.advance(self.env.step_dt, fell, at_finish)
         row = {"time": self.score.elapsed, "position": position, "upright": upright,
@@ -214,7 +219,7 @@ class GameSession:
                "action_change_rms": float((action - self.last_action).square().mean().sqrt()),
                "event": event, "falls": self.score.falls,
                "base_above_feet": base_above_feet, "fall_reason": fall_reason,
-               "foot_positions": robot.site_pos_w[0, self.foot_ids].cpu().tolist(),
+               "foot_positions": feet, "course_checkpoints": self.progress.completed,
                "foot_contacts": (self.env.scene["feet_ground_contact"].data.found[0] > 0).flatten().cpu().tolist(),
                "body_angular_velocity": robot.root_link_ang_vel_b[0].cpu().tolist(),
                "hop_phase": self.hop_time % 1.0}
@@ -236,7 +241,7 @@ class GameSession:
         frame = Image.fromarray(self.env.render())
         draw = ImageDraw.Draw(frame)
         draw.rectangle((0, 0, frame.width, 35), fill="#173f32")
-        draw.text((12, 11), f"DESERT DROID RUN  |  {self.score.elapsed:.1f}s  |  falls {self.score.falls}  |  {self.stage}", fill="white")
+        draw.text((12, 11), f"DESERT DROID RUN  |  {self.score.elapsed:.1f}s  |  falls {self.score.falls}  |  {self.stage}  |  checkpoints {self.progress.completed}/4", fill="white")
         self.last_frame = np.asarray(frame)
         return self.last_frame
 
@@ -268,6 +273,7 @@ class GameSession:
     def status(self):
         return {"time": round(self.score.elapsed, 2), "falls": self.score.falls,
                 "finished": self.score.finished, "mode": self.stage,
+                "course_checkpoints": self.progress.completed,
                 "paused": self.paused, "message": self.message,
                 "experiment": str(self.output), "walking": self.walking_path,
                 "hopping": self.hopping_path, "speed": self.speed, "yaw": self.yaw}

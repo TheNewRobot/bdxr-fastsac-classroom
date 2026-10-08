@@ -30,9 +30,14 @@ class SimulatorGameRules(unittest.TestCase):
                 self.assertGreater(game.score.elapsed, elapsed)
                 self.assertTrue(abs(float(robot.data.root_link_pos_w[0, 0])) < .1)
                 self.assertFalse(game.score.finished)
-                # Verify the scoring trigger, not traversal: place the robot on the finish platform.
+                # A shortcut to the platform must not earn a course completion.
                 state = torch.tensor([[12, 0, .455, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]], device="cuda")
                 robot.write_root_state_to_sim(state)
+                for _ in range(30):
+                    game.step()
+                self.assertFalse(game.score.finished)
+                # Explicit scoring-test injection, not traversal evidence.
+                game.progress.completed = len(game.progress.checkpoints)
                 for _ in range(200):
                     game.step()
                     if game.score.finished:
