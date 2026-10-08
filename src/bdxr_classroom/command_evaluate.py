@@ -195,7 +195,8 @@ def main():
                    training_terrain_height=args.terrain_height,
                    training_terrain_style=args.terrain_style,
                    yaw_bias_weight=cfg.get("yaw_bias_weight", 0),
-                   reward_scale=cfg.get("reward_scale", 1))
+                   reward_scale=cfg.get("reward_scale", 1),
+                   linear_tracking=cfg.get("linear_tracking", "instant"))
     result = {"checkpoint": str(checkpoint), "cases": {}, "terrain_height_m": args.terrain_height,
              "terrain_style": args.terrain_style if args.terrain_height else "flat",
              "straightness_cases": ["slow", "forward", "fast", "backward", "straight", "straight_fast", "straight_back"],

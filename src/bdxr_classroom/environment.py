@@ -19,7 +19,8 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              speed_max=0.5, yaw_max=0.6, yaw_weight=4.0, proprio_only=False,
              yaw_tracking="full", yaw_std=0.2, course=None,
              linear_weight=None, swing_height=None, training_terrain_height=0.0,
-             training_terrain_style="steps", yaw_bias_weight=0.0, reward_scale=1.0):
+             training_terrain_style="steps", yaw_bias_weight=0.0, reward_scale=1.0,
+             linear_tracking="instant"):
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs
@@ -98,6 +99,11 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
             cfg.rewards.pop(key, None)
     if linear_weight is not None:
         cfg.rewards["track_linear_velocity"].weight = linear_weight
+    if linear_tracking == "average":
+        previous = cfg.rewards["track_linear_velocity"]
+        cfg.rewards["track_linear_velocity"] = RewardTermCfg(
+            func=behaviors.average_linear_velocity_tracking, weight=previous.weight,
+            params={"std": previous.params["std"], "time_constant": .3})
     if swing_height is not None and "foot_swing_height" in cfg.rewards:
         cfg.rewards["foot_swing_height"].params["target_height"] = swing_height
     if yaw_bias_weight:

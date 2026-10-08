@@ -28,6 +28,21 @@ def yaw_bias_tracking(env, std=0.025, time_constant=0.3):
     return torch.exp(-env._yaw_bias_error.square() / std**2)
 
 
+def average_linear_velocity_tracking(env, std=0.3, time_constant=0.3):
+    """Reward average progress without penalizing every hop's velocity oscillation.
+
+    Simulator velocity is privileged reward information; it is never added to
+    the actor or used by the deployed mode-switching controller.
+    """
+    error = (env.scene["robot"].data.root_link_lin_vel_b[:, :2]
+             - env.command_manager.get_command("twist")[:, :2])
+    old = getattr(env, "_linear_tracking_error", torch.zeros_like(error))
+    old = torch.where((env.episode_length_buf <= 1)[:, None], torch.zeros_like(old), old)
+    fraction = 1 - math.exp(-env.step_dt / time_constant)
+    env._linear_tracking_error = torch.lerp(old, error, fraction)
+    return torch.exp(-env._linear_tracking_error.square().sum(-1) / std**2)
+
+
 def hop_phase(env):
     phase = (env.episode_length_buf * env.step_dt) % 1.0
     angle = 2 * math.pi * phase
