@@ -24,16 +24,24 @@ traversal using walking and hopping policies. Course checkpoints reject
 shortcuts around the obstacles.
 
 Fine-tuning seed handling and replay continuation have regression tests.
-The selected hopping checkpoint passed repeated terrain screens and flat/on-step
-handovers. Earlier notebook integration passed using completed real training,
-with fresh hopping checks, live browser interaction and resumable export.
-Buttons, keyboard controls, key release and focus-loss stopping were exercised
-against the simulator. An additional fresh notebook run stopped because both
-its initial baseline and unchanged recovery missed the backward-drift check.
-The updated sideways-drift reward passed the full command suite in a standalone
-run and in the fresh notebook after an unchanged training continuation.
-Actor inputs and acceptance limits remain the same. The updated notebook has
-advanced to style training; complete notebook validation continues.
+The full notebook completed fresh local training and evaluation with no cell
+errors. Its walking baseline passed after unchanged continuation; its hopping
+policy passed repeated terrain screens and flat/on-step handovers. That pair
+completed the course under visual operator commands. Pauses between commands
+mean this is a simulated traversal time, not a real-time human play test.
+
+The current notebook's executable content matches the fully executed version.
+Its game and export cells were also exercised directly with the fresh policies.
+Live Chromium tests covered checkpoint loading, buttons, keyboard controls,
+key release, focus-loss stopping and walk/hop changes. The postplay backup
+passed ZIP integrity and file-by-file checksum verification, including all
+training checkpoints and game recordings.
+
+The fresh style continuations failed drift checks; the notebook reports that
+and keeps the passing baseline. Earlier retained instructor variations passed
+the full suite and remain a separate matched comparison. Failed training and
+evaluation attempts are preserved. Actor inputs and acceptance limits were
+not relaxed to select a policy.
 
 Some earlier hopping repeats failed; those results remain in the experiment
 history. The recordings do not guarantee every new training run will work.

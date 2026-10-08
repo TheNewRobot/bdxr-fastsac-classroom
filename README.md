@@ -5,11 +5,11 @@ Train, measure, change one parameter, and play a small desert-droid course.
 
 ![Desert Droid Run interface](assets/lesson/course_preview.png)
 
-**Status:** command walking, controlled style comparisons, repeated hopping and
-walk/hop handovers have been evaluated locally. The lesson includes a complete
-recorded course run. Notebook integration and browser controls have passed local
-checks. A fresh baseline with a sideways-drift training reward passed the
-command suite; validation of the complete updated lesson continues.
+**Status:** the full lesson has completed local execution from fresh training,
+including command walking, hopping, policy handovers and exports. Browser
+controls and exported checkpoints have been checked. The fresh policies
+completed the course without falling. Curated style examples passed evaluation;
+fresh style attempts can fail and are labeled accordingly.
 Actual Google Colab execution has not been performed.
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
