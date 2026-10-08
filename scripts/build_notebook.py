@@ -236,6 +236,9 @@ for label, experiment in comparisons:
 
 Hopping adds a rhythm command and rewards foot clearance and landing. Feet rising is not the same as the body jumping that distance.
 
+A marker above the foot can rise while the heel stays close to the floor.
+Check the lowest sole clearance and contact state before claiming that a hop can clear an obstacle.
+
 This is an extended lab: first learn small stationary hops, then practice moving hops. Inspect both stages. Flat-floor success does not prove the robot can clear the game obstacles.
 """)
     code('''TRAIN_HOPPING = True  # @param {type:"boolean"}

@@ -93,7 +93,8 @@
     "video": "moving_hops/rollout.mp4",
     "motion": "moving_hops/motion.png",
     "learning_curve": "moving_hops/learning_curves.png",
-    "caption": "Moving hops on flat ground: 14 settled landings in each of five 15-second trials. Mean forward speed 0.105 m/s against a 0.15 m/s command. This checkpoint has not cleared the obstacle course.",
-    "experiment": "experiments/2026-10-08_004240_908180_moving_hops"
+    "caption": "Small flat-ground hops: about 1.6 cm clearance at the lowest collision-sole point. Mean forward speed 0.105 m/s against a 0.15 m/s command. A foot marker rises higher than the sole; this checkpoint has not cleared the obstacle course.",
+    "experiment": "experiments/2026-10-08_004240_908180_moving_hops",
+    "measurement_audit": "experiments/2026-10-08_021536_596261_selected_hop_sole_audit"
   }
 ]
