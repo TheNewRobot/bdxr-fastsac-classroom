@@ -275,7 +275,7 @@ This extended lab uses a curriculum: stationary hops → moving hops → clearan
 The last stage measures the sole, rather than the foot marker. Inspect each stage; flat-floor success does not prove obstacle capability.
 """)
     code('''TRAIN_HOPPING = True  # @param {type:"boolean"}
-TINY_HOPS = HOP_RESULTS = None
+TINY_HOPS = MOVING_HOPS = HOP_RESULTS = None
 if TRAIN_HOPPING:
     TINY_HOPS = train("tiny_hops", "--task-version", "hop", "--speed", 0,
                      "--hop-height", 0.04, "--steps", 4000, "--minutes", 10)
@@ -325,15 +325,17 @@ else:
 
 Save your recordings and checkpoint before disconnecting the runtime.
 """)
-    code('''def export_results():
-    destination = WORK / "my_bdxr_results.zip"
+    code('''INCLUDE_REPLAY_IN_EXPORT = True  # @param {type:"boolean"}
+# Replay makes the backup larger, but preserves the collected training experience.
+def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
+    destination = WORK / ("my_bdxr_training_backup.zip" if include_replay else "my_bdxr_results.zip")
     folders = list(dict.fromkeys([BASELINE, VARIATION, CONTROL] +
-                                 [run for run in [TINY_HOPS, HOP_RESULTS] if run]))
+                                 [run for run in [TINY_HOPS, MOVING_HOPS, HOP_RESULTS] if run]))
     folders += list((WORK / "experiments").glob("*_desert_droid_game"))
     with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
         for folder in folders:
             for file in folder.rglob("*"):
-                if file.is_file() and "wandb" not in file.parts and file.name != "resume.pt":
+                if file.is_file() and "wandb" not in file.parts and (include_replay or file.name != "resume.pt"):
                     archive.write(file, file.relative_to(WORK))
     print("Saved:", destination)
     try:
@@ -344,7 +346,8 @@ Save your recordings and checkpoint before disconnecting the runtime.
     return destination
 
 export_results()
-print("Full replay checkpoints remain in experiments/*/checkpoints/resume.pt; copy them to persistent storage to resume training.")
+print("To resume: unpack the backup into WORK, then train with --resume experiments/<run>/checkpoints/resume.pt.")
+print("Networks, optimizers, normalization and replay are restored; simulated episodes restart.")
 ''')
     md("""## 8 · Play: Desert Droid Run
 
