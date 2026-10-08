@@ -444,17 +444,23 @@ Save your recordings and checkpoint before disconnecting the runtime.
     code('''INCLUDE_REPLAY_IN_EXPORT = True  # @param {type:"boolean"}
 # Replay makes the backup larger, but preserves the collected training experience.
 def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
+    import time
+    started = time.monotonic()
     destination = WORK / ("my_bdxr_training_backup.zip" if include_replay else "my_bdxr_results.zip")
+    temporary = destination.with_suffix(".tmp.zip")
     folders = list(dict.fromkeys([BASELINE, VARIATION, CONTROL] +
                                  [run for run in [TINY_HOPS, MOVING_HOPS, HOP_RESULTS] if run]))
     folders += list((WORK / "experiments").glob("*_desert_droid_game"))
     folders += list((WORK / "experiments").glob("*_transition_validation"))
-    with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
-        for folder in folders:
+    print("Creating backup. Replay files can take several minutes to save.", flush=True)
+    with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as archive:
+        for index, folder in enumerate(folders, 1):
+            print(f"Saving experiment {index}/{len(folders)}: {folder.name}", flush=True)
             for file in folder.rglob("*"):
                 if file.is_file() and "wandb" not in file.parts and (include_replay or file.name != "resume.pt"):
                     archive.write(file, file.relative_to(WORK))
-    print("Saved:", destination)
+    temporary.replace(destination)
+    print(f"Saved in {time.monotonic() - started:.1f} seconds:", destination)
     try:
         from google.colab import files
         files.download(str(destination))
