@@ -31,6 +31,7 @@ details{margin-top:15px}.message{padding:10px 0;color:#abe9df}.drive{display:fle
 </div>
 <section class="panel">
 <div>Controller: <span class="mode" id="mode">loading</span></div>
+<p class="help" id="applied">Applied command: 0.00 m/s · 0.00 rad/s</p>
 <label>Forward / backward <b id="speedLabel">0.00 m/s</b><input id="speed" type="range" min="-0.25" max="0.5" step="0.05" value="0"></label>
 <label>Turn rate <b id="yawLabel">0.00 rad/s</b><input id="yaw" type="range" min="-0.6" max="0.6" step="0.1" value="0"></label>
 <div class="drive"><button onclick="drive(.3,0)">Forward</button><button onclick="drive(-.2,0)">Back</button>
@@ -49,21 +50,22 @@ details{margin-top:15px}.message{padding:10px 0;color:#abe9df}.drive{display:fle
 </details>
 </main>
 <script>
-const $=id=>document.getElementById(id);let desiredMode='walk',initialized=false,keys=new Set(),lastDrive='';
+const $=id=>document.getElementById(id);let desiredMode='walk',initialized=false,keys=new Set(),lastDrive='',previousFalls=0;
 async function send(value){try{await fetch('./api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(value)})}catch(e){$('message').textContent='Connection interrupted. Your experiment is saved on the runtime.'}}
-function drive(speed,yaw){$('speed').value=speed;$('yaw').value=yaw;labels();send({speed,yaw,mode:desiredMode})}
+function drive(speed,yaw){lastDrive=JSON.stringify([speed,yaw]);$('speed').value=speed;$('yaw').value=yaw;labels();send({speed,yaw,mode:desiredMode})}
 function labels(){$('speedLabel').textContent=Number($('speed').value).toFixed(2)+' m/s';$('yawLabel').textContent=Number($('yaw').value).toFixed(2)+' rad/s'}
 function chooseMode(mode){desiredMode=mode;drive(Number($('speed').value),Number($('yaw').value))}
 function stopRobot(){desiredMode='walk';drive(0,0)}
 function camera(view){send({action:'camera',view})}
-function newGame(){keys.clear();desiredMode='walk';$('speed').value=0;$('yaw').value=0;labels();send({action:'new'})}
+function clearControls(){keys.clear();lastDrive='';desiredMode='walk';$('speed').value=0;$('yaw').value=0;labels()}
+function newGame(){clearControls();send({action:'new'})}
 function loadPolicies(){send({action:'load',walking:$('walking').value.trim(),hopping:$('hopping').value.trim()})}
 ['speed','yaw'].forEach(id=>$(id).addEventListener('input',()=>drive(Number($('speed').value),Number($('yaw').value))));
 function keyboard(){let speed=(keys.has('KeyW')?.3:0)-(keys.has('KeyS')?.2:0),yaw=(keys.has('KeyA')?.4:0)-(keys.has('KeyD')?.4:0);const encoded=JSON.stringify([speed,yaw]);if(encoded!==lastDrive){lastDrive=encoded;drive(speed,yaw)}}
 window.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(['KeyW','KeyS','KeyA','KeyD'].includes(e.code)){e.preventDefault();keys.add(e.code);keyboard()}if(e.code==='Space'&&!e.repeat){e.preventDefault();chooseMode(desiredMode==='walk'?'hop':'walk')}});
 window.addEventListener('keyup',e=>{if(keys.delete(e.code))keyboard()});
 window.addEventListener('blur',()=>{if(keys.size){keys.clear();keyboard()}});
-async function poll(){try{const s=await(await fetch('./api/state')).json();$('message').textContent=s.error||s.message||'';if(s.ready){$('timer').textContent=s.time.toFixed(1);$('falls').textContent=s.falls;$('mode').textContent=s.mode+(s.paused?' · paused':'');$('win').style.display=s.finished?'grid':'none';$('experiment').textContent='Saved experiment: '+s.experiment;if(!initialized){$('walking').value=s.walking;$('hopping').value=s.hopping||'';initialized=true}}}catch(e){}setTimeout(poll,250)}
+async function poll(){try{const s=await(await fetch('./api/state')).json();$('message').textContent=s.error||s.message||'';if(s.ready){if(s.falls!==previousFalls){clearControls();previousFalls=s.falls}$('timer').textContent=s.time.toFixed(1);$('falls').textContent=s.falls;$('mode').textContent=s.mode+(s.paused?' · paused':'');$('applied').textContent='Applied command: '+s.speed.toFixed(2)+' m/s · '+s.yaw.toFixed(2)+' rad/s';$('win').style.display=s.finished?'grid':'none';$('experiment').textContent='Saved experiment: '+s.experiment;if(!initialized){$('walking').value=s.walking;$('hopping').value=s.hopping||'';initialized=true}}}catch(e){}setTimeout(poll,250)}
 async function frame(){try{const response=await fetch('./api/frame');if(response.ok){const old=$('frame').src;$('frame').src=URL.createObjectURL(await response.blob());if(old.startsWith('blob:'))URL.revokeObjectURL(old)}}catch(e){}setTimeout(frame,100)}
 fetch('./api/checkpoints').then(r=>r.json()).then(paths=>paths.forEach(path=>{const o=document.createElement('option');o.value=path;$('checkpoints').appendChild(o)}));
 poll();frame();

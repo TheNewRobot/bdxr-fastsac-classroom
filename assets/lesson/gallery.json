@@ -84,6 +84,7 @@
     "motion": "command_walking/motion.png",
     "learning_curve": "command_walking/learning_curves.png",
     "caption": "Selected command-walking checkpoint: 10 commands \u00d7 5 perturbed starts \u00d7 15 seconds, no falls. Forward mean maximum cross-track deviation 0.084 m. Fine-tuned from earlier policies; this is not a fresh 15-minute run.",
-    "experiment": "experiments/2026-10-08_003614_607667_command_balanced_sampling"
+    "experiment": "experiments/2026-10-08_003614_607667_command_balanced_sampling",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/0ajaor7w"
   }
 ]
