@@ -34,6 +34,7 @@ def main():
     p.add_argument("--yaw-tracking", choices=["full", "rate", "imu"], default="full")
     p.add_argument("--yaw-std", type=float, default=0.2)
     p.add_argument("--yaw-bias-weight", type=float, default=0.0)
+    p.add_argument("--lateral-bias-weight", type=float, default=0.0)
     p.add_argument("--linear-weight", type=float)
     p.add_argument("--linear-tracking", choices=["instant", "average"], default="instant")
     p.add_argument("--reward-scale", type=float, default=1.0)
@@ -89,7 +90,7 @@ def main():
                     "command_mode", "speed_min", "speed_max", "yaw_max", "yaw_weight",
                     "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
                     "training_terrain_height", "training_terrain_style", "training_start_span", "initial_jitter",
-                    "yaw_bias_weight", "reward_scale",
+                    "yaw_bias_weight", "lateral_bias_weight", "reward_scale",
                     "linear_tracking", "hop_height_reward", "hop_clearance", "mirror_replay"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
@@ -127,6 +128,7 @@ def main():
                  training_terrain_style=args.training_terrain_style,
                  training_start_span=args.training_start_span,
                  yaw_bias_weight=args.yaw_bias_weight, reward_scale=args.reward_scale,
+                 lateral_bias_weight=args.lateral_bias_weight,
                  linear_tracking=args.linear_tracking, hop_height_reward=args.hop_height_reward,
                  hop_clearance=args.hop_clearance)
     if args.mirror_replay:

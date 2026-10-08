@@ -159,7 +159,7 @@ class EnvironmentContract(unittest.TestCase):
     def test_command_inputs_and_privileged_critic_separation(self):
         from bdxr_classroom.command_evaluate import set_command
         env = make_env(4, command_mode="mixed", yaw_tracking="imu",
-                       yaw_bias_weight=2, linear_tracking="average")
+                       yaw_bias_weight=2, lateral_bias_weight=2, linear_tracking="average")
         try:
             env.reset(seed=123)
             actor_terms = set(env.cfg.observations["actor"].terms)

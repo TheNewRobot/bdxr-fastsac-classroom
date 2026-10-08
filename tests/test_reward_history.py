@@ -4,10 +4,27 @@ from types import SimpleNamespace
 import math
 import unittest
 import torch
-from bdxr_classroom.behaviors import yaw_bias_tracking, average_linear_velocity_tracking, hop_height_tracking, imu_turn_rate
+from bdxr_classroom.behaviors import yaw_bias_tracking, lateral_bias_tracking, average_linear_velocity_tracking, hop_height_tracking, imu_turn_rate
 
 
 class RewardHistory(unittest.TestCase):
+    def test_sideways_drift_reward_preserves_forward_commands_and_resets_per_world(self):
+        velocity = torch.tensor([[.3, .05, 0.], [-.2, .05, 0.]])
+        env = SimpleNamespace(
+            scene={"robot": SimpleNamespace(data=SimpleNamespace(root_link_lin_vel_b=velocity))},
+            command_manager=SimpleNamespace(get_command=lambda _: torch.zeros(2, 3)),
+            episode_length_buf=torch.tensor([100, 100]), step_dt=.02)
+        for _ in range(100):
+            reward = lateral_bias_tracking(env)
+        self.assertTrue((reward < .02).all())
+        velocity[:, 1] = 0
+        env.episode_length_buf[0] = 1
+        reward = lateral_bias_tracking(env)
+        self.assertEqual(float(reward[0]), 1)
+        self.assertLess(float(reward[1]), .05)
+        env.episode_length_buf[1] = 1
+        self.assertTrue(torch.equal(lateral_bias_tracking(env), torch.ones(2)))
+
     def test_imu_turn_rate_removes_roll_pitch_coupling(self):
         roll, pitch = .3, -.2
         roll_rate, pitch_rate = .8, -.4

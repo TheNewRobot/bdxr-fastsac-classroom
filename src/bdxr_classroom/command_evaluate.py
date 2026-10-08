@@ -226,6 +226,7 @@ def main():
                    training_terrain_height=args.terrain_height,
                    training_terrain_style=args.terrain_style,
                    yaw_bias_weight=cfg.get("yaw_bias_weight", 0),
+                   lateral_bias_weight=cfg.get("lateral_bias_weight", 0),
                    reward_scale=cfg.get("reward_scale", 1),
                    linear_tracking=cfg.get("linear_tracking", "instant"),
                    hop_height_reward=cfg.get("hop_height_reward", "continuous"),
