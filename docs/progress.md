@@ -25,14 +25,15 @@ shortcuts around the obstacles.
 
 Fine-tuning seed handling and replay continuation have regression tests.
 The selected hopping checkpoint passed repeated terrain screens and flat/on-step
-handovers. Current notebook integration passed using completed real training,
+handovers. Earlier notebook integration passed using completed real training,
 with fresh hopping checks, live browser interaction and resumable export.
 Buttons, keyboard controls, key release and focus-loss stopping were exercised
 against the simulator. An additional fresh notebook run stopped because both
 its initial baseline and unchanged recovery missed the backward-drift check.
-A fresh baseline with a training reward for sustained sideways drift passed
-the full command suite. The updated lesson uses that setting and retains the
-same actor inputs and acceptance limits. Complete notebook validation continues.
+The updated sideways-drift reward passed the full command suite in a standalone
+run and in the fresh notebook after an unchanged training continuation.
+Actor inputs and acceptance limits remain the same. The updated notebook has
+advanced to style training; complete notebook validation continues.
 
 Some earlier hopping repeats failed; those results remain in the experiment
 history. The recordings do not guarantee every new training run will work.
