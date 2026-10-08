@@ -9,6 +9,26 @@ from bdxr_classroom.environment import make_env, step_and_reset
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
 class EnvironmentContract(unittest.TestCase):
+    def test_mixed_terrain_reward_height_matches_physics(self):
+        import mujoco
+        import numpy as np
+        from bdxr_classroom.training_terrain import ground_height
+        env = make_env(1, task_version="hop", training_terrain_height=.035,
+                       training_terrain_style="mixed")
+        try:
+            model = env.sim.mj_model
+            data = mujoco.MjData(model)
+            mujoco.mj_forward(model, data)
+            for x in (.65, .66, .7, 1.25):
+                distance = mujoco.mj_ray(
+                    model, data, np.array([x, 0., 1.]), np.array([0., 0., -1.]),
+                    None, True, -1, np.array([-1], dtype=np.int32))
+                predicted = ground_height(
+                    env, torch.tensor([[x, 0., 0.]], device="cuda")).item()
+                self.assertAlmostEqual(predicted, 1 - distance, places=6)
+        finally:
+            env.close()
+
     def test_practice_terrain_preserves_actor_contract(self):
         from bdxr_classroom.training_terrain import ground_height
         env = make_env(4, task_version="hop", training_terrain_height=.015)
@@ -47,7 +67,7 @@ class EnvironmentContract(unittest.TestCase):
 
     def test_command_inputs_and_privileged_critic_separation(self):
         from bdxr_classroom.command_evaluate import set_command
-        env = make_env(4, command_mode="mixed")
+        env = make_env(4, command_mode="mixed", yaw_bias_weight=2)
         try:
             env.reset(seed=123)
             actor_terms = set(env.cfg.observations["actor"].terms)
