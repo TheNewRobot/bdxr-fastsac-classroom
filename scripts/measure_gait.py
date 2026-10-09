@@ -1,6 +1,7 @@
 """Summarize measured gait changes from command-evaluation trajectories."""
 import argparse
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -40,7 +41,7 @@ def summarize(rows):
                 if not contact:
                     air_samples += 1
                 else:
-                    landings += int(air_samples * dt >= .04)
+                    landings += int(air_samples >= math.ceil(.04 / dt - 1e-6))
                     air_samples = 0
             foot_landings.append(landings)
         duration = len(samples) * dt
@@ -56,6 +57,9 @@ def summarize(rows):
             "sole_clearance_p95_m": float(np.percentile(clearance.max(axis=1), 95)),
             "mean_sole_tilt_deg": float(np.degrees(tilt).mean()),
             "flight_fraction": float(flight.mean()),
+            "contact_force_p95": float(np.percentile(
+                [r["total_foot_contact_force"] for r in samples], 95))
+                if all("total_foot_contact_force" in r for r in samples) else None,
             "complete_contact_free_intervals": intervals,
             "clear_flight_intervals": clear_intervals,
             "mean_clear_flight_duration_s": float(np.mean([v["duration_s"] for v in clear_intervals])) if clear_intervals else 0,
