@@ -17,7 +17,7 @@ from .command_evaluate import load_agent, set_command
 from .course import CourseConfig
 from .course_progress import CourseProgress
 from .environment import make_env
-from .experiments import create_experiment, write_manifest
+from .experiments import create_experiment, write_manifest, resolve_experiment_path
 
 
 @dataclasses.dataclass
@@ -60,8 +60,10 @@ class GameSession:
                  name="desert_droid_game"):
         torch.set_num_threads(2)
         torch.set_float32_matmul_precision("high")
-        self.walking_path = str(Path(walking).resolve())
-        self.hopping_path = str(Path(hopping).resolve()) if hopping else None
+        walking = resolve_experiment_path(walking)
+        hopping = resolve_experiment_path(hopping) if hopping else None
+        self.walking_path = str(walking.resolve())
+        self.hopping_path = str(hopping.resolve()) if hopping else None
         self.walk, self.walk_cfg = load_agent(walking, 1)
         self.hop, self.hop_cfg = load_agent(hopping, 1) if hopping else (None, None)
         if self.walk.dimensions[0] != 47 or self.walk.dimensions[2] != 10:

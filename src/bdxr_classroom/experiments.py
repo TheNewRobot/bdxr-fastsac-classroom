@@ -11,18 +11,38 @@ import zipfile
 from pathlib import Path
 
 
-def experiment_root(path):
+def resolve_experiment_path(path):
+    """Resolve pre-cleanup paths without changing historical experiment records."""
     path = Path(path)
+    if path.exists():
+        return path
+    for parent in path.parents:
+        mapping = parent / "relocations.json"
+        if mapping.is_file():
+            relative = path.relative_to(parent)
+            target = json.loads(mapping.read_text()).get(relative.parts[0])
+            if target:
+                return parent / target / Path(*relative.parts[1:])
+    return path
+
+
+def experiment_root(path):
+    path = resolve_experiment_path(path)
     if path.is_file() or path.suffix == ".pt":
         path = path.parent
     return path.parent if path.name == "checkpoints" else path
 
 
-def create_experiment(name, root="experiments"):
+def create_experiment(name, root="experiments", category="evaluations"):
     if not re.fullmatch(r"[A-Za-z0-9_-]+", name):
         raise ValueError("Experiment names may contain letters, numbers, underscores and hyphens")
     timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d_%H%M%S_%f")
-    path = Path(root) / f"{timestamp}_{name}"
+    root = Path(root)
+    if root.name == "experiments":
+        if category not in {"candidates", "evaluations"}:
+            raise ValueError("New experiments belong in candidates or evaluations")
+        root = root / category
+    path = root / f"{timestamp}_{name}"
     path.mkdir(parents=True, exist_ok=False)
     for folder in ["config", "checkpoints", "metrics", "videos", "evaluation"]:
         (path / folder).mkdir()
