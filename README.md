@@ -13,8 +13,14 @@ fresh style attempts can fail and are labeled accordingly.
 Actual Google Colab execution has not been performed.
 The current scratch-training recipe passed all 50 command trials with seed 7
 after 9 minutes of training on a local L40S. Three distinct scratch-trained
-gaits and improved hopping on the complete course are still being evaluated;
-the earlier course recording does not validate these newer candidates.
+gaits are still being evaluated. The new higher, level-foot hopper passed terrain,
+directional and repeated handover checks, then completed the unchanged course
+with the approved reference walker in 42.82 simulation seconds without falling.
+Its six-stage training lineage took about 19.5 minutes locally, excluding setup
+and evaluation. Higher landing forces remain a tradeoff.
+
+[Watch the new course run](assets/lesson/natural_hops_course/rollout.mp4) or
+[compare the hopping motions](assets/lesson/natural_hops/comparison.mp4).
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
 - [Short instructor notes](docs/instructor_notes.md)

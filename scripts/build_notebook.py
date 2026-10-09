@@ -384,10 +384,22 @@ A marker above the foot can rise while the heel stays close to the floor.
 Check the lowest sole clearance and contact state before claiming that a hop can clear an obstacle.
 
 This extended lab uses a curriculum: stationary hops → moving hops → clearance over small physical obstacles.
-The last stage requests 4.5 cm sole clearance and practices on
+Walking and hopping have separate time budgets. The recorded higher, level-foot
+hopper used about 19.5 minutes of training across six stages on a local L40S,
+plus setup and evaluation. This is instructor timing, not a Colab guarantee.
+
+For a hop, measure both feet: one raised foot can be a step. We use joint
+kinematics and the simulated foot geometry to measure sole clearance and tilt.
+The instructor comparison counts clear flights lasting at least 80 ms with
+both soles reaching at least 2.5 cm above the ground. Check the video too:
+more height can also mean harder landings.
+
+The first terrain stage requests 4.5 cm sole clearance and practices on
 25 mm terrain from varied starting positions. This exposes the policy to more
 foot placements; it does not give the actor a terrain map. Inspect each stage;
-flat-floor success does not prove obstacle capability.
+flat-floor success does not prove obstacle capability. The optional natural-hop
+extension then requests 6.5 cm bilateral clearance, restores terrain practice,
+and rewards level feet during flight so the ankles remain free during push-off.
 
 Compare the final checkpoint with saved earlier checkpoints. Each must
 complete five trials per command without falling, land at least five hops per trial,
@@ -404,7 +416,9 @@ step. Passing the hopping screen alone is not enough. A failed pair is not
 loaded automatically; its videos and reports stay in your results.
 """)
     code('''TRAIN_HOPPING = True  # @param {type:"boolean"}
+NATURAL_HOPS = True  # @param {type:"boolean"}
 TINY_HOPS = MOVING_HOPS = HOP_RESULTS = None
+HOP_STAGES = []
 SELECTED_HOP_CHECKPOINT = None
 if TRAIN_HOPPING:
     TINY_HOPS = train("tiny_hops", "--task-version", "hop", "--speed", 0,
@@ -426,6 +440,30 @@ if TRAIN_HOPPING:
                         "--training-start-span", 1.5,
                         "--steps", 2000, "--minutes", 10,
                         "--resume", MOVING_HOPS / "checkpoints/final.pt", "--finetune")
+    HOP_STAGES = [TINY_HOPS, MOVING_HOPS, HOP_RESULTS]
+    if NATURAL_HOPS:
+        NATURAL_OPTIONS = [
+            "--task-version", "hop", "--command-mode", "balanced",
+            "--speed-min", -0.1, "--speed-max", 0.3, "--yaw-max", 0.3,
+            "--yaw-tracking", "rate", "--yaw-std", 0.2,
+            "--hop-height", 0.065, "--hop-body-weight", 6, "--linear-weight", 6,
+            "--hop-clearance", "sole", "--hop-height-reward", "flight_both",
+            "--level-feet-weight", 3, "--mirror-replay",
+        ]
+        LEVEL_HOPS = train("level_hops", *NATURAL_OPTIONS,
+                           "--steps", 5000, "--minutes", 12,
+                           "--resume", HOP_RESULTS / "checkpoints/final.pt", "--finetune")
+        TERRAIN_OPTIONS = [
+            "--training-terrain-height", 0.025, "--training-terrain-style", "mixed",
+            "--training-start-span", 1.5,
+        ]
+        LEVEL_TERRAIN = train("level_terrain_hops", *NATURAL_OPTIONS, *TERRAIN_OPTIONS,
+                              "--steps", 3000, "--minutes", 10,
+                              "--resume", LEVEL_HOPS / "checkpoints/final.pt", "--finetune")
+        HOP_RESULTS = train("natural_hops", *NATURAL_OPTIONS, *TERRAIN_OPTIONS,
+                            "--level-feet-flight-only", "--steps", 1000, "--minutes", 6,
+                            "--resume", LEVEL_TERRAIN / "checkpoints/final.pt", "--finetune")
+        HOP_STAGES += [LEVEL_HOPS, LEVEL_TERRAIN, HOP_RESULTS]
     import sys, hashlib
     sys.path.insert(0, str(WORK / "scripts"))
     from check_hopping_results import choose
@@ -531,7 +569,7 @@ def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
     destination = WORK / ("my_bdxr_training_backup.zip" if include_replay else "my_bdxr_results.zip")
     temporary = destination.with_suffix(".tmp.zip")
     folders = list(dict.fromkeys([INITIAL_BASELINE, BASELINE, VARIATION, CONTROL] +
-                                 [run for run in [TINY_HOPS, MOVING_HOPS, HOP_RESULTS] if run]))
+                                 HOP_STAGES))
     folders += list((WORK / "experiments").glob("*_command_walking_recovery"))
     folders += list((WORK / "experiments").glob("*_desert_droid_game"))
     folders += list((WORK / "experiments").glob("*_transition_validation"))
