@@ -22,7 +22,7 @@ from .experiments import experiment_root, capture_source, jsonable
 from .fastsac import FastSAC
 from .motion_metrics import count_hops
 from .training_terrain import ground_height, sampled_sole_clearance
-from .behaviors import imu_turn_rate, sole_tilt
+from .behaviors import imu_turn_rate, sole_tilt, foot_spacing
 
 
 def wrap(angle):
@@ -132,6 +132,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
             joint_angles = robot.joint_pos.cpu().tolist()
             upright = (-robot.projected_gravity_b[:, 2]).cpu().tolist()
             foot_tilts = sole_tilt(env).cpu().tolist()
+            widths = foot_spacing(env).cpu().tolist()
             sole_heights = sampled_sole_clearance(env).cpu().tolist()
             contact_force = env.scene["feet_ground_contact"].data.force.reshape(env.num_envs, -1, 3)
             forces = contact_force.norm(dim=-1).sum(-1).cpu().tolist()
@@ -145,6 +146,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                     "yaw_rate": float(values[index, 5]), "progress": float(values[index, 6]),
                     "imu_yaw_rate": float(values[index, 9]),
                     "torso_height": float(values[index, 10]),
+                    "foot_spacing_m": widths[index],
                     "cross_track": float(values[index, 7]), "heading_error": float(values[index, 8]),
                     "command_speed": float(commands[index, 0]), "command_yaw": float(commands[index, 2]),
                     "fell": bool(terminated[index]),
@@ -245,6 +247,7 @@ def main():
                    hop_flight_weight=cfg.get("hop_flight_weight", 0),
                    level_feet_flight_only=cfg.get("level_feet_flight_only", False),
                    walking_height=cfg.get("walking_height"),
+                   walking_width=cfg.get("walking_width"),
                    swing_weight=cfg.get("swing_weight"),
                    swing_clearance=cfg.get("swing_clearance", "site"),
                    air_time_min=cfg.get("air_time_min"), air_time_max=cfg.get("air_time_max"),
