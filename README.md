@@ -5,12 +5,16 @@ Train, measure, change one parameter, and play a small desert-droid course.
 
 ![Desert Droid Run interface](assets/lesson/course_preview.png)
 
-**Status:** the full lesson has completed local execution from fresh training,
+**Status:** an earlier version of the full lesson completed local execution from fresh training,
 including command walking, hopping, policy handovers and exports. Browser
 controls and exported checkpoints have been checked. The fresh policies
 completed the course without falling. Curated style examples passed evaluation;
 fresh style attempts can fail and are labeled accordingly.
 Actual Google Colab execution has not been performed.
+The current scratch-training recipe passed all 50 command trials with seed 7
+after 9 minutes of training on a local L40S. Three distinct scratch-trained
+gaits and improved hopping on the complete course are still being evaluated;
+the earlier course recording does not validate these newer candidates.
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
 - [Short instructor notes](docs/instructor_notes.md)
@@ -56,13 +60,13 @@ export PYTHONPATH="$PWD/src"
 export MUJOCO_GL=egl
 .venv/bin/python -m bdxr_classroom.train \
   --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
-  --steps 8000 --minutes 15 --command-mode balanced \
-  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 2 \
+  --steps 10000 --minutes 15 --command-mode balanced \
+  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 6 \
   --lateral-bias-weight 2 --mirror-replay --compile
 ```
 
 These settings match the notebook's walking recipe. Runtime depends on the GPU;
-the time limit can stop training before 8,000 steps. The trainer prints the
+the time limit can stop training before 10,000 steps. The trainer prints the
 actual timestamped experiment path. To evaluate it:
 
 ```bash
