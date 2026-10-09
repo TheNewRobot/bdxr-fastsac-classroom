@@ -31,9 +31,13 @@ def sole_tilt(env):
     return torch.acos(normal[..., 2].abs().clamp(0, 1))
 
 
-def level_feet_reward(env, std=0.2):
+def level_feet_reward(env, std=0.2, flight_only=False):
     """Reward level collision soles; privileged training signal only."""
-    return torch.exp(-sole_tilt(env).square().mean(-1) / std**2)
+    reward = torch.exp(-sole_tilt(env).square().mean(-1) / std**2)
+    if flight_only:
+        contact = env.scene["feet_ground_contact"].data.found.reshape(env.num_envs, -1) > 0
+        reward = reward * ~contact.any(-1)
+    return reward
 
 
 def sole_swing_height_cost(env, target_height=0.06):

@@ -25,6 +25,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              linear_tracking="instant", hop_height_reward="continuous",
              hop_clearance="site", training_start_span=0.2,
              level_feet_weight=0.0, hop_flight_weight=0.0, swing_weight=None,
+             level_feet_flight_only=False,
              air_time_min=None, air_time_max=None, air_time_weight=None,
              hop_flight_duration=0.25, hop_crouch=0.0, swing_clearance="site"):
     if not .12 <= hop_flight_duration <= .5 or not 0 <= hop_crouch <= .08:
@@ -147,7 +148,8 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
             cfg.rewards["air_time"].params["threshold_max"] = air_time_max
     if level_feet_weight:
         cfg.rewards["level_feet"] = RewardTermCfg(
-            func=behaviors.level_feet_reward, weight=level_feet_weight)
+            func=behaviors.level_feet_reward, weight=level_feet_weight,
+            params={"flight_only": level_feet_flight_only})
     if yaw_bias_weight:
         cfg.rewards["yaw_bias"] = RewardTermCfg(
             func=behaviors.yaw_bias_tracking, weight=yaw_bias_weight,

@@ -5,10 +5,19 @@ from unittest.mock import patch
 
 import torch
 
-from bdxr_classroom.behaviors import clear_hop_flight
+from bdxr_classroom.behaviors import clear_hop_flight, level_feet_reward
 
 
 class ClearFlightReward(unittest.TestCase):
+    def test_optional_level_reward_does_not_pay_for_standing(self):
+        env = types.SimpleNamespace(num_envs=2, scene={
+            "feet_ground_contact": types.SimpleNamespace(data=types.SimpleNamespace(
+                found=torch.tensor([[1, 1], [0, 0]])))})
+        with patch("bdxr_classroom.behaviors.sole_tilt", return_value=torch.zeros(2, 2)):
+            torch.testing.assert_close(level_feet_reward(env), torch.ones(2))
+            torch.testing.assert_close(level_feet_reward(env, flight_only=True),
+                                       torch.tensor([0., 1.]))
+
     def test_only_clear_bilateral_flight_in_requested_phase_is_paid(self):
         env = types.SimpleNamespace(
             num_envs=4, step_dt=.02,
