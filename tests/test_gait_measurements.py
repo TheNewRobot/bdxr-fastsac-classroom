@@ -30,3 +30,16 @@ class GaitMeasurements(unittest.TestCase):
         self.assertAlmostEqual(report["mean_clear_flight_peak_m"], .06)
         self.assertAlmostEqual(report["mean_clear_flight_tilt_deg"], 10)
         self.assertEqual(report["per_foot_landings"], [2, 2])
+
+    def test_swing_tilt_excludes_the_other_stance_foot(self):
+        samples = [{
+            "episode": 0, "time": 1 + i * .02,
+            "foot_contacts": [False, True],
+            "sole_clearance_m": [.04, 0],
+            "sole_tilt_rad": [math.radians(30), 0],
+            "fell": False, "speed": .3,
+        } for i in range(10)]
+        report = module.summarize(samples)["trials"][0]
+        self.assertAlmostEqual(report["swing_sole_tilt_deg"], 30)
+        self.assertAlmostEqual(report["mean_sole_tilt_deg"], 15)
+        self.assertIsNone(report["flight_sole_tilt_deg"])

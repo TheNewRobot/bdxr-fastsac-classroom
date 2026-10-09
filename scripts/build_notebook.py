@@ -26,7 +26,7 @@ def main():
         files = set()
         for pattern in ["src/**/*.py", "src/**/*.html", "configs/*.json",
                         "requirements*.txt", "scripts/setup.py", "scripts/check_command_results.py",
-                        "scripts/check_hopping_results.py",
+                        "scripts/check_hopping_results.py", "scripts/measure_gait.py",
                         "scripts/validate_transitions.py", "scripts/validate_policy_pair.py",
                         "THIRD_PARTY_NOTICES.md",
                         "assets/lesson/**/*"]:
