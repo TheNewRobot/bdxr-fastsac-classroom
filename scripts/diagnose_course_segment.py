@@ -21,13 +21,16 @@ def main():
     parser.add_argument("--speed", type=float, default=.3)
     parser.add_argument("--mode", choices=["walk", "hop"], default="walk")
     parser.add_argument("--seed", type=int, default=263)
+    parser.add_argument("--course-config", type=Path)
     args = parser.parse_args()
     if args.mode == "hop" and not args.hopping:
         parser.error("Hop mode requires --hopping")
     game = GameSession(args.walking, args.hopping, seed=args.seed,
+                       course=json.loads(args.course_config.read_text()) if args.course_config else None,
                        operator="injected_start_segment_diagnostic",
                        name="course_segment_diagnostic")
     description = dict(vars(args), scope="Injected start, partial course only; not a full traversal")
+    description["course_config"] = str(args.course_config) if args.course_config else None
     (game.output / "config/segment.json").write_text(json.dumps(description, indent=2))
     try:
         state = torch.tensor([[args.start_x, 0, .35, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
