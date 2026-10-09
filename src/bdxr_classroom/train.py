@@ -40,6 +40,7 @@ def main():
     p.add_argument("--reward-scale", type=float, default=1.0)
     p.add_argument("--swing-height", type=float)
     p.add_argument("--swing-weight", type=float)
+    p.add_argument("--swing-clearance", choices=["site", "sole"], default="site")
     p.add_argument("--air-time-min", type=float)
     p.add_argument("--air-time-max", type=float)
     p.add_argument("--air-time-weight", type=float)
@@ -100,7 +101,7 @@ def main():
                     "yaw_bias_weight", "lateral_bias_weight", "reward_scale",
                     "linear_tracking", "hop_height_reward", "hop_clearance", "mirror_replay",
                     "swing_weight", "air_time_min", "air_time_max", "air_time_weight", "level_feet_weight",
-                    "hop_flight_duration", "hop_crouch"]:
+                    "hop_flight_duration", "hop_crouch", "swing_clearance"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
     cfg["experiment_path"] = str(out)
@@ -142,7 +143,8 @@ def main():
                  hop_clearance=args.hop_clearance, level_feet_weight=args.level_feet_weight,
                  swing_weight=args.swing_weight, air_time_min=args.air_time_min,
                  air_time_max=args.air_time_max, air_time_weight=args.air_time_weight,
-                 hop_flight_duration=args.hop_flight_duration, hop_crouch=args.hop_crouch)
+                 hop_flight_duration=args.hop_flight_duration, hop_crouch=args.hop_crouch,
+                 swing_clearance=args.swing_clearance)
     if args.mirror_replay:
         from .mirror import build_maps
         cfg["mirror_maps"] = build_maps(env)

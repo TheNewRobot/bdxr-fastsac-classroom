@@ -36,6 +36,27 @@ def level_feet_reward(env, std=0.2):
     return torch.exp(-sole_tilt(env).square().mean(-1) / std**2)
 
 
+def sole_swing_height_cost(env, target_height=0.06):
+    """Landing-time swing objective using physical sole clearance, not a site.
+
+    A rotated foot marker can rise while its toe barely clears the floor.
+    This optional objective measures the collision soles and keeps the same
+    landing-time structure as the original site-height objective.
+    """
+    sensor = env.scene["feet_ground_contact"]
+    heights = sampled_sole_clearance(env)
+    airborne = (sensor.data.found == 0).reshape(env.num_envs, 2)
+    peak = getattr(env, "_sole_swing_peak", torch.zeros_like(heights))
+    peak = torch.where((env.episode_length_buf <= 1)[:, None], torch.zeros_like(peak), peak)
+    peak = torch.where(airborne, torch.maximum(peak, heights), peak)
+    landing = sensor.compute_first_contact(dt=env.step_dt).reshape(env.num_envs, 2)
+    command = env.command_manager.get_command("twist")
+    active = command[:, :2].norm(dim=-1) + command[:, 2].abs() > .05
+    cost = ((peak / target_height - 1).square() * landing).sum(-1) * active
+    env._sole_swing_peak = torch.where(landing, torch.zeros_like(peak), peak)
+    return cost
+
+
 def imu_turn_rate(env):
     """Yaw rate from body gyro and gravity, without an absolute heading sensor.
 
