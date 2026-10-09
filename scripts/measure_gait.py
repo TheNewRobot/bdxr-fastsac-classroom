@@ -29,10 +29,17 @@ def summarize(rows):
                 # Ignore flights truncated by the measurement boundary.
                 if start > 0:
                     segment = slice(start, i)
+                    landing_count = math.ceil(.08 / dt - 1e-6)
+                    landing_samples = samples[i:i + landing_count]
+                    landing_force = (max(r["total_foot_contact_force"] for r in landing_samples)
+                                     if len(landing_samples) == landing_count and all(
+                                         "total_foot_contact_force" in r for r in landing_samples)
+                                     else None)
                     intervals.append({
                         "duration_s": (i - start) * dt,
                         "both_feet_peak_clearance_m": float(clearance[segment].min(axis=1).max()),
                         "mean_sole_tilt_deg": float(np.degrees(tilt[segment]).mean()),
+                        "sampled_landing_peak_force_n": landing_force,
                     })
                 start = None
         foot_landings = []
@@ -49,6 +56,8 @@ def summarize(rows):
         duration = len(samples) * dt
         clear_intervals = [v for v in intervals
                            if v["duration_s"] >= .079 and v["both_feet_peak_clearance_m"] >= .025]
+        clear_landings = [v["sampled_landing_peak_force_n"] for v in clear_intervals
+                          if v["sampled_landing_peak_force_n"] is not None]
         trials.append({
             "episode": episode,
             "fell": any(r["fell"] for r in samples),
@@ -73,6 +82,8 @@ def summarize(rows):
             "mean_clear_flight_duration_s": float(np.mean([v["duration_s"] for v in clear_intervals])) if clear_intervals else 0,
             "mean_clear_flight_peak_m": float(np.mean([v["both_feet_peak_clearance_m"] for v in clear_intervals])) if clear_intervals else 0,
             "mean_clear_flight_tilt_deg": float(np.mean([v["mean_sole_tilt_deg"] for v in clear_intervals])) if clear_intervals else None,
+            "mean_clear_landing_peak_force_n": float(np.mean(clear_landings)) if clear_landings else None,
+            "measured_clear_landings": len(clear_landings),
             "mean_flight_duration_s": float(np.mean([v["duration_s"] for v in intervals])) if intervals else 0,
             "mean_flight_peak_clearance_m": float(np.mean([v["both_feet_peak_clearance_m"] for v in intervals])) if intervals else 0,
             "flight_sole_tilt_deg": float(np.degrees(tilt[flight]).mean()) if flight.any() else None,
@@ -82,6 +93,7 @@ def summarize(rows):
         "Swing tilt uses each foot only while that foot has no contact, excluding stance samples. "
         "Clear-flight subset requires >=80 ms and >=25 mm simultaneous peak clearance; all intervals are retained. "
         "Contact-free intervals alone do not establish stable landed hops. "
+        "Landing force is the largest sampled total foot-contact force in the first 80 ms after contact returns; it is not a substep impact-force measurement. "
         "Use command acceptance and landed-hop checks separately.")}
 
 
