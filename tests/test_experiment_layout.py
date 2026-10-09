@@ -34,9 +34,22 @@ class ExperimentLayoutTests(unittest.TestCase):
             evaluation = create_experiment("course", root)
             nested = create_experiment("seed7", evaluation / "evaluation/trials")
             self.assertEqual(train.parent, root / "candidates")
-            self.assertEqual(evaluation.parent, root / "evaluations")
+            self.assertEqual(evaluation.parent, root / "evaluations/courses")
             self.assertEqual(nested.parent, evaluation / "evaluation/trials")
             self.assertTrue((train / "checkpoints").is_dir())
+
+    def test_nested_evaluation_relocation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "experiments"
+            moved = root / "evaluations/courses/old_run/evaluation/score.json"
+            moved.parent.mkdir(parents=True)
+            moved.write_text("{}")
+            (root / ".metadata").mkdir()
+            (root / ".metadata/relocations.json").write_text(json.dumps({
+                "evaluations/old_run": "evaluations/courses/old_run",
+            }))
+            self.assertEqual(
+                resolve_experiment_path(root / "evaluations/old_run/evaluation/score.json"), moved)
 
 
 if __name__ == "__main__":

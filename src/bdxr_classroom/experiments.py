@@ -22,9 +22,11 @@ def resolve_experiment_path(path):
             mapping = parent / "relocations.json"  # Older local layouts.
         if mapping.is_file():
             relative = path.relative_to(parent)
-            target = json.loads(mapping.read_text()).get(relative.parts[0])
-            if target:
-                return parent / target / Path(*relative.parts[1:])
+            moves = json.loads(mapping.read_text())
+            for count in range(len(relative.parts), 0, -1):
+                target = moves.get(Path(*relative.parts[:count]).as_posix())
+                if target:
+                    return parent / target / Path(*relative.parts[count:])
     return path
 
 
@@ -44,6 +46,15 @@ def create_experiment(name, root="experiments", category="evaluations"):
         if category not in {"candidates", "evaluations"}:
             raise ValueError("New experiments belong in candidates or evaluations")
         root = root / category
+        if category == "evaluations":
+            if name == "policy_comparison":
+                root = root / "comparisons"
+            elif name in {"obstacle_mode_comparison", "course_segment_diagnostic"}:
+                root = root / "obstacles"
+            elif name in {"manual_course_trial", "desert_droid_game"} or name.startswith("course"):
+                root = root / "courses"
+            elif name.startswith("transition_validation"):
+                root = root / "transitions"
     path = root / f"{timestamp}_{name}"
     path.mkdir(parents=True, exist_ok=False)
     for folder in ["config", "checkpoints", "metrics", "videos", "evaluation"]:
