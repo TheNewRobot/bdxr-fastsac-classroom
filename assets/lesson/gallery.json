@@ -104,5 +104,14 @@
     "caption": "Recorded instructor command baseline: all 50 speed/backward/stop/turn/transition trials pass. The initial 8000-step run missed drift checks; an unchanged 3000-step continuation recovered them. About 13.4 minutes of combined training on the local L40S, plus setup and evaluation. The curve shown is the recovery stage only. This is the parent of both current style variations and the walker used in the recorded course. One training seed; five perturbed evaluation starts.",
     "experiment": "experiments/2026-10-08_045922_707542_unchanged_control",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/gqgbud4j"
+  },
+  {
+    "id": "scratch_control",
+    "title": "Fresh classroom control",
+    "video": "scratch_control/rollout.mp4",
+    "learning_curve": "scratch_control/learning_curves.png",
+    "caption": "Trained from scratch: seed 7, 10,000 steps, 9m 2s on a local L40S, plus 3s setup and separate evaluation. All 50 command trials passed with zero falls. This is the matched control for new scratch experiments, not an additional gait or a replacement for the approved instructor reference. Single training seed; actual Colab timing is untested. Video: first forward trial at normal speed.",
+    "experiment": "experiments/2026-10-09_191009_408207_scratch_yawbias6_control_seed7",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/k2mcegmm"
   }
 ]
