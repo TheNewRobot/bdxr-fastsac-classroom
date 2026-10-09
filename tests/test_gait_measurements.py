@@ -30,6 +30,10 @@ class GaitMeasurements(unittest.TestCase):
         self.assertAlmostEqual(report["mean_clear_flight_peak_m"], .06)
         self.assertAlmostEqual(report["mean_clear_flight_tilt_deg"], 10)
         self.assertEqual(report["per_foot_landings"], [2, 2])
+        self.assertIsNone(report["mean_torso_height_m"])
+        for row in samples:
+            row["torso_height"] = .23
+        self.assertAlmostEqual(module.summarize(samples)["trials"][0]["mean_torso_height_m"], .23)
 
     def test_swing_tilt_excludes_the_other_stance_foot(self):
         samples = [{
