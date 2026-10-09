@@ -9,9 +9,11 @@ import numpy as np
 
 def summarize(rows):
     trials = []
+    excluded = []
     for episode in sorted({r["episode"] for r in rows}):
         samples = [r for r in rows if r["episode"] == episode and r["time"] >= 1]
         if len(samples) < 2:
+            excluded.append({"episode": episode, "reason": "Fewer than two samples after the initial second"})
             continue
         dt = float(np.median(np.diff([r["time"] for r in samples])))
         contacts = np.array([r["foot_contacts"] for r in samples], dtype=bool)
@@ -69,7 +71,7 @@ def summarize(rows):
             "mean_flight_peak_clearance_m": float(np.mean([v["both_feet_peak_clearance_m"] for v in intervals])) if intervals else 0,
             "flight_sole_tilt_deg": float(np.degrees(tilt[flight]).mean()) if flight.any() else None,
         })
-    return {"trials": trials, "scope": (
+    return {"trials": trials, "excluded_episodes": excluded, "scope": (
         "Actual contact transitions, sampled collision-sole clearance and sole-plane tilt. "
         "Clear-flight subset requires >=80 ms and >=25 mm simultaneous peak clearance; all intervals are retained. "
         "Contact-free intervals alone do not establish stable landed hops. "
