@@ -154,11 +154,11 @@ NUM_ENVS = 512
 BATCH_SIZE = 2048
 TRAIN_SEED = 7
 TRAIN_MINUTES = 15  # @param {type:"number"}
-TRAIN_STEPS = 8000  # @param {type:"integer"}
+TRAIN_STEPS = 10000  # @param {type:"integer"}
 USE_WANDB = False  # @param {type:"boolean"}
 WANDB_MODE = "online" if USE_WANDB else "disabled"
 COMMAND_OPTIONS = ["--command-mode", "balanced", "--yaw-tracking", "imu",
-                   "--yaw-std", 0.2, "--yaw-bias-weight", 2,
+                   "--yaw-std", 0.2, "--yaw-bias-weight", 6,
                    "--lateral-bias-weight", 2, "--mirror-replay"]
 if USE_WANDB and not (os.environ.get("WANDB_API_KEY") or Path.home().joinpath(".netrc").exists()):
     import getpass
