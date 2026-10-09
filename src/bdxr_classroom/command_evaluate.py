@@ -255,7 +255,7 @@ def main():
                    hop_flight_duration=cfg.get("hop_flight_duration", .25),
                    hop_crouch=cfg.get("hop_crouch", 0))
     if args.camera in ("side", "front"):
-        azimuth = 90 if args.camera == "side" else 0
+        azimuth = 90 if args.camera == "side" else 180
         env.cfg.viewer.azimuth = azimuth
         env.cfg.viewer.elevation = -8
         env.cfg.viewer.distance = 1.15
