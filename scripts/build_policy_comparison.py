@@ -24,16 +24,21 @@ def main():
     parser.add_argument("--case", default="forward")
     parser.add_argument("--gait-metrics", action="store_true",
                         help="Plot measured step cadence and collision-sole clearance")
+    parser.add_argument("--hop-metrics", action="store_true",
+                        help="Plot clear-flight duration, bilateral clearance, and sampled landing force")
+    parser.add_argument("--playback-speed", type=float, choices=[0.5, 1.0], default=1.0)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if not 2 <= len(args.evaluation) <= 4:
         parser.error("Provide two to four evaluations")
+    if args.gait_metrics and args.hop_metrics:
+        parser.error("Choose either gait metrics or hop metrics")
     records, readers = [], []
     for label, directory in args.evaluation:
         directory = Path(directory)
         report = json.loads((directory / "summary.json").read_text())
         trials = report["cases"][args.case]
-        if args.gait_metrics:
+        if args.gait_metrics or args.hop_metrics:
             measured = json.loads((directory / "gait_measurements.json").read_text())[args.case]["trials"]
             by_episode = {trial["episode"]: trial for trial in measured}
             if set(by_episode) != {trial["episode"] for trial in trials}:
@@ -42,6 +47,15 @@ def main():
                            foot_landings_per_second=by_episode[trial["episode"]]["foot_landings_per_second"],
                            sole_clearance_p95_m=by_episode[trial["episode"]]["sole_clearance_p95_m"])
                       for trial in trials]
+            if args.hop_metrics:
+                hop_keys = ["mean_clear_flight_duration_s", "mean_clear_flight_peak_m",
+                            "mean_clear_landing_peak_force_n"]
+                for trial in trials:
+                    for key in hop_keys:
+                        value = by_episode[trial["episode"]].get(key)
+                        if value is None or not np.isfinite(value):
+                            raise ValueError(f"Missing finite {key}; rerun measure_gait.py")
+                        trial[key] = value
         root = experiment_root(report["checkpoint"])
         video = root / "videos" / directory.name / f"{args.case}.mp4"
         records.append({"label": label, "evaluation": str(directory.resolve()),
@@ -52,7 +66,9 @@ def main():
                    {"kind": "Recorded evaluation comparison; no new simulation",
                     "evaluations": [r["evaluation"] for r in records]})
     (output / "config/comparison.json").write_text(json.dumps(
-        {"case": args.case, "destination": str(args.output), "sources": records}, indent=2))
+        {"case": args.case, "destination": str(args.output), "sources": records,
+         "playback_speed": args.playback_speed,
+         "metrics": "hop" if args.hop_metrics else "gait" if args.gait_metrics else "walking"}, indent=2))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     colors = ["#266052", "#727d7b", "#317bba", "#bc7825"]
     try:
@@ -66,7 +82,7 @@ def main():
     columns = 3 if len(readers) == 3 else 2
     height = 640 if len(readers) == 4 else 320
     try:
-        with imageio.get_writer(args.output, fps=fps, codec="libx264", quality=7) as writer:
+        with imageio.get_writer(args.output, fps=fps * args.playback_speed, codec="libx264", quality=7) as writer:
             last_frames = [None] * len(readers)
             for frame_index in range(max(counts)):
                 canvas = Image.new("RGB", (480 * columns, height), "#edf1e9")
@@ -80,6 +96,8 @@ def main():
                     draw.rectangle((x, y, x + 480, y + 31), fill=colors[index])
                     falls = sum(t["fell"] for t in record["trials"])
                     title = f"{record['label']} | {args.case} | falls {falls}/{len(record['trials'])}"
+                    if args.playback_speed != 1:
+                        title += f" | {args.playback_speed:g}x"
                     draw.text((x + 9, y + 5), title, font=font, fill="white")
                     if ended:
                         draw.text((x + 9, y + 290), "Recorded trial ended early", font=font, fill="red")
@@ -94,6 +112,12 @@ def main():
         metrics[:2] = [
             ("foot_landings_per_second", "Step cadence", "foot landings per second"),
             ("sole_clearance_p95_m", "Sole clearance (95th percentile)", "m")]
+    if args.hop_metrics:
+        metrics = [
+            ("mean_clear_flight_duration_s", "Clear-flight duration", "s"),
+            ("mean_clear_flight_peak_m", "Bilateral peak sole clearance", "m"),
+            ("mean_clear_landing_peak_force_n", "Sampled landing peak", "N; first 80 ms after contact"),
+        ]
     fig, axes = plt.subplots(1, 3, figsize=(12, 4), layout="constrained")
     for axis, (key, title, units) in zip(axes, metrics):
         groups = [[trial[key] for trial in record["trials"]] for record in records]
