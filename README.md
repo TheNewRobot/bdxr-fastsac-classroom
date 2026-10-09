@@ -12,17 +12,22 @@ completed the course without falling. Curated style examples passed evaluation;
 fresh style attempts can fail and are labeled accordingly.
 Actual Google Colab execution has not been performed.
 The current scratch-training recipe passed all 50 command trials with seed 7
-after 9 minutes of training on a local L40S. Two scratch-trained variations,
-flatter feet and quicker steps, also passed; a third distinct gait is still
-being evaluated. Their local training took 14m 54s and 15m 1s respectively.
-The new higher, level-foot hopper passed terrain,
-directional and repeated handover checks, then completed the unchanged course
-with the approved reference walker in 42.82 simulation seconds without falling.
-Its six-stage training lineage took about 19.5 minutes locally, excluding setup
-and evaluation. Higher landing forces remain a tradeoff.
+after 9 minutes of training on a local L40S. Three scratch-trained variations
+passed: flatter feet, quicker steps, and crouched walking. Their local training
+took 14m 54s, 15m 1s, and 11m 13s respectively. The crouched example changes
+walking posture and foot clearance; its unchanged seed-8 control failed some
+command checks and is labeled as a comparison, not another validated baseline.
+The updated hopper passed terrain, directional, and repeated handover checks,
+then completed the taller-obstacle course in 49.88 simulated seconds without
+falling under visual steering. On its 25 mm step, hopping crossed 3/3 trials;
+walking crossed 0/6 at normal and fast commands. Its eight-stage training
+lineage took about 23 minutes locally, excluding setup and evaluation.
+Sampled touchdown peaks were about 30% lower than the previous hopper.
+Replaying fixed commands from another start missed the finish: players must steer.
 
-[Watch the new course run](assets/lesson/natural_hops_course/rollout.mp4) or
-[compare the hopping motions](assets/lesson/natural_hops/comparison.mp4).
+[Compare the reference and three walking styles](assets/lesson/walking_overview/comparison.mp4).
+[Watch the new course run](assets/lesson/course25_run/rollout.mp4) or
+[compare the hopping motions](assets/lesson/course_hops/comparison.mp4).
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
 - [Short instructor notes](docs/instructor_notes.md)
@@ -104,12 +109,13 @@ Launch the game with walking and optional hopping checkpoints:
 ```bash
 .venv/bin/python -m bdxr_classroom.game_server \
   --walking experiments/lesson/<walking-run>/checkpoints/final.pt \
-  --hopping experiments/lesson/<hopping-run>/checkpoints/<selected-checkpoint>.pt
+  --hopping experiments/lesson/<hopping-run>/checkpoints/<selected-checkpoint>.pt \
+  --course-config configs/classroom_course.json
 ```
 
 The local panel runs on port 8765. The notebook includes the Colab port-proxy
 integration. Falls reset the robot; simulation time and fall count accumulate.
-The calibrated course uses three 17.5–20 mm obstacles, rough ground and an
+The calibrated course uses three 17.5–25 mm obstacles, rough ground and an
 18 cm ascent. Four route checkpoints must be crossed before the finish counts.
 Use `--course-config path/to/settings.json` to explore a harder course;
 `{"obstacle_scale": 1.0}` doubles the classroom obstacle heights.

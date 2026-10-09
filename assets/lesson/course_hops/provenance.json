@@ -1,0 +1,66 @@
+{
+  "checkpoint": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+  "sha256": "725ddb65caac96e05e4372c61c92a6fd92b0c77f2759be34fcdcf02f0c6f8e66",
+  "selected": true,
+  "terrain_15_trials_passed": true,
+  "directions_25_trials_passed": true,
+  "pair_flat_and_step_passed": true,
+  "step25_crossings": {
+    "hop": 3,
+    "walk": 0,
+    "hop_trials": 3,
+    "walk_trials": 6
+  },
+  "full_course": {
+    "finished": true,
+    "falls": 0,
+    "simulation_seconds": 49.88,
+    "checkpoints": 4,
+    "previews_inspected": 16,
+    "scope": "Full 25 mm middle-step course, visual steering with pauses. Not autonomous navigation or real-time human gameplay.",
+    "operator": "assistant inspected each rendered preview and issued speed/yaw/mode commands; no world-pose feedback controller",
+    "walking_checkpoint": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+    "hopping_checkpoint": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+    "remaining": "Additional starting-seed course checks; selected media packaging."
+  },
+  "visual_inspection": "Side views inspected across takeoff, bilateral flight, and landing; small rebounds are excluded from clear-flight statistics. Some foot tilt remains.",
+  "forward_means": {
+    "mean_clear_flight_duration_s": 0.1599999999999966,
+    "mean_clear_flight_peak_m": 0.058952317493302486,
+    "mean_clear_flight_tilt_deg": 9.225343706596814,
+    "mean_clear_landing_peak_force_n": 916.6831438337052
+  },
+  "previous_hopper_forward_means": {
+    "mean_clear_flight_duration_s": 0.14228571428571127,
+    "mean_clear_flight_peak_m": 0.055925633651869644,
+    "mean_clear_flight_tilt_deg": 6.786187291311732,
+    "mean_clear_landing_peak_force_n": 1273.7634242466515
+  },
+  "obstacle_evidence": "experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/summary.json",
+  "comparisons": {
+    "normal": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/videos/hopping_comparison_side.mp4",
+    "half_speed": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/videos/hopping_comparison_side_half_speed.mp4"
+  },
+  "course_experiment": "experiments/evaluations/courses/2026-10-09_211902_852068_manual_course_trial",
+  "status": "Terrain, directions, repeated flat/step handovers, and one visually steered full-course run passed. Fixed command replay from another start missed the finish; steering remains necessary.",
+  "seed": 7,
+  "training_seconds_selected_lineage": 1370.3420276336838,
+  "learning_curve_scope": "Only the final 1000-step fine-tuning stage; earlier curriculum stages have different rewards.",
+  "caption": "Earlier versus course-ready hopping at the same forward command. Five perturbed evaluation starts, one training seed. Clear-flight means: 5.9 cm bilateral clearance, 0.16 s airtime, 9.2 degrees sole tilt. Sampled touchdown peaks are about 30% lower; these are 20 ms samples, not substep impact forces.",
+  "half_speed": "Both recordings played at half speed; recorded motion is unchanged.",
+  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/a4lav6lx",
+  "selection_scope": "Interactive locomotion: terrain/direction screens, repeated handovers, 3/3 taller-step crossings and a visually steered full-course finish. Fixed commands are not autonomous navigation.",
+  "additional_course": {
+    "finished": true,
+    "falls": 0,
+    "simulation_seconds": 49.4,
+    "checkpoints": 4,
+    "previews_inspected": 13,
+    "seed": 283,
+    "scope": "Full 25mm middle-step course, visually steered with pauses. Not autonomous navigation or real-time human play.",
+    "steering": "Different yaw commands were chosen from rendered previews; the fixed replay for this seed failed to finish.",
+    "experiment": "experiments/evaluations/courses/2026-10-09_213216_645591_manual_course_trial"
+  },
+  "visual_course_finishes": 2,
+  "fixed_replay_finish_failed": true
+}

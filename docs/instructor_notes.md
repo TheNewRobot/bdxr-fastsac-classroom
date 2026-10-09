@@ -23,7 +23,8 @@ Sideways motion can also cause drift without much turning. Simulator velocity
 can score this during training while staying out of the actor's observations.
 
 Changing the speed command differs from retraining a reward setting.
-Use the same baseline and equal training budgets for parameter comparisons.
+Train the style and its control from scratch with the same seed and step budget.
+The recorded choices are flatter feet, quicker steps, and crouched walking.
 Recheck backward motion, stops and turns after a style change.
 An unchanged continuation can also get worse: more updates do not guarantee
 better control. Use the acceptance table to decide which policies to keep,
@@ -34,4 +35,6 @@ successful flat-floor hop does not prove obstacle clearance. Mode transitions
 and course traversal require their own tests.
 
 The game is a human-controlled validation task, not a navigation policy.
+The 25 mm middle step has a recorded walking-versus-hopping comparison.
+Replaying fixed commands can miss the finish; players must steer.
 Ask students to explain a failure using the video, commands and measurements.

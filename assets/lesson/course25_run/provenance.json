@@ -1,0 +1,30 @@
+{
+  "finished": true,
+  "falls": 0,
+  "simulation_seconds": 49.88,
+  "checkpoints": 4,
+  "previews_inspected": 16,
+  "scope": "Full 25 mm middle-step course, visual steering with pauses. Not autonomous navigation or real-time human gameplay.",
+  "operator": "assistant inspected each rendered preview and issued speed/yaw/mode commands; no world-pose feedback controller",
+  "walking_checkpoint": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+  "hopping_checkpoint": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+  "remaining": "None for this recorded course example; actual Colab execution remains untested.",
+  "wandb": {
+    "url": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/marh984o",
+    "id": "marh984o"
+  },
+  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 49.88 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
+  "additional_course": {
+    "finished": true,
+    "falls": 0,
+    "simulation_seconds": 49.4,
+    "checkpoints": 4,
+    "previews_inspected": 13,
+    "seed": 283,
+    "scope": "Full 25mm middle-step course, visually steered with pauses. Not autonomous navigation or real-time human play.",
+    "steering": "Different yaw commands were chosen from rendered previews; the fixed replay for this seed failed to finish.",
+    "experiment": "experiments/evaluations/courses/2026-10-09_213216_645591_manual_course_trial"
+  },
+  "visual_course_finishes": 2,
+  "fixed_replay_finish_failed": true
+}
