@@ -297,12 +297,15 @@ The control starts from the same random seed and uses the same training budget.
 |---|---|
 | Higher target | Swing-foot marker target from 6 to 10 cm |
 | Quick steps | Reward airborne durations between 0.06 and 0.16 s, weight 4 |
-| Level feet | Add a reward for keeping the soles level, weight 1.5 |
+| Level feet | Add a reward for keeping the soles level, weight 0.75 |
 | Smoother | Action-change penalty ×5 |
 | Control | No changed setting |
 
 Keep the speed and yaw command range. A prettier gait that loses backward walking is not an unqualified improvement.
-These are experiment hypotheses, not a promise that every setting passes.
+Level feet and quick steps passed all 50 command trials in the recorded
+seed-7 scratch experiments. Level feet changes one scalar; quick steps changes
+one reward's duration window and weight together. The other settings remain
+exploratory, and no setting is a promise that every fresh run passes.
 Predict the result, then check falls, command tracking, cadence, sole clearance,
 and foot angle. Changing reward weights changes the score itself, so a higher
 return alone cannot establish a better gait.
@@ -312,28 +315,30 @@ training runs. If either reaches the time limit early, their step counts may
 differ: report that limitation before attributing a difference to the reward.
 One successful seed is an example, not proof of reliability across seeds.
 
-The recorded comparison below is an earlier fine-tuning demonstration, not
-the result of the new scratch-training experiment. It also illustrates that
-raising a reward target need not raise the feet.
+The recorded comparisons below use fresh control and variant policies with
+the same seed and 10,000 steps. Compare foot angle for level feet and cadence
+for quick steps. Local variant training took 14m 54s and 15m 1s respectively;
+setup and evaluation take additional time.
 """)
-    code('''EXPERIMENT = "higher_target"  # @param ["higher_target", "quick_steps", "level_feet", "smoother", "control"]
-PREDICTION = "A higher target will lift the feet farther."  # @param {type:"string"}
+    code('''EXPERIMENT = "level_feet"  # @param ["level_feet", "quick_steps", "higher_target", "smoother", "control"]
+PREDICTION = "The feet will stay flatter while stepping."  # @param {type:"string"}
 VARIATION_STEPS = 10000  # @param {type:"integer"}
 VARIATION_MINUTES = 15  # @param {type:"number"}
 changes = {
     "higher_target": ["--swing-height", 0.10],
     "quick_steps": ["--air-time-min", 0.06, "--air-time-max", 0.16, "--air-time-weight", 4],
-    "level_feet": ["--level-feet-weight", 1.5],
+    "level_feet": ["--level-feet-weight", 0.75],
     "smoother": ["--smoothness", 5],
     "control": [],
 }
 changed = changes[EXPERIMENT]
-example = WORK / "assets/lesson/style_comparison"
-style_provenance = json.loads((example / "provenance.json").read_text())
-print(style_provenance["caption"])
-display(HTML(f'<a href="{html.escape(style_provenance["wandb_gallery"], quote=True)}" target="_blank">Open the recorded W&B comparison</a>'))
-display(Video(str(example / "walking_style_comparison.mp4"), embed=True, width=720))
-display(Image(filename=str(example / "walking_style_comparison.png")))
+for style in ["level_feet", "quick_steps"]:
+    example = WORK / "assets/lesson" / ("scratch_" + style)
+    style_provenance = json.loads((example / "provenance.json").read_text())
+    print(style_provenance["caption"])
+    display(HTML(f'<a href="{html.escape(style_provenance["wandb_gallery"], quote=True)}" target="_blank">Open the recorded W&B comparison</a>'))
+    display(Video(str(example / "comparison.mp4"), embed=True, width=720))
+    display(Image(filename=str(example / "motion.png")))
 print("Prediction:", PREDICTION)
 VARIATION = train(EXPERIMENT, *COMMAND_OPTIONS,
                   "--steps", VARIATION_STEPS, "--minutes", VARIATION_MINUTES, *changed)
