@@ -22,6 +22,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--evaluation", nargs=2, action="append", required=True, metavar=("LABEL", "DIRECTORY"))
     parser.add_argument("--case", default="forward")
+    parser.add_argument("--gait-metrics", action="store_true",
+                        help="Plot measured step cadence and collision-sole clearance")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if not 2 <= len(args.evaluation) <= 4:
@@ -31,6 +33,15 @@ def main():
         directory = Path(directory)
         report = json.loads((directory / "summary.json").read_text())
         trials = report["cases"][args.case]
+        if args.gait_metrics:
+            measured = json.loads((directory / "gait_measurements.json").read_text())[args.case]["trials"]
+            by_episode = {trial["episode"]: trial for trial in measured}
+            if set(by_episode) != {trial["episode"] for trial in trials}:
+                raise ValueError("Gait measurements must cover every reported trial")
+            trials = [dict(trial,
+                           foot_landings_per_second=by_episode[trial["episode"]]["foot_landings_per_second"],
+                           sole_clearance_p95_m=by_episode[trial["episode"]]["sole_clearance_p95_m"])
+                      for trial in trials]
         root = experiment_root(report["checkpoint"])
         video = root / "videos" / directory.name / f"{args.case}.mp4"
         records.append({"label": label, "evaluation": str(directory.resolve()),
@@ -79,6 +90,10 @@ def main():
     metrics = [("action_change_rms", "Action-change RMS", "normalized actions"),
                ("swing_height_p95", "Foot swing (95th percentile)", "m"),
                ("max_cross_track_m", "Maximum lateral deviation", "m")]
+    if args.gait_metrics:
+        metrics[:2] = [
+            ("foot_landings_per_second", "Step cadence", "foot landings per second"),
+            ("sole_clearance_p95_m", "Sole clearance (95th percentile)", "m")]
     fig, axes = plt.subplots(1, 3, figsize=(12, 4), layout="constrained")
     for axis, (key, title, units) in zip(axes, metrics):
         groups = [[trial[key] for trial in record["trials"]] for record in records]
