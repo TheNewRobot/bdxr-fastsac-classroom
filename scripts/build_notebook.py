@@ -28,6 +28,7 @@ def main():
                         "requirements*.txt", "scripts/setup.py", "scripts/check_command_results.py",
                         "scripts/check_hopping_results.py", "scripts/measure_gait.py",
                         "scripts/validate_transitions.py", "scripts/validate_policy_pair.py",
+                        "scripts/diagnose_course_segment.py", "scripts/compare_obstacle_modes.py",
                         "THIRD_PARTY_NOTICES.md",
                         "assets/lesson/**/*"]:
             for path in ROOT.glob(pattern):
@@ -608,6 +609,10 @@ else:
 Load your learned controller into a desert outpost with **three obstacles, rough ground, and a raised finish beacon**. The course is designed around roughly 45 seconds of normal-paced traversal; policy ability and player skill determine the actual result.
 
 The classroom obstacles are 17.5–20 mm high, followed by uneven ground and an 18 cm ascent. These dimensions were calibrated using recorded controller trials.
+Fast walking can clear the original middle step. This course demonstrates
+locomotion and mode switching; it does not establish that hopping is necessary.
+An optional course configuration can change the middle step. Compare both modes
+on the same geometry before drawing conclusions about which behavior is needed.
 
 Use speed and yaw controls to steer. If you loaded a hopping policy, switch modes before obstacles and watch the transition state. There is no navigation controller.
 
@@ -623,6 +628,7 @@ variation. An unchanged continuation can improve a baseline that missed a check.
 # Optional paths: leave blank to use the checkpoints selected above.
 WALK_CHECKPOINT = ""  # @param {type:"string"}
 HOP_CHECKPOINT = ""  # @param {type:"string"}
+COURSE_CONFIG = ""  # @param {type:"string"}
 WALK_CHECKPOINT = WALK_CHECKPOINT or SELECTED_WALK_CHECKPOINT
 HOP_CHECKPOINT = HOP_CHECKPOINT or SELECTED_HOP_CHECKPOINT or ""
 GAME_PORT = 8765
@@ -633,6 +639,12 @@ command = [PYTHON, "-u", "-m", "bdxr_classroom.game_server",
            "--walking", WALK_CHECKPOINT, "--port", str(GAME_PORT)]
 if HOP_CHECKPOINT:
     command += ["--hopping", HOP_CHECKPOINT]
+if COURSE_CONFIG:
+    course_path = Path(COURSE_CONFIG)
+    course_path = course_path if course_path.is_absolute() else WORK / course_path
+    if not course_path.is_file():
+        raise FileNotFoundError(course_path)
+    command += ["--course-config", str(course_path)]
 game_log = (WORK / "game_server.log").open("w")
 game_process = subprocess.Popen(command, cwd=WORK, env=runtime_env,
                                 stdout=game_log, stderr=subprocess.STDOUT)
