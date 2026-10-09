@@ -4,6 +4,36 @@ import math
 import torch
 
 from .training_terrain import ground_height, sampled_sole_clearance
+from mjlab.utils.lab_api.math import quat_apply
+
+
+def sole_tilt(env):
+    """Unsigned angle between each collision sole plane and horizontal.
+
+    The outer parallel capsule axes and their separation define the real sole
+    plane, independent of the foot site's arbitrary frame orientation.
+    """
+    robot = env.scene["robot"]
+    if not hasattr(env, "_sole_tilt_ids"):
+        names = ["left_foot_collision1", "left_foot_collision7",
+                 "right_foot_collision1", "right_foot_collision7"]
+        ids, found = robot.find_geoms(names)
+        if list(found) != names:
+            raise ValueError("Unexpected sole geometry order")
+        env._sole_tilt_ids = ids
+    ids = env._sole_tilt_ids
+    pos = robot.data.geom_pos_w[:, ids].reshape(env.num_envs, 2, 2, 3)
+    quat = robot.data.geom_quat_w[:, ids].reshape(env.num_envs, 2, 2, 4)
+    long_axis = quat_apply(quat[:, :, 0], pos.new_tensor([0., 0., 1.]).expand_as(pos[:, :, 0]))
+    across = pos[:, :, 1] - pos[:, :, 0]
+    normal = torch.linalg.cross(long_axis, across, dim=-1)
+    normal = normal / normal.norm(dim=-1, keepdim=True).clamp_min(1e-8)
+    return torch.acos(normal[..., 2].abs().clamp(0, 1))
+
+
+def level_feet_reward(env, std=0.2):
+    """Reward level collision soles; privileged training signal only."""
+    return torch.exp(-sole_tilt(env).square().mean(-1) / std**2)
 
 
 def imu_turn_rate(env):
@@ -78,10 +108,10 @@ def hop_phase(env):
 
 
 def hop_height_tracking(env, height=0.04, flight_only=False, clearance_mode="site",
-                        bilateral=False):
+                        bilateral=False, flight_duration=0.25):
     """Request a short flight in the middle of each one-second cycle."""
     phase = (env.episode_length_buf * env.step_dt) % 1.0
-    flight_phase = ((phase - 0.35) / 0.25).clamp(0, 1)
+    flight_phase = ((phase - 0.35) / flight_duration).clamp(0, 1)
     desired = height * torch.sin(math.pi * flight_phase)
     robot = env.scene["robot"]
     foot_ids, _ = robot.find_sites(["left_foot", "right_foot"])
@@ -97,23 +127,25 @@ def hop_height_tracking(env, height=0.04, flight_only=False, clearance_mode="sit
         # Award the height objective during the requested flight, rather than
         # paying most of it for keeping feet on the floor between jumps.
         # Normalize the quarter-cycle window to preserve its possible mean reward.
-        reward = reward * ((phase > .35) & (phase < .60)) * 4
+        reward = reward * ((phase > .35) & (phase < .35 + flight_duration)) / flight_duration
     return reward
 
 
-def hop_contact_timing(env):
+def hop_contact_timing(env, flight_duration=0.25):
     phase = (env.episode_length_buf * env.step_dt) % 1.0
-    flight = (phase > 0.39) & (phase < 0.56)
+    flight = (phase > 0.39) & (phase < .35 + flight_duration - .04)
     contact = env.scene["feet_ground_contact"].data.found > 0
     # Both feet leave and return together. Partial support earns partial credit.
     contact = contact.reshape(env.num_envs, -1)
     return (contact == (~flight[:, None])).float().mean(-1)
 
 
-def hop_body_height_tracking(env, height=0.06):
+def hop_body_height_tracking(env, height=0.06, flight_duration=0.25, crouch=0.0):
     phase = (env.episode_length_buf * env.step_dt) % 1.0
-    flight_phase = ((phase - 0.35) / 0.25).clamp(0, 1)
-    desired = 0.265 + height * torch.sin(math.pi * flight_phase)
+    flight_phase = ((phase - 0.35) / flight_duration).clamp(0, 1)
+    crouch_phase = ((phase - .1) / .25).clamp(0, 1)
+    desired = (0.265 + height * torch.sin(math.pi * flight_phase)
+               - crouch * torch.sin(math.pi * crouch_phase))
     position = env.scene["robot"].data.root_link_pos_w
     actual = position[:, 2] - ground_height(env, position)
     return torch.exp(-(actual - desired).square() / 0.035**2)

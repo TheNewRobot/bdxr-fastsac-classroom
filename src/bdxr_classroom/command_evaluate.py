@@ -22,7 +22,7 @@ from .experiments import experiment_root, capture_source, jsonable
 from .fastsac import FastSAC
 from .motion_metrics import count_hops
 from .training_terrain import ground_height, sampled_sole_clearance
-from .behaviors import imu_turn_rate
+from .behaviors import imu_turn_rate, sole_tilt
 
 
 def wrap(angle):
@@ -130,6 +130,10 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
             contacts = (env.scene["feet_ground_contact"].data.found > 0).reshape(env.num_envs, -1).cpu().tolist()
             joint_angles = robot.joint_pos.cpu().tolist()
             upright = (-robot.projected_gravity_b[:, 2]).cpu().tolist()
+            foot_tilts = sole_tilt(env).cpu().tolist()
+            sole_heights = sampled_sole_clearance(env).cpu().tolist()
+            contact_force = env.scene["feet_ground_contact"].data.force.reshape(env.num_envs, -1, 3)
+            forces = contact_force.norm(dim=-1).sum(-1).cpu().tolist()
             for index in range(env.num_envs):
                 if not current_alive[index]:
                     continue
@@ -145,6 +149,9 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                     "action_change_rms": changes[index], "foot_heights": feet[index],
                     "foot_contacts": contacts[index], "joint_angles": joint_angles[index],
                     "upright": upright[index],
+                    "sole_tilt_rad": foot_tilts[index],
+                    "sole_clearance_m": sole_heights[index],
+                    "total_foot_contact_force": forces[index],
                 })
             if writer and step % 2 == 0 and current_alive[0]:
                 frame = Image.fromarray(env.render())
@@ -196,6 +203,7 @@ def main():
     parser.add_argument("--seconds", type=float, default=15)
     parser.add_argument("--output")
     parser.add_argument("--no-video", action="store_true")
+    parser.add_argument("--camera", choices=["default", "side"], default="default")
     parser.add_argument("--terrain-height", type=float, default=0.0,
                         help="Evaluate on physical practice steps; default is flat ground")
     parser.add_argument("--terrain-style", choices=["steps", "mixed"], default="steps")
@@ -230,7 +238,20 @@ def main():
                    reward_scale=cfg.get("reward_scale", 1),
                    linear_tracking=cfg.get("linear_tracking", "instant"),
                    hop_height_reward=cfg.get("hop_height_reward", "continuous"),
-                   hop_clearance=cfg.get("hop_clearance", "site"))
+                   hop_clearance=cfg.get("hop_clearance", "site"),
+                   level_feet_weight=cfg.get("level_feet_weight", 0),
+                   swing_weight=cfg.get("swing_weight"),
+                   air_time_min=cfg.get("air_time_min"), air_time_max=cfg.get("air_time_max"),
+                   air_time_weight=cfg.get("air_time_weight"),
+                   hop_flight_duration=cfg.get("hop_flight_duration", .25),
+                   hop_crouch=cfg.get("hop_crouch", 0))
+    if args.camera == "side":
+        env.cfg.viewer.azimuth = 90
+        env.cfg.viewer.elevation = -8
+        env.cfg.viewer.distance = 1.15
+        if env._offline_renderer is not None:
+            camera = env._offline_renderer._cam
+            camera.azimuth, camera.elevation, camera.distance = 90, -8, 1.15
     result = {"checkpoint": str(checkpoint), "checkpoint_sha256": digest,
              "evaluation_directory": str(output), "evaluated_at_ns": time.time_ns(),
              "cases": {}, "terrain_height_m": args.terrain_height,
