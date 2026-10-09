@@ -120,6 +120,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                 robot.root_link_lin_vel_b[:, 1], robot.root_link_ang_vel_b[:, 2],
                 longitudinal, lateral, wrap(robot.heading_w - heading0),
                 imu_turn_rate(env),
+                robot.root_link_pos_w[:, 2] - ground_height(env, robot.root_link_pos_w),
             ], dim=1).cpu().numpy()
             changes = (actions - previous_action).square().mean(-1).sqrt().cpu().tolist()
             previous_action = actions.clone()
@@ -143,6 +144,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000):
                     "speed": float(values[index, 3]), "lateral_speed": float(values[index, 4]),
                     "yaw_rate": float(values[index, 5]), "progress": float(values[index, 6]),
                     "imu_yaw_rate": float(values[index, 9]),
+                    "torso_height": float(values[index, 10]),
                     "cross_track": float(values[index, 7]), "heading_error": float(values[index, 8]),
                     "command_speed": float(commands[index, 0]), "command_yaw": float(commands[index, 2]),
                     "fell": bool(terminated[index]),
@@ -242,6 +244,7 @@ def main():
                    level_feet_weight=cfg.get("level_feet_weight", 0),
                    hop_flight_weight=cfg.get("hop_flight_weight", 0),
                    level_feet_flight_only=cfg.get("level_feet_flight_only", False),
+                   walking_height=cfg.get("walking_height"),
                    swing_weight=cfg.get("swing_weight"),
                    swing_clearance=cfg.get("swing_clearance", "site"),
                    air_time_min=cfg.get("air_time_min"), air_time_max=cfg.get("air_time_max"),
