@@ -38,6 +38,20 @@ def walking_height_reward(env, target_height, std=0.035):
     return torch.exp(-(height - target_height).square() / std**2)
 
 
+def foot_spacing(env):
+    """Lateral foot-site separation in the torso frame, for reward/evaluation."""
+    robot = env.scene["robot"]
+    ids, _ = robot.find_sites(["left_foot", "right_foot"])
+    positions = robot.data.site_pos_w[:, ids]
+    side = quat_apply(robot.data.root_link_quat_w,
+                      positions.new_tensor([0., 1., 0.]).expand(env.num_envs, 3))
+    return ((positions[:, 0] - positions[:, 1]) * side).sum(-1).abs()
+
+
+def foot_spacing_reward(env, target_spacing, std=0.03):
+    return torch.exp(-(foot_spacing(env) - target_spacing).square() / std**2)
+
+
 def level_feet_reward(env, std=0.2, flight_only=False):
     """Reward level collision soles; privileged training signal only."""
     reward = torch.exp(-sole_tilt(env).square().mean(-1) / std**2)

@@ -56,6 +56,8 @@ def summarize(rows):
             "mean_speed_m_s": float(np.mean([r["speed"] for r in samples])),
             "mean_torso_height_m": float(np.mean([r["torso_height"] for r in samples]))
                 if all("torso_height" in r for r in samples) else None,
+            "mean_foot_spacing_m": float(np.mean([r["foot_spacing_m"] for r in samples]))
+                if all("foot_spacing_m" in r for r in samples) else None,
             "foot_landings_per_second": sum(foot_landings) / duration,
             "per_foot_landings": foot_landings,
             "sole_clearance_p95_m": float(np.percentile(clearance.max(axis=1), 95)),
@@ -95,7 +97,7 @@ def main():
     (args.evaluation / "gait_measurements.json").write_text(json.dumps(output, indent=2) + "\n")
     for case, report in output.items():
         values = report["trials"]
-        keys = ["foot_landings_per_second", "sole_clearance_p95_m", "mean_torso_height_m",
+        keys = ["foot_landings_per_second", "sole_clearance_p95_m", "mean_torso_height_m", "mean_foot_spacing_m",
                 "mean_flight_duration_s", "mean_flight_peak_clearance_m", "flight_sole_tilt_deg"]
         print(case, {key: round(float(np.mean([v[key] for v in values if v[key] is not None])), 4)
                      for key in keys if any(v[key] is not None for v in values)})
