@@ -1,0 +1,29 @@
+{
+  "scope": "Visual overview at the same forward command and side camera. The reference is the reference walker. This is not the matched-control experiment; each style has its separate paired comparison.",
+  "styles": [
+    "reference",
+    "level_feet",
+    "quick_steps",
+    "crouched"
+  ],
+  "training_seeds": {
+    "level_feet": 7,
+    "quick_steps": 7,
+    "crouched": 8
+  },
+  "source_evaluations": [
+    "--evaluation",
+    "Reference",
+    "lesson_side_overview",
+    "--evaluation",
+    "Level feet",
+    "lesson_side_overview",
+    "--evaluation",
+    "Quick steps",
+    "lesson_side_overview",
+    "--evaluation",
+    "Crouched",
+    "round2_step9000_showcase"
+  ],
+  "claim": "The three style policies passed their full 50-trial command checks; this overview records forward motion only."
+}
