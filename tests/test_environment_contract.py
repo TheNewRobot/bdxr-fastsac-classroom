@@ -9,6 +9,28 @@ from bdxr_classroom.environment import make_env, step_and_reset
 
 @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
 class EnvironmentContract(unittest.TestCase):
+    def test_level_hop_rewards_preserve_actor_and_step_with_finite_geometry(self):
+        from bdxr_classroom.behaviors import sole_tilt
+        env = make_env(8, task_version="hop", hop_clearance="sole",
+                       hop_height_reward="flight_both", hop_height=.07,
+                       hop_flight_duration=.32, hop_crouch=.025,
+                       level_feet_weight=3, hop_body_weight=8)
+        try:
+            obs, _ = env.reset(seed=7)
+            self.assertEqual(obs["actor"].shape, (8, 49))
+            self.assertEqual(obs["critic"].shape, (8, 64))
+            self.assertNotIn("sole_tilt", env.cfg.observations["actor"].terms)
+            self.assertEqual(env.cfg.rewards["hop_contacts"].params["flight_duration"], .32)
+            for _ in range(5):
+                _, reward, _, _, _ = env.step(torch.zeros(8, 10, device=env.device))
+                self.assertTrue(torch.isfinite(reward).all())
+                angles = sole_tilt(env)
+                self.assertEqual(angles.shape, (8, 2))
+                self.assertTrue(torch.isfinite(angles).all())
+                self.assertTrue(((angles >= 0) & (angles <= torch.pi / 2)).all())
+        finally:
+            env.close()
+
     def test_training_jitter_varies_proprioception_without_privileged_actor_fields(self):
         env = make_env(64, task_version="hop", initial_jitter=.03)
         try:

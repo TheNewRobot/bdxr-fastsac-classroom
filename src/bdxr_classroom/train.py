@@ -39,6 +39,11 @@ def main():
     p.add_argument("--linear-tracking", choices=["instant", "average"], default="instant")
     p.add_argument("--reward-scale", type=float, default=1.0)
     p.add_argument("--swing-height", type=float)
+    p.add_argument("--swing-weight", type=float)
+    p.add_argument("--air-time-min", type=float)
+    p.add_argument("--air-time-max", type=float)
+    p.add_argument("--air-time-weight", type=float)
+    p.add_argument("--level-feet-weight", type=float, default=0.0)
     p.add_argument("--training-terrain-height", type=float, default=0.0)
     p.add_argument("--training-terrain-style", choices=["steps", "mixed"], default="steps")
     p.add_argument("--training-start-span", type=float, default=0.2,
@@ -54,6 +59,8 @@ def main():
     p.add_argument("--hop-clearance", choices=["site", "sole"], default="site")
     p.add_argument("--mirror-replay", action=argparse.BooleanOptionalAction, default=False)
     p.add_argument("--hop-body-weight", type=float, default=0.0)
+    p.add_argument("--hop-flight-duration", type=float, default=0.25)
+    p.add_argument("--hop-crouch", type=float, default=0.0)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--batch-size", type=int, default=4096)
     p.add_argument("--updates", type=int, default=4)
@@ -91,7 +98,9 @@ def main():
                     "yaw_tracking", "yaw_std", "proprio_only", "linear_weight", "swing_height",
                     "training_terrain_height", "training_terrain_style", "training_start_span", "initial_jitter",
                     "yaw_bias_weight", "lateral_bias_weight", "reward_scale",
-                    "linear_tracking", "hop_height_reward", "hop_clearance", "mirror_replay"]:
+                    "linear_tracking", "hop_height_reward", "hop_clearance", "mirror_replay",
+                    "swing_weight", "air_time_min", "air_time_max", "air_time_weight", "level_feet_weight",
+                    "hop_flight_duration", "hop_crouch"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
     cfg["experiment_path"] = str(out)
@@ -130,7 +139,10 @@ def main():
                  yaw_bias_weight=args.yaw_bias_weight, reward_scale=args.reward_scale,
                  lateral_bias_weight=args.lateral_bias_weight,
                  linear_tracking=args.linear_tracking, hop_height_reward=args.hop_height_reward,
-                 hop_clearance=args.hop_clearance)
+                 hop_clearance=args.hop_clearance, level_feet_weight=args.level_feet_weight,
+                 swing_weight=args.swing_weight, air_time_min=args.air_time_min,
+                 air_time_max=args.air_time_max, air_time_weight=args.air_time_weight,
+                 hop_flight_duration=args.hop_flight_duration, hop_crouch=args.hop_crouch)
     if args.mirror_replay:
         from .mirror import build_maps
         cfg["mirror_maps"] = build_maps(env)

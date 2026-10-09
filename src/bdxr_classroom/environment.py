@@ -23,7 +23,12 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              training_terrain_style="steps", yaw_bias_weight=0.0, reward_scale=1.0,
              lateral_bias_weight=0.0,
              linear_tracking="instant", hop_height_reward="continuous",
-             hop_clearance="site", training_start_span=0.2):
+             hop_clearance="site", training_start_span=0.2,
+             level_feet_weight=0.0, swing_weight=None,
+             air_time_min=None, air_time_max=None, air_time_weight=None,
+             hop_flight_duration=0.25, hop_crouch=0.0):
+    if not .12 <= hop_flight_duration <= .5 or not 0 <= hop_crouch <= .08:
+        raise ValueError("Invalid hop duration or crouch depth")
     if hop_clearance not in ("site", "sole"):
         raise ValueError("Hop clearance must use site or sole measurements")
     if not math.isfinite(initial_jitter) or initial_jitter < 0:
@@ -99,13 +104,16 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
             func=behaviors.hop_height_tracking, weight=8.0,
             params={"height": hop_height, "flight_only": hop_height_reward in ("flight", "flight_both"),
                     "bilateral": hop_height_reward == "flight_both",
-                    "clearance_mode": hop_clearance})
-        cfg.rewards["hop_contacts"] = RewardTermCfg(func=behaviors.hop_contact_timing, weight=4.0)
+                    "clearance_mode": hop_clearance, "flight_duration": hop_flight_duration})
+        cfg.rewards["hop_contacts"] = RewardTermCfg(
+            func=behaviors.hop_contact_timing, weight=4.0,
+            params={"flight_duration": hop_flight_duration})
         cfg.rewards["hop_landing"] = RewardTermCfg(func=behaviors.hop_landing_cost, weight=-1e-6)
         if hop_body_weight:
             cfg.rewards["hop_body_height"] = RewardTermCfg(
                 func=behaviors.hop_body_height_tracking, weight=hop_body_weight,
-                params={"height": hop_height})
+                params={"height": hop_height, "flight_duration": hop_flight_duration,
+                        "crouch": hop_crouch})
         for key in ["air_time", "foot_clearance", "foot_swing_height"]:
             cfg.rewards.pop(key, None)
     if linear_weight is not None:
@@ -117,6 +125,18 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
             params={"std": previous.params["std"], "time_constant": .3})
     if swing_height is not None and "foot_swing_height" in cfg.rewards:
         cfg.rewards["foot_swing_height"].params["target_height"] = swing_height
+    if swing_weight is not None and "foot_swing_height" in cfg.rewards:
+        cfg.rewards["foot_swing_height"].weight = -abs(swing_weight)
+    if "air_time" in cfg.rewards:
+        if air_time_weight is not None:
+            cfg.rewards["air_time"].weight = air_time_weight
+        if air_time_min is not None:
+            cfg.rewards["air_time"].params["threshold_min"] = air_time_min
+        if air_time_max is not None:
+            cfg.rewards["air_time"].params["threshold_max"] = air_time_max
+    if level_feet_weight:
+        cfg.rewards["level_feet"] = RewardTermCfg(
+            func=behaviors.level_feet_reward, weight=level_feet_weight)
     if yaw_bias_weight:
         cfg.rewards["yaw_bias"] = RewardTermCfg(
             func=behaviors.yaw_bias_tracking, weight=yaw_bias_weight,
