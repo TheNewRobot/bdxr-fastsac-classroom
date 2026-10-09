@@ -13,7 +13,7 @@ import wandb
 
 from .environment import make_env, step_and_reset
 from .fastsac import FastSAC
-from .experiments import create_experiment, experiment_root, write_manifest, capture_source
+from .experiments import create_experiment, experiment_root, write_manifest, capture_source, resolve_experiment_path
 
 
 def main():
@@ -81,6 +81,8 @@ def main():
     p.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], default="online")
     p.add_argument("--project", default="bdxr-fastsac-classroom")
     args = p.parse_args()
+    if args.resume:
+        args.resume = str(resolve_experiment_path(args.resume))
     cfg = vars(args)
     cfg["runtime_environment"] = os.environ.get("BDXR_RUNTIME", "local")
     cfg["random_stream_mode"] = ("new_seed" if args.finetune or not args.resume
@@ -90,7 +92,7 @@ def main():
     torch.set_float32_matmul_precision("high")
     torch.manual_seed(args.seed)
     existing_run = bool(args.resume and not args.finetune)
-    out = experiment_root(args.resume) if existing_run else create_experiment(args.name, args.run_root)
+    out = experiment_root(args.resume) if existing_run else create_experiment(args.name, args.run_root, category="candidates")
     if existing_run:
         original = out / "config/training.json"
         if not original.exists():

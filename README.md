@@ -54,11 +54,19 @@ heading correction. World measurements are used for evaluation and game scoring.
 | `assets/lesson/` | Only selected media used by the lesson |
 | `scripts/` | Setup, comparisons, and notebook packaging |
 | `tests/` | Observation, learning, and game contracts |
-| `experiments/<timestamp>_<name>/` | **Gitignored** configs, checkpoints, metrics, evaluations, and videos |
+| `experiments/lesson/` | **Gitignored** selected policy runs |
+| `experiments/candidates/` | New or unfinished training runs |
+| `experiments/evaluations/` | Course, obstacle, and controller checks |
+| `experiments/support/` | Parent policies and historical media sources |
+| `experiments/archive/` | Retired trial evidence and cleanup manifests |
 
 Vendor checkouts, caches, raw results, checkpoints, and private working notes
 stay out of new commits. Curated media captions distinguish preliminary results
 from selected command policies.
+Local results are explained in `experiments/INDEX.md`; `CATALOG.csv` records
+individual trials. Each run keeps its `<timestamp>_<name>` directory and its
+configuration, checkpoints, metrics, and videos together. New training runs go
+to `candidates/`; selection requires review of their results.
 
 ## Local use
 
@@ -79,9 +87,9 @@ actual timestamped experiment path. To evaluate it:
 
 ```bash
 .venv/bin/python -m bdxr_classroom.command_evaluate \
-  experiments/<timestamp>_command_walking/checkpoints/final.pt
+  experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt
 python scripts/check_command_results.py \
-  experiments/<timestamp>_command_walking/evaluation/final_commands/summary.json
+  experiments/candidates/<timestamp>_command_walking/evaluation/final_commands/summary.json
 ```
 
 Resume with `--resume .../checkpoints/resume.pt`; policy, critics, optimizers,
@@ -95,8 +103,8 @@ Launch the game with walking and optional hopping checkpoints:
 
 ```bash
 .venv/bin/python -m bdxr_classroom.game_server \
-  --walking experiments/<walking-run>/checkpoints/final.pt \
-  --hopping experiments/<hopping-run>/checkpoints/final.pt
+  --walking experiments/lesson/<walking-run>/checkpoints/final.pt \
+  --hopping experiments/lesson/<hopping-run>/checkpoints/<selected-checkpoint>.pt
 ```
 
 The local panel runs on port 8765. The notebook includes the Colab port-proxy

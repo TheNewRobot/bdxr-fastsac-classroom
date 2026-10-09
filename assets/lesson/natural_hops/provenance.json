@@ -1,5 +1,5 @@
 {
-  "checkpoint": "experiments/2026-10-09_192254_064291_natural_hop_flight_level_seed7/checkpoints/step_001000.pt",
+  "checkpoint": "experiments/lesson/2026-10-09_192254_064291_natural_hop_flight_level_seed7/checkpoints/step_001000.pt",
   "sha256": "4e038ba530f58cf8d1b4286ce554bad8028dd3942c181e7dd815b8f10f0d7866",
   "seed": 7,
   "terrain_passed": true,
@@ -14,7 +14,7 @@
     "terrain_unchanged": true,
     "walking_sha256": "7ad415c383b61e23dba06d51c4964614a5cdc93baf41d47b315e8a1fa93801a9",
     "hopping_sha256": "4e038ba530f58cf8d1b4286ce554bad8028dd3942c181e7dd815b8f10f0d7866",
-    "course_experiment": "experiments/2026-10-09_193658_757326_manual_course_trial",
+    "course_experiment": "experiments/evaluations/courses/2026-10-09_193658_757326_manual_course_trial",
     "strategy": "Hop over three obstacles, use walking across rough patch and up finish ramp.",
     "directional_hopping_screen": "passed",
     "natural_hop_shape_comparison": "Higher and longer clear flights with lower foot tilt; higher contact forces remain a tradeoff."

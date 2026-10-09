@@ -6,7 +6,7 @@
     "motion": "legacy/baseline/motion.png",
     "learning_curve": "legacy/baseline/learning_curves.png",
     "caption": "Preliminary v2 experiment; speed target 0.3 m/s. Not a validated command-following policy.",
-    "experiment": "experiments/2026-10-07_231122_walk_02",
+    "experiment": "experiments/support/legacy_media/2026-10-07_231122_walk_02",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
   },
   {
@@ -16,7 +16,7 @@
     "motion": "legacy/control/motion.png",
     "learning_curve": "legacy/control/learning_curves.png",
     "caption": "Preliminary v2 experiment; speed target 0.3 m/s. Not a validated command-following policy.",
-    "experiment": "experiments/2026-10-07_235048_control_01",
+    "experiment": "experiments/support/legacy_media/2026-10-07_235048_control_01",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
   },
   {
@@ -26,7 +26,7 @@
     "motion": "legacy/faster/motion.png",
     "learning_curve": "legacy/faster/learning_curves.png",
     "caption": "Preliminary v2 experiment; speed target 0.45 m/s. Not a validated command-following policy.",
-    "experiment": "experiments/2026-10-07_231741_faster_01",
+    "experiment": "experiments/support/legacy_media/2026-10-07_231741_faster_01",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
   },
   {
@@ -36,7 +36,7 @@
     "motion": "legacy/hopping/motion.png",
     "learning_curve": "legacy/hopping/learning_curves.png",
     "caption": "Preliminary hop experiment; speed target 0.0 m/s. Not a validated command-following policy.",
-    "experiment": "experiments/2026-10-07_232238_hop_higher_01",
+    "experiment": "experiments/support/legacy_media/2026-10-07_232238_hop_higher_01",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
   },
   {
@@ -46,7 +46,7 @@
     "motion": "legacy/hopping_taller/motion.png",
     "learning_curve": "legacy/hopping_taller/learning_curves.png",
     "caption": "Preliminary hop experiment; speed target 0.0 m/s. Not a validated command-following policy.",
-    "experiment": "experiments/2026-10-07_234726_hop_taller_01",
+    "experiment": "experiments/support/legacy_media/2026-10-07_234726_hop_taller_01",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
   },
   {
@@ -56,7 +56,7 @@
     "motion": "legacy/slower/motion.png",
     "learning_curve": "legacy/slower/learning_curves.png",
     "caption": "Preliminary v2 experiment; speed target 0.15 m/s. Not a validated command-following policy.",
-    "experiment": "experiments/2026-10-07_234723_slower_01",
+    "experiment": "experiments/support/legacy_media/2026-10-07_234723_slower_01",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
   },
   {
@@ -66,7 +66,7 @@
     "motion": "legacy/smoother/motion.png",
     "learning_curve": "legacy/smoother/learning_curves.png",
     "caption": "Preliminary v2 experiment; speed target 0.3 m/s. Not a validated command-following policy.",
-    "experiment": "experiments/2026-10-07_232426_smoother_01",
+    "experiment": "experiments/support/legacy_media/2026-10-07_232426_smoother_01",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/mhyyosrc"
   },
   {
@@ -82,7 +82,7 @@
     "title": "Desert Droid Run",
     "video": "course_run/rollout.mp4",
     "caption": "47.4 simulation seconds, zero falls, all three obstacles and the rough patch crossed before the raised finish. Classroom obstacles: 17.5\u201320 mm; ascent: 18 cm. Uses the validated walking continuation and the 4.5 cm target hopping policy, which passed two terrain screens and repeated flat/on-step handovers. Visually steered speed/yaw/mode commands with pauses; this is not an autonomous-navigation or real-time human play test.",
-    "experiment": "experiments/2026-10-08_054121_698631_manual_course_trial",
+    "experiment": "experiments/support/legacy_media/2026-10-08_054121_698631_manual_course_trial",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/3ylfcwbx"
   },
   {
@@ -92,7 +92,7 @@
     "motion": "moving_hops/motion.png",
     "learning_curve": "moving_hops/learning_curves.png",
     "caption": "Small moving hops after stationary, moving, and terrain training. Two 15-trial terrain screens passed with zero falls, as did flat/on-step handovers with the validated walker. All 25 backward/turn trials stayed upright and moved in the requested directions. The target is 4.5 cm sole clearance; these five slow trials measured a mean peak of about 3.7 cm and 11 landed hops per 15 seconds. The learning curve shows the final terrain stage; parent stages are recorded in the experiment lineage.",
-    "experiment": "experiments/2026-10-08_053242_824689_fresh_parent_hop_height45mm",
+    "experiment": "experiments/support/legacy_media/2026-10-08_053242_824689_fresh_parent_hop_height45mm",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/i90z95hq"
   },
   {
@@ -102,7 +102,7 @@
     "motion": "command_walking/motion.png",
     "learning_curve": "command_walking/learning_curves.png",
     "caption": "Recorded instructor command baseline: all 50 speed/backward/stop/turn/transition trials pass. The initial 8000-step run missed drift checks; an unchanged 3000-step continuation recovered them. About 13.4 minutes of combined training on the local L40S, plus setup and evaluation. The curve shown is the recovery stage only. This is the parent of both current style variations and the walker used in the recorded course. One training seed; five perturbed evaluation starts.",
-    "experiment": "experiments/2026-10-08_045922_707542_unchanged_control",
+    "experiment": "experiments/lesson/2026-10-08_045922_707542_unchanged_control",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/gqgbud4j"
   },
   {
@@ -111,7 +111,7 @@
     "video": "scratch_control/rollout.mp4",
     "learning_curve": "scratch_control/learning_curves.png",
     "caption": "Trained from scratch: seed 7, 10,000 steps, 9m 2s on a local L40S, plus 3s setup and separate evaluation. All 50 command trials passed with zero falls. This is the matched control for new scratch experiments, not an additional gait or a replacement for the approved instructor reference. Single training seed; actual Colab timing is untested. Video: first forward trial at normal speed.",
-    "experiment": "experiments/2026-10-09_191009_408207_scratch_yawbias6_control_seed7",
+    "experiment": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/k2mcegmm"
   },
   {
@@ -121,7 +121,7 @@
     "motion": "natural_hops/motion.png",
     "learning_curve": "natural_hops/learning_curves.png",
     "caption": "Original hopper versus selected natural-hop candidate, equal 0.3 m/s command at normal speed. Clear flight: 0.10 \u2192 0.14 s; bilateral peak sole clearance: 3.5 \u2192 5.6 cm; flight foot tilt: 18.6 \u2192 6.9 degrees. Higher contact forces remain a tradeoff. Terrain, directional and repeated handover screens passed. Six training stages total about 19.5 minutes on a local L40S, excluding setup/evaluation; curve shows only the final selected 1,000-step stage. One training seed; Colab untested.",
-    "experiment": "experiments/2026-10-09_192254_064291_natural_hop_flight_level_seed7",
+    "experiment": "experiments/lesson/2026-10-09_192254_064291_natural_hop_flight_level_seed7",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/zielm77f"
   },
   {
@@ -129,7 +129,7 @@
     "title": "Inspect a hop at half speed",
     "video": "natural_hops/half_speed.mp4",
     "caption": "Half-speed excerpt of the same recorded comparison. Look for both feet leaving together, sole angle in flight and the landing. Playback speed is changed; the simulation and policy are unchanged.",
-    "experiment": "experiments/2026-10-09_192254_064291_natural_hop_flight_level_seed7",
+    "experiment": "experiments/lesson/2026-10-09_192254_064291_natural_hop_flight_level_seed7",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/zielm77f"
   },
   {
@@ -137,7 +137,7 @@
     "title": "Natural hops: complete course",
     "video": "natural_hops_course/rollout.mp4",
     "caption": "42.82 simulation seconds, zero falls, all four route checkpoints. Approved reference walker plus the selected natural hopper: hop over three unchanged obstacles, walk over rough ground and up the raised finish. Visually steered speed/yaw/mode commands with pauses; not autonomous navigation or a real-time human-play benchmark.",
-    "experiment": "experiments/2026-10-09_193658_757326_manual_course_trial",
+    "experiment": "experiments/evaluations/courses/2026-10-09_193658_757326_manual_course_trial",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/3xssge7g"
   },
   {
@@ -147,7 +147,7 @@
     "motion": "scratch_level_feet/motion.png",
     "learning_curve": "scratch_level_feet/learning_curves.png",
     "caption": "One changed scalar: level-feet reward 0 \u2192 0.75. Forward swing-foot tilt falls from about 12 to 6 degrees; cadence stays similar. Training: 14m 54s. Both policies train from scratch with seed 7 and 10,000 steps. The variant passes all 50 command trials with zero falls. Same commanded forward speed, normal playback. Local L40S timing; single training seed, actual Colab untested.",
-    "experiment": "experiments/2026-10-09_193630_740696_scratch_yawbias6_level_feet075_seed7",
+    "experiment": "experiments/lesson/2026-10-09_193630_740696_scratch_yawbias6_level_feet075_seed7",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/uusaodqp"
   },
   {
@@ -157,7 +157,7 @@
     "motion": "scratch_quick_steps/motion.png",
     "learning_curve": "scratch_quick_steps/learning_curves.png",
     "caption": "One reward preset: airborne duration 0.06\u20130.16 s, weight 4. Forward cadence rises from about 4.3 to 6.7 foot landings/s with shorter steps. Training: 15m 1s, slightly beyond the requested 15-minute limit. Both policies train from scratch with seed 7 and 10,000 steps. The variant passes all 50 command trials with zero falls. Same commanded forward speed, normal playback. Local L40S timing; single training seed, actual Colab untested.",
-    "experiment": "experiments/2026-10-09_193927_700538_scratch_yawbias6_quick_steps_seed7",
+    "experiment": "experiments/lesson/2026-10-09_193927_700538_scratch_yawbias6_quick_steps_seed7",
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/u05i7srk"
   }
 ]

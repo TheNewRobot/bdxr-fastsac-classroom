@@ -1,5 +1,5 @@
 {
-  "checkpoint": "experiments/2026-10-09_193630_740696_scratch_yawbias6_level_feet075_seed7/checkpoints/final.pt",
+  "checkpoint": "experiments/lesson/2026-10-09_193630_740696_scratch_yawbias6_level_feet075_seed7/checkpoints/final.pt",
   "sha256": "76b241e84d2329b03ec2adcfb0f03a88ae5147403fa2d3759ad27d29a1cb54c7",
   "seed": 7,
   "from_scratch": true,
@@ -16,7 +16,7 @@
   "scope": "One training seed, five starting states per command. Local L40S; actual Colab execution pending.",
   "style": "level_feet",
   "style_acceptance": "passed measured difference plus inspected equal-speed comparison frames",
-  "matched_control": "experiments/2026-10-09_191009_408207_scratch_yawbias6_control_seed7",
+  "matched_control": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7",
   "comparison_metrics": {
     "slow": {
       "foot_landings_per_second": {

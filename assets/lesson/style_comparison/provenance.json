@@ -6,7 +6,7 @@
     "2026-10-08_055353_834252_recovered_baseline_smoother",
     "2026-10-08_060538_950070_recovered_baseline_higher75"
   ],
-  "provenance": "experiments/2026-10-08_061335_316142_policy_comparison/config/comparison.json",
-  "selection_and_metrics": "experiments/2026-10-08_061335_316142_policy_comparison/evaluation/selection_and_metrics.json",
+  "provenance": "experiments/support/legacy_media/2026-10-08_061335_316142_policy_comparison/config/comparison.json",
+  "selection_and_metrics": "experiments/support/legacy_media/2026-10-08_061335_316142_policy_comparison/evaluation/selection_and_metrics.json",
   "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/gqgbud4j"
 }

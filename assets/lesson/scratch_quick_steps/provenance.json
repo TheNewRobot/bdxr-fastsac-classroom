@@ -1,12 +1,12 @@
 {
-  "checkpoint": "/home/ubuntu/workspace/263A/experiments/2026-10-09_193927_700538_scratch_yawbias6_quick_steps_seed7/checkpoints/final.pt",
+  "checkpoint": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_193927_700538_scratch_yawbias6_quick_steps_seed7/checkpoints/final.pt",
   "sha256": "e4a6233e2fcef3dad69fc67bd827e2819f89002dc56ca363b8fcd90c76e41ab3",
   "seed": 7,
   "from_scratch": true,
   "full_command_gate_passed": true,
   "style": "quick_steps",
   "style_acceptance": "passed measured difference plus inspected equal-speed comparison frames",
-  "matched_control": "experiments/2026-10-09_191009_408207_scratch_yawbias6_control_seed7",
+  "matched_control": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7",
   "timing": {
     "step": 10000,
     "training_seconds": 901.410062859999,

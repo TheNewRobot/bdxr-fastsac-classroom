@@ -1,5 +1,5 @@
 {
-  "checkpoint": "experiments/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+  "checkpoint": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
   "sha256": "a25ba2de0c29a6caa397fd2aa3ec6f3fa1bda80bc7f42462f5e1cf8d1e6119d8",
   "seed": 7,
   "from_scratch": true,

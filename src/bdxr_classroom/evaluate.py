@@ -16,7 +16,7 @@ import torch
 
 from .environment import make_env
 from .fastsac import FastSAC
-from .experiments import experiment_root
+from .experiments import experiment_root, resolve_experiment_path
 from .training_terrain import sampled_sole_clearance
 
 
@@ -33,7 +33,7 @@ def main():
     args = p.parse_args()
     torch.set_num_threads(2)
     torch.set_float32_matmul_precision("high")
-    path = Path(args.checkpoint)
+    path = resolve_experiment_path(args.checkpoint)
     state = torch.load(path, map_location="cpu", weights_only=False)
     cfg = dict(state["config"])
     cfg.update(num_envs=1, buffer_size=1, compile=False)

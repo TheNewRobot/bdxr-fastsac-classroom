@@ -576,9 +576,9 @@ def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
     temporary = destination.with_suffix(".tmp.zip")
     folders = list(dict.fromkeys([INITIAL_BASELINE, BASELINE, VARIATION, CONTROL] +
                                  HOP_STAGES))
-    folders += list((WORK / "experiments").glob("*_command_walking_recovery"))
-    folders += list((WORK / "experiments").glob("*_desert_droid_game"))
-    folders += list((WORK / "experiments").glob("*_transition_validation"))
+    folders += list((WORK / "experiments").rglob("*_command_walking_recovery"))
+    folders += list((WORK / "experiments").rglob("*_desert_droid_game"))
+    folders += list((WORK / "experiments").rglob("*_transition_validation*"))
     folders = list(dict.fromkeys(folders))
     print("Creating backup. Replay files can take several minutes to save.", flush=True)
     with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -598,10 +598,10 @@ def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
 
 export_results()
 if INCLUDE_REPLAY_IN_EXPORT:
-    print("To resume: unpack the backup into WORK, then train with --resume experiments/<run>/checkpoints/resume.pt.")
+    print("To resume: unpack the backup into WORK, then train with --resume experiments/candidates/<run>/checkpoints/resume.pt.")
     print("Networks, optimizers, normalization and replay are restored; simulated episodes restart.")
 else:
-    print("Replay was omitted. To start a new fine-tuning run, unpack into WORK and use --resume experiments/<run>/checkpoints/final.pt --finetune.")
+    print("Replay was omitted. To start a new fine-tuning run, unpack into WORK and use --resume experiments/candidates/<run>/checkpoints/final.pt --finetune.")
     print("This reuses trained networks with a new replay buffer, rather than restoring collected experience.")
 ''')
     md("""## 8 · Play: Desert Droid Run

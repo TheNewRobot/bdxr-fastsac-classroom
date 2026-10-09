@@ -18,7 +18,7 @@ import torch
 from PIL import Image, ImageDraw
 
 from .environment import make_env
-from .experiments import experiment_root, capture_source, jsonable
+from .experiments import experiment_root, capture_source, jsonable, resolve_experiment_path
 from .fastsac import FastSAC
 from .motion_metrics import count_hops
 from .training_terrain import ground_height, sampled_sole_clearance
@@ -41,7 +41,7 @@ def preserve_previous_evaluation(output, video_dir):
 
 
 def checkpoint_hash(checkpoint):
-    with Path(checkpoint).open("rb") as stream:
+    with resolve_experiment_path(checkpoint).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
@@ -60,6 +60,7 @@ def set_command(env, vx, wz):
 
 
 def load_agent(checkpoint, num_envs):
+    checkpoint = resolve_experiment_path(checkpoint)
     state = torch.load(checkpoint, map_location="cpu", weights_only=False)
     cfg = dict(state["config"], num_envs=num_envs, buffer_size=1, compile=False)
     agent = FastSAC(*state["dimensions"], cfg)
@@ -214,7 +215,7 @@ def main():
     args = parser.parse_args()
     torch.set_num_threads(2)
     torch.set_float32_matmul_precision("high")
-    checkpoint = Path(args.checkpoint)
+    checkpoint = resolve_experiment_path(args.checkpoint)
     root = experiment_root(checkpoint)
     suffix = f"_{args.terrain_style}_{args.terrain_height:g}" if args.terrain_height else ""
     output = Path(args.output) if args.output else root / "evaluation" / (checkpoint.stem + "_commands" + suffix)

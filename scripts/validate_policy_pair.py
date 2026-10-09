@@ -10,7 +10,8 @@ import time
 
 
 def digest(path):
-    with Path(path).open("rb") as stream:
+    from bdxr_classroom.experiments import resolve_experiment_path
+    with resolve_experiment_path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
