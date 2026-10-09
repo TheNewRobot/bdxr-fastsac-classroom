@@ -26,7 +26,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              hop_clearance="site", training_start_span=0.2,
              level_feet_weight=0.0, swing_weight=None,
              air_time_min=None, air_time_max=None, air_time_weight=None,
-             hop_flight_duration=0.25, hop_crouch=0.0):
+             hop_flight_duration=0.25, hop_crouch=0.0, swing_clearance="site"):
     if not .12 <= hop_flight_duration <= .5 or not 0 <= hop_crouch <= .08:
         raise ValueError("Invalid hop duration or crouch depth")
     if hop_clearance not in ("site", "sole"):
@@ -127,6 +127,13 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         cfg.rewards["foot_swing_height"].params["target_height"] = swing_height
     if swing_weight is not None and "foot_swing_height" in cfg.rewards:
         cfg.rewards["foot_swing_height"].weight = -abs(swing_weight)
+    if swing_clearance not in ("site", "sole"):
+        raise ValueError("Swing clearance must be site or sole")
+    if swing_clearance == "sole" and "foot_swing_height" in cfg.rewards:
+        previous = cfg.rewards["foot_swing_height"]
+        cfg.rewards["foot_swing_height"] = RewardTermCfg(
+            func=behaviors.sole_swing_height_cost, weight=previous.weight,
+            params={"target_height": previous.params["target_height"]})
     if "air_time" in cfg.rewards:
         if air_time_weight is not None:
             cfg.rewards["air_time"].weight = air_time_weight

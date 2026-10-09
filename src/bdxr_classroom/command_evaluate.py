@@ -241,6 +241,7 @@ def main():
                    hop_clearance=cfg.get("hop_clearance", "site"),
                    level_feet_weight=cfg.get("level_feet_weight", 0),
                    swing_weight=cfg.get("swing_weight"),
+                   swing_clearance=cfg.get("swing_clearance", "site"),
                    air_time_min=cfg.get("air_time_min"), air_time_max=cfg.get("air_time_max"),
                    air_time_weight=cfg.get("air_time_weight"),
                    hop_flight_duration=cfg.get("hop_flight_duration", .25),
