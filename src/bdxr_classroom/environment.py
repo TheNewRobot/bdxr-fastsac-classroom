@@ -25,11 +25,13 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              linear_tracking="instant", hop_height_reward="continuous",
              hop_clearance="site", training_start_span=0.2,
              level_feet_weight=0.0, hop_flight_weight=0.0, swing_weight=None,
-             level_feet_flight_only=False,
+             level_feet_flight_only=False, walking_height=None,
              air_time_min=None, air_time_max=None, air_time_weight=None,
              hop_flight_duration=0.25, hop_crouch=0.0, swing_clearance="site"):
     if not .12 <= hop_flight_duration <= .5 or not 0 <= hop_crouch <= .08:
         raise ValueError("Invalid hop duration or crouch depth")
+    if walking_height is not None and (not math.isfinite(walking_height) or walking_height <= 0):
+        raise ValueError("Walking height must be a positive finite number")
     if hop_clearance not in ("site", "sole"):
         raise ValueError("Hop clearance must use site or sole measurements")
     if not math.isfinite(initial_jitter) or initial_jitter < 0:
@@ -146,6 +148,10 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
             cfg.rewards["air_time"].params["threshold_min"] = air_time_min
         if air_time_max is not None:
             cfg.rewards["air_time"].params["threshold_max"] = air_time_max
+    if walking_height is not None:
+        cfg.rewards["walking_height"] = RewardTermCfg(
+            func=behaviors.walking_height_reward, weight=4.0,
+            params={"target_height": walking_height})
     if level_feet_weight:
         cfg.rewards["level_feet"] = RewardTermCfg(
             func=behaviors.level_feet_reward, weight=level_feet_weight,

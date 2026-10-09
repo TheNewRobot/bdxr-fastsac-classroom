@@ -31,6 +31,13 @@ def sole_tilt(env):
     return torch.acos(normal[..., 2].abs().clamp(0, 1))
 
 
+def walking_height_reward(env, target_height, std=0.035):
+    """Track torso height above terrain using a privileged reward signal."""
+    position = env.scene["robot"].data.root_link_pos_w
+    height = position[:, 2] - ground_height(env, position)
+    return torch.exp(-(height - target_height).square() / std**2)
+
+
 def level_feet_reward(env, std=0.2, flight_only=False):
     """Reward level collision soles; privileged training signal only."""
     reward = torch.exp(-sole_tilt(env).square().mean(-1) / std**2)

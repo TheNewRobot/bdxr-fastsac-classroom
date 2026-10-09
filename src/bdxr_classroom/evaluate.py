@@ -57,6 +57,7 @@ def main():
                    level_feet_weight=cfg.get("level_feet_weight", 0),
                    hop_flight_weight=cfg.get("hop_flight_weight", 0),
                    level_feet_flight_only=cfg.get("level_feet_flight_only", False),
+                   walking_height=cfg.get("walking_height"),
                    swing_weight=cfg.get("swing_weight"),
                    swing_clearance=cfg.get("swing_clearance", "site"),
                    air_time_min=cfg.get("air_time_min"), air_time_max=cfg.get("air_time_max"),

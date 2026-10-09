@@ -46,6 +46,7 @@ def main():
     p.add_argument("--air-time-weight", type=float)
     p.add_argument("--level-feet-weight", type=float, default=0.0)
     p.add_argument("--level-feet-flight-only", action="store_true")
+    p.add_argument("--walking-height", type=float, help="Optional torso-height reward target in metres")
     p.add_argument("--hop-flight-weight", type=float, default=0.0)
     p.add_argument("--training-terrain-height", type=float, default=0.0)
     p.add_argument("--training-terrain-style", choices=["steps", "mixed"], default="steps")
@@ -102,7 +103,7 @@ def main():
                     "training_terrain_height", "training_terrain_style", "training_start_span", "initial_jitter",
                     "yaw_bias_weight", "lateral_bias_weight", "reward_scale",
                     "linear_tracking", "hop_height_reward", "hop_clearance", "mirror_replay",
-                    "swing_weight", "air_time_min", "air_time_max", "air_time_weight", "level_feet_weight", "hop_flight_weight", "level_feet_flight_only",
+                    "swing_weight", "air_time_min", "air_time_max", "air_time_weight", "level_feet_weight", "hop_flight_weight", "level_feet_flight_only", "walking_height",
                     "hop_flight_duration", "hop_crouch", "swing_clearance"]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
@@ -145,6 +146,7 @@ def main():
                  hop_clearance=args.hop_clearance, level_feet_weight=args.level_feet_weight,
                  hop_flight_weight=args.hop_flight_weight,
                  level_feet_flight_only=args.level_feet_flight_only,
+                 walking_height=args.walking_height,
                  swing_weight=args.swing_weight, air_time_min=args.air_time_min,
                  air_time_max=args.air_time_max, air_time_weight=args.air_time_weight,
                  hop_flight_duration=args.hop_flight_duration, hop_crouch=args.hop_crouch,
