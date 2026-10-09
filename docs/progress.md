@@ -21,5 +21,11 @@ and whether a run was a short integration test or full training. They live in
 ignored experiment/artifact folders. Curated results and limitations accompany
 the media in `assets/lesson/`; raw development history stays out of Git.
 
+The final notebook completed every cell locally with short training runs.
+Its 106 bundled files match the repository; the exported backup passed integrity,
+duplicate-entry, and byte-for-byte checks. The 60-test suite passed with one
+optional simulator test skipped; that test then passed separately using the
+selected walking checkpoint.
+
 **Actual Google Colab execution remains untested.** Training times are measured
 on the local L40S and exclude setup/evaluation unless stated otherwise.

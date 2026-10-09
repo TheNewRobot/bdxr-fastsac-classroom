@@ -33,7 +33,7 @@ class NotebookExports(unittest.TestCase):
                 (run / "wandb").mkdir()
                 (run / "wandb/private.log").write_text("excluded fixture")
                 runs.append(run)
-            namespace = dict(WORK=work, zipfile=zipfile, INCLUDE_REPLAY_IN_EXPORT=True,
+            namespace = dict(WORK=work, Path=Path, zipfile=zipfile, INCLUDE_REPLAY_IN_EXPORT=True,
                              INITIAL_BASELINE=runs[8],
                              HOP_STAGES=runs[3:6] + runs[9:],
                              **dict(zip(("BASELINE", "VARIATION", "CONTROL", "TINY_HOPS",

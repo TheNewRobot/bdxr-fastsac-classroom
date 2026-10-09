@@ -82,13 +82,16 @@ for item in gallery:
     video = base64.b64encode((folder / item["video"]).read_bytes()).decode()
     curve = base64.b64encode((folder / item["learning_curve"]).read_bytes()).decode() if item.get("learning_curve") else None
     motion = base64.b64encode((folder / item["motion"]).read_bytes()).decode() if item.get("motion") else None
+    half_speed = base64.b64encode((folder / item["half_speed"]).read_bytes()).decode() if item.get("half_speed") else None
+    slow_video = (f'<details><summary>Watch at half speed</summary>'
+                  f'<video controls playsinline width="100%" src="data:video/mp4;base64,{half_speed}"></video></details>') if half_speed else ""
     plots = "".join(f'<img width="100%" src="data:image/png;base64,{data}">' for data in [curve, motion] if data)
     wandb_link = (f'<p><a href="{html.escape(item["wandb_gallery"], quote=True)}" target="_blank">'
                   'Open the recorded W&B run</a></p>') if item.get("wandb_gallery") else ""
     destination = legacy_cards if item["video"].startswith("legacy/") else cards
     destination.append(f'<article style="flex:1 1 320px;max-width:480px;padding:12px;border:1px solid #b9cebe;border-radius:12px">'
                  f'<h4>{html.escape(item["title"])}</h4><video controls loop playsinline width="100%" src="data:video/mp4;base64,{video}"></video>'
-                 f'<p>{html.escape(item["caption"])}</p>{wandb_link}<details><summary>Measured curves and motion</summary>{plots}</details></article>')
+                 f'<p>{html.escape(item["caption"])}</p>{wandb_link}{slow_video}<details><summary>Measured curves and motion</summary>{plots}</details></article>')
 display(HTML('<div style="display:flex;flex-wrap:wrap;gap:12px">' + "".join(cards) + "</div>"))
 display(HTML('<details><summary>Earlier experiments: useful failures and preliminary behaviors</summary>'
              '<div style="display:flex;flex-wrap:wrap;gap:12px">' + "".join(legacy_cards) + "</div></details>"))
@@ -296,17 +299,16 @@ The control starts from the same random seed and uses the same training budget.
 
 | Experiment | Only changed behavior setting |
 |---|---|
-| Higher target | Swing-foot marker target from 6 to 10 cm |
 | Quick steps | Reward airborne durations between 0.06 and 0.16 s, weight 4 |
 | Level feet | Add a reward for keeping the soles level, weight 0.75 |
-| Smoother | Action-change penalty ×5 |
+| Crouched walking | Add a torso-height target of 23 cm, fixed reward weight 4 |
 | Control | No changed setting |
 
 Keep the speed and yaw command range. A prettier gait that loses backward walking is not an unqualified improvement.
-Level feet and quick steps passed all 50 command trials in the recorded
-seed-7 scratch experiments. Level feet changes one scalar; quick steps changes
-one reward's duration window and weight together. The other settings remain
-exploratory, and no setting is a promise that every fresh run passes.
+The three recorded variations passed all 50 command trials. Level feet changes
+one scalar; quick steps changes one reward's duration window and weight together.
+Crouched walking changes the body posture and reduces foot clearance.
+No setting is a promise that every fresh run passes.
 Predict the result, then check falls, command tracking, cadence, sole clearance,
 and foot angle. Changing reward weights changes the score itself, so a higher
 return alone cannot establish a better gait.
@@ -317,23 +319,28 @@ differ: report that limitation before attributing a difference to the reward.
 One successful seed is an example, not proof of reliability across seeds.
 
 The recorded comparisons below use fresh control and variant policies with
-the same seed and 10,000 steps. Compare foot angle for level feet and cadence
-for quick steps. Local variant training took 14m 54s and 15m 1s respectively;
-setup and evaluation take additional time.
+the same seed and step count within each pair. Level feet and quick steps use
+seed 7 and 10,000 steps; crouched walking uses seed 8 and 9,000 steps.
+Compare foot angle, cadence, and body height respectively. Local variant
+training took 14m 54s, 15m 1s, and 11m 13s; setup and evaluation take additional
+time. The unchanged seed-8 control missed command checks, so it is a comparison
+result, not another validated baseline.
 """)
-    code('''EXPERIMENT = "level_feet"  # @param ["level_feet", "quick_steps", "higher_target", "smoother", "control"]
+    code('''EXPERIMENT = "level_feet"  # @param ["level_feet", "quick_steps", "crouched", "control"]
 PREDICTION = "The feet will stay flatter while stepping."  # @param {type:"string"}
 VARIATION_STEPS = 10000  # @param {type:"integer"}
 VARIATION_MINUTES = 15  # @param {type:"number"}
+VARIATION_SEED = 8 if EXPERIMENT == "crouched" else TRAIN_SEED
+if EXPERIMENT == "crouched":
+    VARIATION_STEPS = min(VARIATION_STEPS, 9000)  # Reproduce the selected checkpoint.
 changes = {
-    "higher_target": ["--swing-height", 0.10],
     "quick_steps": ["--air-time-min", 0.06, "--air-time-max", 0.16, "--air-time-weight", 4],
     "level_feet": ["--level-feet-weight", 0.75],
-    "smoother": ["--smoothness", 5],
+    "crouched": ["--walking-height", 0.23],
     "control": [],
 }
 changed = changes[EXPERIMENT]
-for style in ["level_feet", "quick_steps"]:
+for style in ["level_feet", "quick_steps", "crouched"]:
     example = WORK / "assets/lesson" / ("scratch_" + style)
     style_provenance = json.loads((example / "provenance.json").read_text())
     print(style_provenance["caption"])
@@ -341,11 +348,13 @@ for style in ["level_feet", "quick_steps"]:
     display(Video(str(example / "comparison.mp4"), embed=True, width=720))
     display(Image(filename=str(example / "motion.png")))
 print("Prediction:", PREDICTION)
+print("Matched seed and step budget:", VARIATION_SEED, VARIATION_STEPS)
 VARIATION = train(EXPERIMENT, *COMMAND_OPTIONS,
-                  "--steps", VARIATION_STEPS, "--minutes", VARIATION_MINUTES, *changed)
+                  "--seed", VARIATION_SEED, "--steps", VARIATION_STEPS,
+                  "--minutes", VARIATION_MINUTES, *changed)
 CONTROL = VARIATION if EXPERIMENT == "control" else train(
     "scratch_control", *COMMAND_OPTIONS,
-    "--steps", VARIATION_STEPS, "--minutes", VARIATION_MINUTES)
+    "--seed", VARIATION_SEED, "--steps", VARIATION_STEPS, "--minutes", VARIATION_MINUTES)
 from statistics import mean
 comparisons = [("control", CONTROL)] + ([] if CONTROL == VARIATION else [(EXPERIMENT, VARIATION)])
 walking_candidates = [BASELINE_CHECK]
@@ -368,6 +377,7 @@ for label, experiment in comparisons:
         print(f"{label}: {steps} parallel simulation steps | cadence = {mean(r['foot_landings_per_second'] for r in gait):.2f} foot landings/s"
               f" | sole clearance = {mean(r['sole_clearance_p95_m'] for r in gait):.3f} m"
               f" | swing-foot tilt = {tilt_text}"
+              f" | torso height = {mean(r['mean_torso_height_m'] for r in gait):.3f} m"
               f" | cross-track = {mean(r['max_cross_track_m'] for r in forward):.3f} m")
     else:
         print(label, "ended too early for gait measurements; inspect the failed command checks.")
@@ -391,7 +401,7 @@ Check the lowest sole clearance and contact state before claiming that a hop can
 
 This extended lab uses a curriculum: stationary hops → moving hops → clearance over small physical obstacles.
 Walking and hopping have separate time budgets. The recorded higher, level-foot
-hopper used about 19.5 minutes of training across six stages on a local L40S,
+hopper used about 23 minutes of training across eight stages on a local L40S,
 plus setup and evaluation. This is instructor timing, not a Colab guarantee.
 
 For a hop, measure both feet: one raised foot can be a step. We use joint
@@ -406,6 +416,10 @@ foot placements; it does not give the actor a terrain map. Inspect each stage;
 flat-floor success does not prove obstacle capability. The optional natural-hop
 extension then requests 6.5 cm bilateral clearance, restores terrain practice,
 and rewards level feet during flight so the ankles remain free during push-off.
+Two final stages practice block edges and reduce the body-height reward.
+The recorded result clears the taller classroom step with lower sampled
+touchdown forces than the earlier hopper. This is an extended activity with
+its own training budget, not a 15-minute walking exercise.
 
 Compare the final checkpoint with saved earlier checkpoints. Each must
 complete five trials per command without falling, land at least five hops per trial,
@@ -470,6 +484,17 @@ if TRAIN_HOPPING:
                             "--level-feet-flight-only", "--steps", 1000, "--minutes", 6,
                             "--resume", LEVEL_TERRAIN / "checkpoints/final.pt", "--finetune")
         HOP_STAGES += [LEVEL_HOPS, LEVEL_TERRAIN, HOP_RESULTS]
+        BLOCK_OPTIONS = [
+            "--training-terrain-height", 0.025, "--training-terrain-style", "steps",
+            "--training-start-span", 1.5, "--level-feet-flight-only",
+        ]
+        BLOCK_HOPS = train("block_hops", *NATURAL_OPTIONS, *BLOCK_OPTIONS,
+                           "--steps", 2000, "--minutes", 8,
+                           "--resume", HOP_RESULTS / "checkpoints/final.pt", "--finetune")
+        HOP_RESULTS = train("soft_landing_hops", *NATURAL_OPTIONS, *BLOCK_OPTIONS,
+                            "--hop-body-weight", 3, "--steps", 1000, "--minutes", 6,
+                            "--resume", BLOCK_HOPS / "checkpoints/final.pt", "--finetune")
+        HOP_STAGES += [BLOCK_HOPS, HOP_RESULTS]
     import sys, hashlib
     sys.path.insert(0, str(WORK / "scripts"))
     from check_hopping_results import choose
@@ -579,7 +604,11 @@ def export_results(include_replay=INCLUDE_REPLAY_IN_EXPORT):
     folders += list((WORK / "experiments").rglob("*_command_walking_recovery"))
     folders += list((WORK / "experiments").rglob("*_desert_droid_game"))
     folders += list((WORK / "experiments").rglob("*_transition_validation*"))
-    folders = list(dict.fromkeys(folders))
+    folders = list(dict.fromkeys(Path(folder).resolve() for folder in folders
+                                 if Path(folder).is_dir()))
+    folder_set = set(folders)
+    folders = [folder for folder in folders if not any(
+        parent in folder_set for parent in folder.parents)]
     print("Creating backup. Replay files can take several minutes to save.", flush=True)
     with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as archive:
         for index, folder in enumerate(folders, 1):
@@ -608,11 +637,13 @@ else:
 
 Load your learned controller into a desert outpost with **three obstacles, rough ground, and a raised finish beacon**. The course is designed around roughly 45 seconds of normal-paced traversal; policy ability and player skill determine the actual result.
 
-The classroom obstacles are 17.5–20 mm high, followed by uneven ground and an 18 cm ascent. These dimensions were calibrated using recorded controller trials.
-Fast walking can clear the original middle step. This course demonstrates
-locomotion and mode switching; it does not establish that hopping is necessary.
-An optional course configuration can change the middle step. Compare both modes
-on the same geometry before drawing conclusions about which behavior is needed.
+The classroom obstacles are 17.5–25 mm high, followed by uneven ground and an
+18 cm ascent. On the 25 mm middle step, the recorded hopping controller crossed
+3/3 trials; walking crossed 0/6 trials across normal and fast commands.
+This comparison applies to those controllers and starts, not every possible
+walking policy. The visually steered full course took 49.88 simulated seconds
+without a fall. Replaying identical commands from another start missed the
+finish: players still need to steer.
 
 Use speed and yaw controls to steer. If you loaded a hopping policy, switch modes before obstacles and watch the transition state. There is no navigation controller.
 
@@ -628,7 +659,7 @@ variation. An unchanged continuation can improve a baseline that missed a check.
 # Optional paths: leave blank to use the checkpoints selected above.
 WALK_CHECKPOINT = ""  # @param {type:"string"}
 HOP_CHECKPOINT = ""  # @param {type:"string"}
-COURSE_CONFIG = ""  # @param {type:"string"}
+COURSE_CONFIG = "configs/classroom_course.json"  # @param {type:"string"}
 WALK_CHECKPOINT = WALK_CHECKPOINT or SELECTED_WALK_CHECKPOINT
 HOP_CHECKPOINT = HOP_CHECKPOINT or SELECTED_HOP_CHECKPOINT or ""
 GAME_PORT = 8765

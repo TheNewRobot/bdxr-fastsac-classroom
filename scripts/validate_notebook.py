@@ -15,6 +15,8 @@ def main():
     p.add_argument("--game-port", type=int, default=18765)
     p.add_argument("--full", action="store_true", help="Run the full 512-environment lesson with W&B")
     p.add_argument("--output", type=Path, help="Save the executed notebook without replacing earlier evidence")
+    p.add_argument("--reuse-env", type=Path,
+                   help="Reuse a checkout's pinned .venv/vendor for local integration; skips installation")
     args = p.parse_args()
     root = Path(__file__).resolve().parents[1]
     nb = nbformat.read(root / "notebooks/BDXR_Walking_101.ipynb", as_version=4)
@@ -23,6 +25,8 @@ def main():
         "full_training": args.full, "work": args.work, "colab_tested": False,
         "scope": "Local notebook execution; not actual Google Colab.",
         "quality_gate_enforced": args.full,
+        "dependency_installation_tested": args.reuse_env is None,
+        "reused_environment": str(args.reuse_env.resolve()) if args.reuse_env else None,
     }
     if not args.full:
         nb.cells[0].source = (
@@ -34,6 +38,25 @@ def main():
         if cell.cell_type != "code":
             continue
         source = cell.source
+        if args.reuse_env and source.startswith("# @title Install pinned dependencies"):
+            existing = args.reuse_env.resolve()
+            if not (existing / ".venv/bin/python").is_file():
+                raise ValueError(f"No existing environment at {existing}")
+            source = f'''# Local integration test: reuse dependencies; installation is not tested.
+setup_start = time.monotonic()
+existing = Path({str(existing)!r})
+assert json.loads((existing / "configs/upstream_revisions.json").read_text()) == json.loads((WORK / "configs/upstream_revisions.json").read_text())
+vendor = WORK / "vendor"
+if not vendor.exists():
+    vendor.symlink_to(existing / "vendor", target_is_directory=True)
+PYTHON = str(existing / ".venv/bin/python")
+runtime_env = dict(os.environ, PYTHONPATH=str(WORK / "src"), MUJOCO_GL="egl",
+                   BDXR_RUNTIME="local_notebook_reused_env")
+gpu = json.loads(subprocess.check_output(
+    [PYTHON, "-c", "import torch,json; print(json.dumps(dict(name=torch.cuda.get_device_name(0),gib=torch.cuda.get_device_properties(0).total_memory/2**30)))"],
+    cwd=WORK, env=runtime_env, text=True))
+print("Reused pinned environment; GPU:", gpu)
+'''
         source = source.replace(
             'WORK = Path("/content/bdxr_classroom") if Path("/content").exists() else Path.cwd() / "bdxr_classroom_lab"',
             f"WORK = Path({args.work!r})",
