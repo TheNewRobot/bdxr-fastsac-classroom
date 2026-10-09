@@ -17,7 +17,8 @@ class ExperimentLayoutTests(unittest.TestCase):
             checkpoint = root / "lesson/old_run/checkpoints/final.pt"
             checkpoint.parent.mkdir(parents=True)
             checkpoint.write_bytes(b"unchanged weights")
-            (root / "relocations.json").write_text(
+            (root / ".metadata").mkdir()
+            (root / ".metadata/relocations.json").write_text(
                 json.dumps({"old_run": "lesson/old_run"}))
             old = root / "old_run/checkpoints/final.pt"
             self.assertEqual(resolve_experiment_path(old), checkpoint)

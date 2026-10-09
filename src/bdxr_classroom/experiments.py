@@ -17,7 +17,9 @@ def resolve_experiment_path(path):
     if path.exists():
         return path
     for parent in path.parents:
-        mapping = parent / "relocations.json"
+        mapping = parent / ".metadata/relocations.json"
+        if not mapping.is_file():
+            mapping = parent / "relocations.json"  # Older local layouts.
         if mapping.is_file():
             relative = path.relative_to(parent)
             target = json.loads(mapping.read_text()).get(relative.parts[0])

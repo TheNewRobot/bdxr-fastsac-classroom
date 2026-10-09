@@ -63,7 +63,7 @@ heading correction. World measurements are used for evaluation and game scoring.
 Vendor checkouts, caches, raw results, checkpoints, and private working notes
 stay out of new commits. Curated media captions distinguish preliminary results
 from selected command policies.
-Local results are explained in `experiments/INDEX.md`; `CATALOG.csv` records
+Local results are explained in `experiments/INDEX.md`; its linked catalog records
 individual trials. Each run keeps its `<timestamp>_<name>` directory and its
 configuration, checkpoints, metrics, and videos together. New training runs go
 to `candidates/`; selection requires review of their results.
