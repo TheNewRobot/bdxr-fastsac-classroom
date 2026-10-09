@@ -24,7 +24,7 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
              lateral_bias_weight=0.0,
              linear_tracking="instant", hop_height_reward="continuous",
              hop_clearance="site", training_start_span=0.2,
-             level_feet_weight=0.0, swing_weight=None,
+             level_feet_weight=0.0, hop_flight_weight=0.0, swing_weight=None,
              air_time_min=None, air_time_max=None, air_time_weight=None,
              hop_flight_duration=0.25, hop_crouch=0.0, swing_clearance="site"):
     if not .12 <= hop_flight_duration <= .5 or not 0 <= hop_crouch <= .08:
@@ -108,6 +108,10 @@ def make_env(num_envs=1024, speed=0.3, smoothness=1.0, seed=42, render=False,
         cfg.rewards["hop_contacts"] = RewardTermCfg(
             func=behaviors.hop_contact_timing, weight=4.0,
             params={"flight_duration": hop_flight_duration})
+        if hop_flight_weight:
+            cfg.rewards["clear_flight"] = RewardTermCfg(
+                func=behaviors.clear_hop_flight, weight=hop_flight_weight,
+                params={"flight_duration": hop_flight_duration})
         cfg.rewards["hop_landing"] = RewardTermCfg(func=behaviors.hop_landing_cost, weight=-1e-6)
         if hop_body_weight:
             cfg.rewards["hop_body_height"] = RewardTermCfg(

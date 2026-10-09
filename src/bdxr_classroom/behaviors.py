@@ -161,6 +161,15 @@ def hop_contact_timing(env, flight_duration=0.25):
     return (contact == (~flight[:, None])).float().mean(-1)
 
 
+def clear_hop_flight(env, flight_duration=0.25, minimum_clearance=0.025):
+    """Reward real bilateral flight, not a raised marker or one-foot support."""
+    phase = (env.episode_length_buf * env.step_dt) % 1.0
+    requested = (phase > .39) & (phase < .35 + flight_duration - .04)
+    contact = env.scene["feet_ground_contact"].data.found.reshape(env.num_envs, -1) > 0
+    clearance = sampled_sole_clearance(env).amin(-1)
+    return (requested & ~contact.any(-1) & (clearance >= minimum_clearance)).float() / flight_duration
+
+
 def hop_body_height_tracking(env, height=0.06, flight_duration=0.25, crouch=0.0):
     phase = (env.episode_length_buf * env.step_dt) % 1.0
     flight_phase = ((phase - 0.35) / flight_duration).clamp(0, 1)
