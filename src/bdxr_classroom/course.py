@@ -13,6 +13,8 @@ class CourseConfig:
     width: float = 1.6
     # Calibrated classroom heights: 17.5 mm pipe, 20 mm step, 18 mm threshold.
     obstacle_scale: float = 0.5
+    # Optional height in metres for the middle step only.
+    step_height: float | None = None
     roughness: float = 0.015
     finish_height: float = 0.18
     seed: int = 263
@@ -49,8 +51,11 @@ def build_course(spec, cfg=CourseConfig()):
     # Three different physical challenges: pipe, low step, and narrow threshold.
     geom("obstacle_1_pipe", cylinder, (2.0, 0, .015 * scale),
          (.02 * scale, .65, 0), metal, quat=(math.sqrt(.5), math.sqrt(.5), 0, 0))
-    geom("obstacle_2_step", box, (4.8, 0, .02 * scale),
-         (.22, .65, .02 * scale), cream)
+    step_height = .04 * scale if cfg.step_height is None else cfg.step_height
+    if not math.isfinite(step_height) or step_height <= 0:
+        raise ValueError("Step height must be a positive finite number")
+    geom("obstacle_2_step", box, (4.8, 0, step_height / 2),
+         (.22, .65, step_height / 2), cream)
     geom("obstacle_3_threshold", box, (7.3, 0, .018 * scale),
          (.07, .65, .018 * scale), orange)
     # Deterministic rough patch, with modest relief for the small droid.
