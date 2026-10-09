@@ -207,7 +207,7 @@ def main():
     parser.add_argument("--seconds", type=float, default=15)
     parser.add_argument("--output")
     parser.add_argument("--no-video", action="store_true")
-    parser.add_argument("--camera", choices=["default", "side"], default="default")
+    parser.add_argument("--camera", choices=["default", "side", "front"], default="default")
     parser.add_argument("--terrain-height", type=float, default=0.0,
                         help="Evaluate on physical practice steps; default is flat ground")
     parser.add_argument("--terrain-style", choices=["steps", "mixed"], default="steps")
@@ -254,13 +254,14 @@ def main():
                    air_time_weight=cfg.get("air_time_weight"),
                    hop_flight_duration=cfg.get("hop_flight_duration", .25),
                    hop_crouch=cfg.get("hop_crouch", 0))
-    if args.camera == "side":
-        env.cfg.viewer.azimuth = 90
+    if args.camera in ("side", "front"):
+        azimuth = 90 if args.camera == "side" else 0
+        env.cfg.viewer.azimuth = azimuth
         env.cfg.viewer.elevation = -8
         env.cfg.viewer.distance = 1.15
         if env._offline_renderer is not None:
             camera = env._offline_renderer._cam
-            camera.azimuth, camera.elevation, camera.distance = 90, -8, 1.15
+            camera.azimuth, camera.elevation, camera.distance = azimuth, -8, 1.15
     result = {"checkpoint": str(checkpoint), "checkpoint_sha256": digest,
              "evaluation_directory": str(output), "evaluated_at_ns": time.time_ns(),
              "cases": {}, "terrain_height_m": args.terrain_height,
