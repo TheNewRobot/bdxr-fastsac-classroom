@@ -52,7 +52,7 @@ def main():
                 'if not BASELINE_CHECK["passed"]:',
                 'if False:  # Smoke harness only: retain the failed verdict, skip recovery/stop.')
             source = source.replace("TRAIN_STEPS = 8000", "TRAIN_STEPS = 60")
-            source = source.replace("VARIATION_STEPS = 3000", "VARIATION_STEPS = 60")
+            source = source.replace("VARIATION_STEPS = 10000", "VARIATION_STEPS = 60")
             source = source.replace("TRAIN_HOPPING = True", "TRAIN_HOPPING = False")
             source = source.replace('"--steps", 6000', '"--steps", 60')
             source = source.replace('"--steps", 2000', '"--steps", 60')

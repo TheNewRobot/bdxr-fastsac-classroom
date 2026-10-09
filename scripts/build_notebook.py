@@ -126,6 +126,10 @@ Positive yaw-rate commands turn left; negative commands turn right. Zero yaw ask
 
 SAC learns actions with high estimated future reward while encouraging exploration. Replay lets it learn from earlier experience. We use SAC here; the older reference notebook used PPO.
 
+The critic evaluates a proposed action, not just the current pose. This
+implementation uses two Q estimates to help limit overly optimistic predictions.
+The actor learns to choose actions that the critics rate highly.
+
 During training, the actor samples actions. An **entropy bonus** encourages it
 to keep exploring instead of always repeating one choice. During evaluation
 and gameplay, we use its deterministic action without that sampling noise.
@@ -136,6 +140,11 @@ training. Those measurements do not become actor inputs.
 We train 512 simulated robots in parallel. One training step advances every robot,
 collecting 512 experiences. Replaying those experiences produces separate neural-network
 updates. The learning-curve horizontal axis counts experiences, not seconds.
+
+**Kinematics connection:** hip, knee, and ankle angles determine where each foot
+is relative to the body. The policy chooses joint targets; the simulator then
+determines the resulting motion and contacts. A foot-height reward asks for an
+outcome—it does not directly prescribe the joint angles or guarantee a gait.
 """)
     code('''# @title How the controller learns and plays
 display(HTML((WORK / "assets/lesson/controller.svg").read_text()))
@@ -281,25 +290,44 @@ print("Measured timing:", json.loads((BASELINE / "metrics/timing.json").read_tex
     md("""## 5 · Change one thing
 
 Commanding the robot to walk faster is different from training a new style.
-Choose a reward-setting experiment and fine-tune from the same baseline.
+Choose a reward-setting experiment and train a fresh policy from scratch.
+The control starts from the same random seed and uses the same training budget.
 
 | Experiment | Only changed behavior setting |
 |---|---|
-| Smoother | Action-change penalty ×3 |
-| Higher target | Swing-foot target from 6 to 7.5 cm |
-| Control | No changed setting; same extra training |
+| Higher target | Swing-foot marker target from 6 to 10 cm |
+| Quick steps | Reward airborne durations between 0.06 and 0.16 s, weight 4 |
+| Level feet | Add a reward for keeping the soles level, weight 1.5 |
+| Smoother | Action-change penalty ×5 |
+| Control | No changed setting |
 
 Keep the speed and yaw command range. A prettier gait that loses backward walking is not an unqualified improvement.
-The unchanged control receives the same extra training budget, so we can distinguish a reward change from simply training longer.
-Changing reward weights also changes the score itself. Use falls, command
-tracking, and motion smoothness to judge whether the behavior improved.
-In the recorded comparison, raising the target did not raise measured foot
-swing. A reward target is an incentive, not a guaranteed movement.
+These are experiment hypotheses, not a promise that every setting passes.
+Predict the result, then check falls, command tracking, cadence, sole clearance,
+and foot angle. Changing reward weights changes the score itself, so a higher
+return alone cannot establish a better gait.
+
+Each run has its own time budget; running a variant and its control takes two
+training runs. If either reaches the time limit early, their step counts may
+differ: report that limitation before attributing a difference to the reward.
+One successful seed is an example, not proof of reliability across seeds.
+
+The recorded comparison below is an earlier fine-tuning demonstration, not
+the result of the new scratch-training experiment. It also illustrates that
+raising a reward target need not raise the feet.
 """)
-    code('''EXPERIMENT = "smoother"  # @param ["smoother", "higher_steps", "control"]
-PREDICTION = "The motor commands will change less abruptly."  # @param {type:"string"}
-VARIATION_STEPS = 3000  # @param {type:"integer"}
-changed = ["--smoothness", 3] if EXPERIMENT == "smoother" else (["--swing-height", 0.075] if EXPERIMENT == "higher_steps" else [])
+    code('''EXPERIMENT = "higher_target"  # @param ["higher_target", "quick_steps", "level_feet", "smoother", "control"]
+PREDICTION = "A higher target will lift the feet farther."  # @param {type:"string"}
+VARIATION_STEPS = 10000  # @param {type:"integer"}
+VARIATION_MINUTES = 15  # @param {type:"number"}
+changes = {
+    "higher_target": ["--swing-height", 0.10],
+    "quick_steps": ["--air-time-min", 0.06, "--air-time-max", 0.16, "--air-time-weight", 4],
+    "level_feet": ["--level-feet-weight", 1.5],
+    "smoother": ["--smoothness", 5],
+    "control": [],
+}
+changed = changes[EXPERIMENT]
 example = WORK / "assets/lesson/style_comparison"
 style_provenance = json.loads((example / "provenance.json").read_text())
 print(style_provenance["caption"])
@@ -308,12 +336,10 @@ display(Video(str(example / "walking_style_comparison.mp4"), embed=True, width=7
 display(Image(filename=str(example / "walking_style_comparison.png")))
 print("Prediction:", PREDICTION)
 VARIATION = train(EXPERIMENT, *COMMAND_OPTIONS,
-                  "--steps", VARIATION_STEPS, "--minutes", 10,
-                  "--resume", BASELINE / "checkpoints/final.pt", "--finetune", *changed)
+                  "--steps", VARIATION_STEPS, "--minutes", VARIATION_MINUTES, *changed)
 CONTROL = VARIATION if EXPERIMENT == "control" else train(
-    "unchanged_control", *COMMAND_OPTIONS,
-    "--steps", VARIATION_STEPS, "--minutes", 10,
-    "--resume", BASELINE / "checkpoints/final.pt", "--finetune")
+    "scratch_control", *COMMAND_OPTIONS,
+    "--steps", VARIATION_STEPS, "--minutes", VARIATION_MINUTES)
 from statistics import mean
 comparisons = [("control", CONTROL)] + ([] if CONTROL == VARIATION else [(EXPERIMENT, VARIATION)])
 walking_candidates = [BASELINE_CHECK]
@@ -326,9 +352,19 @@ for label, experiment in comparisons:
     walking_candidates.append(summarize_commands(experiment, digest_before))
     forward = report["cases"]["forward"]
     steps = json.loads((experiment / "metrics/timing.json").read_text())["step"]
-    print(f"{label}: {steps} parallel simulation steps | action-change RMS = {mean(r['action_change_rms'] for r in forward):.3f}"
-          f" | foot swing = {mean(r['swing_height_p95'] for r in forward):.3f} m"
-          f" | cross-track = {mean(r['max_cross_track_m'] for r in forward):.3f} m")
+    subprocess.run([PYTHON, str(WORK / "scripts/measure_gait.py"),
+                    str(experiment / "evaluation/final_commands")],
+                   cwd=WORK, env=runtime_env, check=True)
+    gait = json.loads((experiment / "evaluation/final_commands/gait_measurements.json").read_text())["forward"]["trials"]
+    tilt_values = [r["swing_sole_tilt_deg"] for r in gait if r["swing_sole_tilt_deg"] is not None]
+    tilt_text = f"{mean(tilt_values):.1f} degrees" if tilt_values else "no measured swing"
+    if gait:
+        print(f"{label}: {steps} parallel simulation steps | cadence = {mean(r['foot_landings_per_second'] for r in gait):.2f} foot landings/s"
+              f" | sole clearance = {mean(r['sole_clearance_p95_m'] for r in gait):.3f} m"
+              f" | swing-foot tilt = {tilt_text}"
+              f" | cross-track = {mean(r['max_cross_track_m'] for r in forward):.3f} m")
+    else:
+        print(label, "ended too early for gait measurements; inspect the failed command checks.")
     run_module("bdxr_classroom.plots", experiment)
     display(Image(filename=str(experiment / "metrics/learning_curves.png")))
     display(Video(str(experiment / "videos/final_commands/sequence.mp4"), embed=True, width=640))
