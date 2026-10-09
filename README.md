@@ -12,8 +12,10 @@ completed the course without falling. Curated style examples passed evaluation;
 fresh style attempts can fail and are labeled accordingly.
 Actual Google Colab execution has not been performed.
 The current scratch-training recipe passed all 50 command trials with seed 7
-after 9 minutes of training on a local L40S. Three distinct scratch-trained
-gaits are still being evaluated. The new higher, level-foot hopper passed terrain,
+after 9 minutes of training on a local L40S. Two scratch-trained variations,
+flatter feet and quicker steps, also passed; a third distinct gait is still
+being evaluated. Their local training took 14m 54s and 15m 1s respectively.
+The new higher, level-foot hopper passed terrain,
 directional and repeated handover checks, then completed the unchanged course
 with the approved reference walker in 42.82 simulation seconds without falling.
 Its six-stage training lineage took about 19.5 minutes locally, excluding setup

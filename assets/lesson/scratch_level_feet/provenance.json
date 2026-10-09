@@ -1,0 +1,66 @@
+{
+  "checkpoint": "experiments/2026-10-09_193630_740696_scratch_yawbias6_level_feet075_seed7/checkpoints/final.pt",
+  "sha256": "76b241e84d2329b03ec2adcfb0f03a88ae5147403fa2d3759ad27d29a1cb54c7",
+  "seed": 7,
+  "from_scratch": true,
+  "role": "Selected scratch-trained classroom walking variation",
+  "full_command_gate_passed": true,
+  "timing": {
+    "step": 10000,
+    "training_seconds": 894.4223133991472,
+    "session_training_seconds": 894.4223133991472,
+    "setup_seconds": 3.021039418876171,
+    "stopped_by_signal": false,
+    "hardware": "NVIDIA L40S"
+  },
+  "scope": "One training seed, five starting states per command. Local L40S; actual Colab execution pending.",
+  "style": "level_feet",
+  "style_acceptance": "passed measured difference plus inspected equal-speed comparison frames",
+  "matched_control": "experiments/2026-10-09_191009_408207_scratch_yawbias6_control_seed7",
+  "comparison_metrics": {
+    "slow": {
+      "foot_landings_per_second": {
+        "control": 4.628571428571528,
+        "variant": 4.5428571428572395,
+        "fractional_change": -0.0185185185185186
+      },
+      "sole_clearance_p95_m": {
+        "control": 0.018805053904652595,
+        "variant": 0.03231471184641123,
+        "fractional_change": 0.7184057014809293
+      },
+      "swing_sole_tilt_deg": {
+        "control": 14.352791332292378,
+        "variant": 5.296641161206016,
+        "fractional_change": -0.6309678696931174
+      }
+    },
+    "forward": {
+      "foot_landings_per_second": {
+        "control": 4.271428571428663,
+        "variant": 4.471428571428667,
+        "fractional_change": 0.04682274247491636
+      },
+      "sole_clearance_p95_m": {
+        "control": 0.027255285046994687,
+        "variant": 0.03388547156006098,
+        "fractional_change": 0.24326241687196637
+      },
+      "swing_sole_tilt_deg": {
+        "control": 11.96660306444823,
+        "variant": 5.8049353897578735,
+        "fractional_change": -0.514905327895111
+      }
+    }
+  },
+  "inspected_frames": "artifacts/round2_flatfeet075_matched_frames.png",
+  "limitations": "One training seed. Five perturbed evaluation starts per command are not five independent training seeds. Local timing includes concurrent GPU work; actual Colab untested.",
+  "caption": "One changed scalar: level-feet reward 0 \u2192 0.75. Forward swing-foot tilt falls from about 12 to 6 degrees; cadence stays similar. Training: 14m 54s. Both policies train from scratch with seed 7 and 10,000 steps. The variant passes all 50 command trials with zero falls. Same commanded forward speed, normal playback. Local L40S timing; single training seed, actual Colab untested.",
+  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/uusaodqp",
+  "media_sha256": {
+    "comparison.mp4": "2d97616a376150c57c9d218e3a8b0c8b039fd089849e9cce0f768430db8a9d5d",
+    "motion.png": "ef01d68a220176446919c08196bba32aab6021789eb680743e11f5a05eda8951",
+    "learning_curves.png": "baa71e2304867fd4b09d706d6b85d69cf150590f396947109719218055b0e746"
+  },
+  "plot_scope": "Forward command 0.3 m/s; mean and sample SD across five perturbed starts."
+}
