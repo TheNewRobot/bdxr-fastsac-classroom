@@ -58,6 +58,8 @@ def summarize(rows):
             "per_foot_landings": foot_landings,
             "sole_clearance_p95_m": float(np.percentile(clearance.max(axis=1), 95)),
             "mean_sole_tilt_deg": float(np.degrees(tilt).mean()),
+            "swing_sole_tilt_deg": float(np.degrees(tilt[~contacts]).mean())
+                if (~contacts).any() else None,
             "flight_fraction": float(flight.mean()),
             "contact_force_p95": float(np.percentile(
                 [r["total_foot_contact_force"] for r in samples], 95))
@@ -73,6 +75,7 @@ def summarize(rows):
         })
     return {"trials": trials, "excluded_episodes": excluded, "scope": (
         "Actual contact transitions, sampled collision-sole clearance and sole-plane tilt. "
+        "Swing tilt uses each foot only while that foot has no contact, excluding stance samples. "
         "Clear-flight subset requires >=80 ms and >=25 mm simultaneous peak clearance; all intervals are retained. "
         "Contact-free intervals alone do not establish stable landed hops. "
         "Use command acceptance and landed-hop checks separately.")}
