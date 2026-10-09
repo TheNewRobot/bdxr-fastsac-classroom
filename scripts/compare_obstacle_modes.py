@@ -71,6 +71,7 @@ def main():
                     str(walkers), "--hopping", str(hopper), "--start-x", "4",
                     "--seconds", str(args.seconds), "--mode", mode, "--speed",
                     str(speed), "--seed", str(seed), "--course-config", str(config),
+                    "--run-root", str(out / "evaluation/trials"),
                 ], cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT, check=True)
             result = read_report(log.read_text())
             trial = ROOT / result["status"]["experiment"]

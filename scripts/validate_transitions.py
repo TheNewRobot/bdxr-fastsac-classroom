@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from bdxr_classroom.game import GameSession
+from bdxr_classroom.experiments import create_experiment
 
 
 def main():
@@ -26,11 +27,20 @@ def main():
     args = parser.parse_args()
     if args.start_height and args.start_x is None:
         parser.error("--start-height requires --start-x")
+    if args.seeds < 1 or args.cycles < 1:
+        parser.error("--seeds and --cycles must be positive")
+    # Keep per-seed diagnostics beside their suite report, not as unrelated
+    # top-level experiments. Pair checks already store reports under the policy.
+    if args.result_file:
+        trial_root = args.result_file.parent / (args.result_file.stem + "_trials")
+    else:
+        trial_root = create_experiment("transition_validation_suite") / "evaluation/trials"
     reports = []
     for seed in range(args.seeds):
         game = GameSession(args.walking, args.hopping, seed=2000 + seed,
                            flat=args.start_x is None,
                            render=seed == 0, record=seed == 0,
+                           run_root=trial_root,
                            operator="scripted_transition_validation", name="transition_validation")
         visited = []
         try:
