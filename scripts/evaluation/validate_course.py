@@ -17,24 +17,45 @@ def main():
     parser.add_argument("--commands", type=Path)
     parser.add_argument("--seed", type=int, default=263)
     parser.add_argument("--no-video", action="store_true")
+    parser.add_argument("--head-motion-config", type=Path)
     parser.add_argument("--name", default="course_validation")
-    parser.add_argument("--course-config", type=Path,
-                        help="Explicit course calibration settings, saved with the experiment")
+    parser.add_argument(
+        "--course-config",
+        type=Path,
+        help="Explicit course calibration settings, saved with the experiment",
+    )
     args = parser.parse_args()
-    commands = json.loads(args.commands.read_text()) if args.commands else [
-        {"seconds": 6, "speed": .3, "yaw": 0, "mode": "walk"},
-        {"seconds": 4, "speed": .3, "yaw": 0, "mode": "hop"},
-        {"seconds": 6, "speed": .3, "yaw": 0, "mode": "walk"},
-        {"seconds": 5, "speed": .3, "yaw": 0, "mode": "hop"},
-        {"seconds": 6, "speed": .3, "yaw": 0, "mode": "walk"},
-        {"seconds": 4, "speed": .3, "yaw": 0, "mode": "hop"},
-        {"seconds": 23, "speed": .3, "yaw": 0, "mode": "walk"},
-    ]
-    game = GameSession(args.walking, args.hopping, seed=args.seed,
-                       render=not args.no_video, record=not args.no_video,
-                       operator="fixed_scripted_commands_no_feedback", name=args.name,
-                       course=json.loads(args.course_config.read_text()) if args.course_config else None)
-    (game.output / "config/command_schedule.json").write_text(json.dumps(commands, indent=2))
+    commands = (
+        json.loads(args.commands.read_text())
+        if args.commands
+        else [
+            {"seconds": 6, "speed": 0.3, "yaw": 0, "mode": "walk"},
+            {"seconds": 4, "speed": 0.3, "yaw": 0, "mode": "hop"},
+            {"seconds": 6, "speed": 0.3, "yaw": 0, "mode": "walk"},
+            {"seconds": 5, "speed": 0.3, "yaw": 0, "mode": "hop"},
+            {"seconds": 6, "speed": 0.3, "yaw": 0, "mode": "walk"},
+            {"seconds": 4, "speed": 0.3, "yaw": 0, "mode": "hop"},
+            {"seconds": 23, "speed": 0.3, "yaw": 0, "mode": "walk"},
+        ]
+    )
+    game = GameSession(
+        args.walking,
+        args.hopping,
+        seed=args.seed,
+        render=not args.no_video,
+        record=not args.no_video,
+        operator="fixed_scripted_commands_no_feedback",
+        name=args.name,
+        head_config=json.loads(args.head_motion_config.read_text())
+        if args.head_motion_config
+        else None,
+        course=json.loads(args.course_config.read_text())
+        if args.course_config
+        else None,
+    )
+    (game.output / "config/command_schedule.json").write_text(
+        json.dumps(commands, indent=2)
+    )
     try:
         for command in commands:
             game.command(command["speed"], command["yaw"], command["mode"])
@@ -42,13 +63,27 @@ def main():
                 game.step()
                 if game.score.finished or game.score.falls:
                     break
-            print({"time": game.score.elapsed, "position": game.env.scene["robot"].data.root_link_pos_w[0].tolist(),
-                   "mode": game.stage, "falls": game.score.falls}, flush=True)
+            print(
+                {
+                    "time": game.score.elapsed,
+                    "position": game.env.scene["robot"]
+                    .data.root_link_pos_w[0]
+                    .tolist(),
+                    "mode": game.stage,
+                    "falls": game.score.falls,
+                },
+                flush=True,
+            )
             if game.score.finished or game.score.falls:
                 break
-        report = dict(game.status(), course_completed=game.score.finished,
-                      operator="fixed_scripted_commands_no_feedback")
-        (game.output / "evaluation/traversal.json").write_text(json.dumps(report, indent=2))
+        report = dict(
+            game.status(),
+            course_completed=game.score.finished,
+            operator="fixed_scripted_commands_no_feedback",
+        )
+        (game.output / "evaluation/traversal.json").write_text(
+            json.dumps(report, indent=2)
+        )
         print(json.dumps(report, indent=2), flush=True)
     finally:
         game.close()

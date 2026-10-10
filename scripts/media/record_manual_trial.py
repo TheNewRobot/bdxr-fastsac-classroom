@@ -22,11 +22,22 @@ def main():
     parser.add_argument("walking")
     parser.add_argument("hopping")
     parser.add_argument("--course-config", type=Path)
+    parser.add_argument("--head-motion-config", type=Path)
     parser.add_argument("--seed", type=int, default=263)
     args = parser.parse_args()
-    game = GameSession(args.walking, args.hopping, seed=args.seed,
-                       course=json.loads(args.course_config.read_text()) if args.course_config else None,
-                       operator="manual_visual_commands_with_pauses", name="manual_course_trial")
+    game = GameSession(
+        args.walking,
+        args.hopping,
+        seed=args.seed,
+        head_config=json.loads(args.head_motion_config.read_text())
+        if args.head_motion_config
+        else None,
+        course=json.loads(args.course_config.read_text())
+        if args.course_config
+        else None,
+        operator="manual_visual_commands_with_pauses",
+        name="manual_course_trial",
+    )
     preview_count = 0
 
     def preview():
@@ -37,7 +48,10 @@ def main():
         path = game.output / "videos" / f"preview_{preview_count:04d}.png"
         Image.fromarray(game.render()).save(path)
         game.set_camera("follow")
-        print(json.dumps({"status": game.status(), "preview": str(path.resolve())}), flush=True)
+        print(
+            json.dumps({"status": game.status(), "preview": str(path.resolve())}),
+            flush=True,
+        )
 
     try:
         preview()
@@ -52,12 +66,25 @@ def main():
                     continue
                 seconds = float(command.get("seconds", 0))
                 if not 0 <= seconds <= 10:
-                    raise ValueError("Commands must last between zero and ten simulation seconds")
+                    raise ValueError(
+                        "Commands must last between zero and ten simulation seconds"
+                    )
                 with (game.output / "metrics/operator_commands.jsonl").open("a") as log:
-                    log.write(json.dumps({"time_before": game.score.elapsed, "command": command,
-                                          "operator": "visual inspection between paused commands"}) + "\n")
-                game.command(command.get("speed", 0), command.get("yaw", 0),
-                             command.get("mode", "walk"))
+                    log.write(
+                        json.dumps(
+                            {
+                                "time_before": game.score.elapsed,
+                                "command": command,
+                                "operator": "visual inspection between paused commands",
+                            }
+                        )
+                        + "\n"
+                    )
+                game.command(
+                    command.get("speed", 0),
+                    command.get("yaw", 0),
+                    command.get("mode", "walk"),
+                )
                 old_falls = game.score.falls
                 for _ in range(round(seconds / game.env.step_dt)):
                     game.step()
