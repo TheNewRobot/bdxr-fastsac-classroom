@@ -13,16 +13,8 @@
 # distant rewards; $\alpha$ controls the entropy contribution. FastSAC makes this
 # off-policy learning loop efficient on the GPU. This lesson uses SAC, not PPO.
 
-# %%
-media_pair(
-    [
-        (
-            "Learning from replay",
-            WORK / "assets/lesson/figures/sac_loop.svg",
-            "Collect experience, sample previous experience, update critics and actor, repeat.",
-        )
-    ]
-)
+# %% [markdown]
+# ![SAC: collect experience, sample replay, update actor and critics](lesson-asset:reference/sac_loop.png)
 
 # %% [markdown]
 # ### Separate learning settings from environment settings
@@ -31,6 +23,20 @@ media_pair(
 # replay samples in a neural-network update. These are different quantities.
 # `steps` counts parallel simulation steps: with 512 robots, one step collects
 # 512 transitions. The training curve plots collected transitions.
+
+# %% [markdown]
+# | Learning setting | Recorded baseline | What it changes |
+# |---|---|---|
+# | Parallel robots | 512 | Experience collected each simulation step |
+# | Batch size | 2,048 | Replay samples used per update |
+# | Simulation steps | 10,000 | Up to 5.12 million collected transitions |
+# | Discount | 0.97 | Emphasis on future reward |
+# | Updates per step | 4 | Learning work per collection step |
+#
+# ### Your activity · configure and inspect SAC
+#
+# Keep these settings for the first run. Inspect the network and store one
+# transition before launching training. A single untrained action is not walking.
 
 # %%
 LEARNING_CONFIG = {

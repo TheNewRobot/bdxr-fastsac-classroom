@@ -5,6 +5,22 @@
 # configurations, checkpoints, curves, and recorded gameplay. Including replay
 # makes the file larger but preserves collected experience for continuation.
 
+# %% [markdown]
+# ### What your evidence should contain
+#
+# | Evidence | Question it answers |
+# |---|---|
+# | Config, seed, actual steps and timing | What exactly did you train? |
+# | Checkpoint and before/after video | What behavior did learning produce? |
+# | Learning curve and command checks | Did reward improve, and does it work? |
+# | Matched gait comparison | Did the chosen reward change movement? |
+# | Gameplay recording and score | Where did your controller succeed or fall? |
+#
+# ### Your activity · export your results
+#
+# The cells below show your gameplay recordings and package your runs. Instructor
+# examples remain in the lesson; they are not evidence that your training passed.
+
 # %%
 recordings = pause_and_recordings(lab, GAME_PORT)
 for video in recordings:

@@ -102,8 +102,8 @@ def interactive_html(path, height=610):
     )
 
 
-def reference_comparison(video, reference_image, reference_page):
-    """Load credited reference imagery from its publisher, alongside local inference."""
+def reference_comparison(video, reference_image, reference_page, reference_photo=None):
+    """Display credited reference imagery beside local inference."""
     import urllib.request
 
     from IPython.display import HTML, display
@@ -112,16 +112,22 @@ def reference_comparison(video, reference_image, reference_page):
     image = html.escape(reference_image, quote=True)
     page = html.escape(reference_page, quote=True)
     try:
-        # Fetch at execution time: some notebook frontends block remote <img>
-        # requests. The third-party photo is still absent from the source bundle.
-        request = urllib.request.Request(
-            reference_image, headers={"User-Agent": "Mozilla/5.0"}
-        )
-        with urllib.request.urlopen(request, timeout=15) as response:
-            mime = response.headers.get_content_type()
-            if not mime.startswith("image/"):
-                raise ValueError("The publisher did not return an image.")
-            image = f"data:{mime};base64," + base64.b64encode(response.read()).decode()
+        if reference_photo is not None:
+            image = (
+                "data:image/jpeg;base64,"
+                + base64.b64encode(Path(reference_photo).read_bytes()).decode()
+            )
+        else:
+            request = urllib.request.Request(
+                reference_image, headers={"User-Agent": "Mozilla/5.0"}
+            )
+            with urllib.request.urlopen(request, timeout=15) as response:
+                mime = response.headers.get_content_type()
+                if not mime.startswith("image/"):
+                    raise ValueError("The publisher did not return an image.")
+                image = (
+                    f"data:{mime};base64," + base64.b64encode(response.read()).decode()
+                )
     except (OSError, ValueError):
         pass  # The linked source and image alt text remain useful offline.
     display(
@@ -130,7 +136,7 @@ def reference_comparison(video, reference_image, reference_page):
             + f'''<div class="bdx-grid">
     <article class="bdx-card"><h4>Real-world inspiration</h4>
     <a href="{page}" target="_blank" rel="noopener"><img style="aspect-ratio:3/2;object-fit:contain;background:#e8efeb" src="{image}" alt="Disney BDX droids — see the credited D23 article"></a>
-    <p>Disney BDX droids. Reference photograph served from D23 (Disney).
+    <p>Disney BDX droids. Reference photograph: D23 (Disney); not relicensed.
     <a href="{page}" target="_blank" rel="noopener">Read the source article</a>.</p></article>
     <article class="bdx-card"><h4>Our simulated BDX-R walker</h4>
     <video style="aspect-ratio:3/2;object-fit:contain;background:#e8efeb" controls playsinline preload="metadata" src="data:video/mp4;base64,{data}"></video>

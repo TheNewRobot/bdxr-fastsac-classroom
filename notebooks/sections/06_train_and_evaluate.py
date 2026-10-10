@@ -6,6 +6,26 @@
 # a timestamped experiment folder. The helper only runs the training program
 # and manages its output paths; the learning settings remain visible here.
 
+# %% [markdown]
+# ### Instructor example · a real fresh-training run
+#
+# ![Fresh seed-7 walking learning curve](lesson-asset:reference/scratch_learning.png)
+#
+# This is the recorded seed-7 baseline trained from scratch, not a student run and
+# not the recovery-stage curve of the opening walker. A rising return is evidence
+# of learning, but the command tests still decide whether the policy is useful.
+#
+# ![Measured forward trajectory of the scratch baseline](lesson-asset:reference/scratch_forward.png)
+#
+# A zero-turn command should give a nearly straight path. Evaluation uses world
+# position to measure drift; the actor does not receive that position.
+#
+# ### Your activity · train, record, and evaluate
+#
+# The following cells create **your** before/after videos, learning curve, and
+# command checks. Compare them with the instructor examples; different hardware
+# or random outcomes may change the result.
+
 # %%
 BASELINE = lab.train("command_walking_baseline", ENV_CONFIG, LEARNING_CONFIG)
 INITIAL_BASELINE = BASELINE

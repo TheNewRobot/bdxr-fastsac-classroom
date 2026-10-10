@@ -11,7 +11,7 @@
 # parallel to the floor. Sampled touchdown-force peaks were about 30% lower than
 # the earlier hopper, but 20 ms samples are not exact substep impact forces.
 
-# %%
+# %% [hidden] [instructor]
 media_pair(
     [
         (
@@ -44,27 +44,33 @@ recorded_details(
 # separate from the short walking exercise. Skipping it leaves walking available
 # for exploratory play; it does not provide a validated hopping controller.
 
+# %% [markdown]
+# ![Measured instructor hopping](lesson-asset:course_hops/motion.png)
+#
+# The video above is an instructor reference, available without training.
+# The table below is the recorded curriculum; every stage starts from its listed predecessor.
+
+# %% [markdown]
+# | Stage | Steps | Requested foot height (m) | Terrain height (m) |
+# |---|---:|---:|---:|
+# | tiny_hops | 4,000 | 0.04 | 0 |
+# | moving_hops | 6,000 | 0.07 | 0 |
+# | terrain_hops | 2,000 | 0.045 | 0.025 |
+# | level_hops | 5,000 | 0.065 | 0 |
+# | level_terrain_hops | 3,000 | 0.065 | 0.025 |
+# | natural_hops | 1,000 | 0.065 | 0.025 |
+# | block_hops | 2,000 | 0.065 | 0.025 |
+# | soft_landing_hops | 1,000 | 0.065 | 0.025 |
+#
+# ### Your optional activity · train and validate hopping
+#
+# Enable the toggle below to generate your own policies and videos. Leaving it
+# off does not train or download an instructor checkpoint.
+
 # %%
 from bdxr_classroom.lesson.hopping import load_curriculum, train_stage, validate_pair
 
 CURRICULUM = load_curriculum(WORK)
-table(
-    [
-        (
-            stage["name"],
-            stage["learning"]["steps"],
-            stage["environment"].get("hop_height"),
-            stage["environment"].get("training_terrain_height", 0),
-        )
-        for stage in CURRICULUM
-    ],
-    [
-        "Stage",
-        "Training steps",
-        "Requested foot height (m)",
-        "Physical terrain height (m)",
-    ],
-)
 
 # %%
 TRAIN_HOPPING = False  # @param {type:"boolean"}

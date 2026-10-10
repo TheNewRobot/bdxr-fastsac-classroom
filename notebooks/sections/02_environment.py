@@ -8,6 +8,26 @@
 # and rules for ending an episode. We first inspect **one** robot. Training will
 # use many independent copies of this same task.
 
+# %% [markdown]
+# ### Instructor example · the environment you will build
+#
+# ![BDX-R at its initial pose](lesson-asset:reference/robot.png)
+#
+# This is a render of the actual model at reset, before learning.
+#
+# | Setting | Baseline | Meaning |
+# |---|---|---|
+# | Physics update | 5 ms | Integrate forces and contacts |
+# | Policy update | 20 ms | Choose new joint targets |
+# | Episode limit | 10 s | Reset and try again |
+# | Speed command | −0.25 to +0.50 m/s | Backward through fast forward |
+# | Turn command | −0.60 to +0.60 rad/s | Right and left turns |
+#
+# ### Your activity · install, configure, and render
+#
+# Run the setup and environment cells below. Your own model render will appear
+# beneath the final display cell. Compare its pose with the reference above.
+
 # %% [hidden]
 # @title Install pinned dependencies
 setup_start = time.monotonic()

@@ -66,6 +66,8 @@ heading correction. World measurements are used for evaluation and game scoring.
 Edit the teaching cells in `notebooks/sections/`, then rebuild the portable file
 with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classroom
 code and selected recordings; students do not need access to the repository.
+Instructor figures and video players are already visible on opening; students
+run the activity cells to generate their own separate results.
 
 ## Local use
 
