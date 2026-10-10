@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--mode", choices=["walk", "hop"], default="walk")
     parser.add_argument("--seed", type=int, default=263)
     parser.add_argument("--course-config", type=Path)
+    parser.add_argument("--head-motion-config", type=Path)
     parser.add_argument(
         "--run-root",
         type=Path,
@@ -41,6 +42,9 @@ def main():
         run_root=args.run_root,
         operator="injected_start_segment_diagnostic",
         name="course_segment_diagnostic",
+        head_config=json.loads(args.head_motion_config.read_text())
+        if args.head_motion_config
+        else None,
     )
     description = dict(
         vars(args), scope="Injected start, partial course only; not a full traversal"
@@ -49,6 +53,9 @@ def main():
         str(args.course_config) if args.course_config else None
     )
     description["run_root"] = str(args.run_root)
+    description["head_motion_config"] = (
+        str(args.head_motion_config) if args.head_motion_config else None
+    )
     (game.output / "config/segment.json").write_text(json.dumps(description, indent=2))
     try:
         state = torch.tensor(

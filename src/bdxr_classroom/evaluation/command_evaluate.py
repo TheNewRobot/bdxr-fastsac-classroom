@@ -88,7 +88,11 @@ def load_agent(checkpoint, num_envs):
 
 def run_case(env, agent, case, seconds, video=None, seed=1000, head_config=None):
     env.reset(seed=seed)
-    head = HeadMotion(env, head_config) if head_config and head_config.enabled else None
+    head = (
+        HeadMotion(env, head_config)
+        if head_config and (head_config.enabled or head_config.level_gaze_in_render)
+        else None
+    )
     env.cfg.episode_length_s = seconds + 1
     robot = env.scene["robot"].data
     origin = robot.root_link_pos_w[:, :2].clone()
@@ -244,7 +248,7 @@ def run_case(env, agent, case, seconds, video=None, seed=1000, head_config=None)
                     }
                 )
             if writer and step % 2 == 0 and current_alive[0]:
-                frame = Image.fromarray(env.render())
+                frame = Image.fromarray(head.render() if head else env.render())
                 draw = ImageDraw.Draw(frame)
                 draw.rectangle((0, 0, frame.width, 35), fill="#173f32")
                 draw.text(

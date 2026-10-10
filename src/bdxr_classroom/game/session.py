@@ -107,7 +107,9 @@ class GameSession:
         self.env.cfg.episode_length_s = 1e9
         self.head_config = HeadMotionConfig(**(head_config or {}))
         self.head = (
-            HeadMotion(self.env, self.head_config) if self.head_config.enabled else None
+            HeadMotion(self.env, self.head_config)
+            if self.head_config.enabled or self.head_config.level_gaze_in_render
+            else None
         )
         self.foot_ids, _ = self.env.scene["robot"].find_sites(
             ["left_foot", "right_foot"]
@@ -331,7 +333,7 @@ class GameSession:
         return self.status()
 
     def render(self):
-        frame = Image.fromarray(self.env.render())
+        frame = Image.fromarray(self.head.render() if self.head else self.env.render())
         draw = ImageDraw.Draw(frame)
         draw.rectangle((0, 0, frame.width, 35), fill="#173f32")
         draw.text(

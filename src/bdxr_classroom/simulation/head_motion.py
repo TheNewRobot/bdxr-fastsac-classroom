@@ -1,8 +1,8 @@
 """Optional procedural head expression, separate from learned leg control.
 
-Only commands, mode, and time drive this presentation layer. It never changes
-leg actions, actor observations, rewards, or the head actuator gains. Neutral is
-the default until an explicit configuration enables validated expression.
+Commands, mode, and time drive the physical gestures. Leg actions, observation
+definitions, reward settings, and actuator gains remain unchanged. Optional
+level gaze affects only the rendered state, not the simulated articulation.
 """
 
 from dataclasses import asdict, dataclass
@@ -17,7 +17,8 @@ JOINT_NAMES = ("Neck_Pitch", "Head_Pitch", "Head_Yaw", "Head_Roll")
 @dataclass(frozen=True)
 class HeadMotionConfig:
     enabled: bool = False
-    walk_amplitude: float = 0.025  # radians; gentle nod around a forward gaze.
+    level_gaze_in_render: bool = False  # cosmetic only; never changes physics.
+    walk_amplitude: float = 0.025  # radians; small nod around nominal targets.
     idle_yaw: float = 0.08  # radians; occasional curious glances.
     idle_tilt: float = 0.0075  # radians.
     walk_frequency: float = 1.5  # bobs/second before the motion filter.
@@ -58,6 +59,7 @@ class HeadMotion:
     """Smooth four-joint targets; actual servo dynamics remain in the simulator."""
 
     def __init__(self, env, config=None):
+        self.env = env
         self.config = config or HeadMotionConfig()
         self.robot = env.scene["robot"]
         self.joint_ids, names = self.robot.find_joints(JOINT_NAMES, preserve_order=True)
@@ -146,4 +148,64 @@ class HeadMotion:
             **asdict(self.config),
             "joint_names": list(JOINT_NAMES),
             "type": "procedural expression; not learned locomotion",
+            "gaze_correction": (
+                "render-only articulation; physical head and locomotion unchanged"
+                if self.config.level_gaze_in_render
+                else "none"
+            ),
         }
+
+    def render(self):
+        """Level the displayed gaze in the renderer's private state copy.
+
+        The simulated head retains its validated servo targets and inertia.
+        This cosmetic articulation is deliberately not presented as a physical
+        head-control result. No observation, reward, or simulation state is edited.
+        """
+        if not self.config.level_gaze_in_render:
+            return self.env.render()
+        import mujoco
+
+        renderer = self.env._offline_renderer
+        if renderer is None:
+            raise RuntimeError("Head presentation requires an initialized renderer.")
+        renderer.update(self.env.sim.data)
+        model, data = renderer._model, renderer._data
+        joint = model.joint("robot/Head_Pitch").id
+        body = model.body("robot/Head_Base_Plate").id
+        forward = data.xmat[body].reshape(3, 3)[:, 0]
+        axis = data.xaxis[joint]
+        constant = axis[2] * float(axis @ forward)
+        cosine = forward[2] - constant
+        sine = np.cross(axis, forward)[2]
+        # Retain a restrained nod around the horizon instead of a fixed stare.
+        target_z = -0.4 * self.position[0]
+        correction = 0.0
+        for _ in range(5):
+            value = (
+                cosine * math.cos(correction) + sine * math.sin(correction) + constant
+            )
+            derivative = -cosine * math.sin(correction) + sine * math.cos(correction)
+            if abs(derivative) < 1e-6:
+                break
+            correction = float(
+                np.clip(correction - (value - target_z) / derivative, -1.2, 1.2)
+            )
+        address = model.jnt_qposadr[joint]
+        physical_position = float(data.qpos[address])
+        data.qpos[address] = np.clip(
+            physical_position + correction, *model.jnt_range[joint]
+        )
+        mujoco.mj_forward(model, data)
+        self.last_render = {
+            "physical_head_pitch": physical_position,
+            "displayed_head_pitch": float(data.qpos[address]),
+            "gaze_elevation_deg": float(
+                np.rad2deg(
+                    np.arcsin(np.clip(data.xmat[body].reshape(3, 3)[2, 0], -1, 1))
+                )
+            ),
+            "scope": "render-only",
+        }
+        renderer.renderer.update_scene(data, camera=renderer._cam)
+        return renderer.render()

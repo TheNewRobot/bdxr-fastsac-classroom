@@ -108,7 +108,11 @@ def main():
     try:
         for episode in range(args.episodes):
             obs, _ = env.reset(seed=1000 + episode)
-            head = HeadMotion(env, head_config) if head_config.enabled else None
+            head = (
+                HeadMotion(env, head_config)
+                if head_config.enabled or head_config.level_gaze_in_render
+                else None
+            )
             reward_total = 0.0
             fell = False
             previous_action = torch.zeros(
@@ -155,7 +159,7 @@ def main():
                 samples.append(sample)
                 reward_total += sample["reward"]
                 if writer and episode == 0 and t % 2 == 0:
-                    writer.append_data(env.render())
+                    writer.append_data(head.render() if head else env.render())
                 if terminated.item() or truncated.item():
                     fell = bool(terminated.item())
                     break

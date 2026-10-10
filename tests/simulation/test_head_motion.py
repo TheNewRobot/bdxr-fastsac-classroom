@@ -29,6 +29,19 @@ class RobotFixture:
 
 
 class HeadMotionTests(unittest.TestCase):
+    def test_render_option_preserves_physical_target_sequence(self):
+        ordinary, _ = self.make_head(enabled=True)
+        visual, _ = self.make_head(enabled=True, level_gaze_in_render=True)
+        for mode, speed, yaw in [("walk", .3, 0), ("walk", 0, 0), ("hop", .3, 0)]:
+            for _ in range(300):
+                np.testing.assert_array_equal(
+                    ordinary.step(.02, speed, yaw, mode),
+                    visual.step(.02, speed, yaw, mode),
+                )
+        cosmetic, robot = self.make_head(level_gaze_in_render=True)
+        cosmetic.step(.02, .3, 0)
+        self.assertEqual(robot.writes, 0)
+
     def make_head(self, **options):
         robot = RobotFixture()
         robot.targets[:, :10] = 0.25
