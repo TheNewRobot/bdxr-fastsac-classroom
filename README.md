@@ -13,7 +13,7 @@ load their policies into the final interactive course.
 **Measured locally:** the scratch walking baseline passed 50 command trials
 after about 9 minutes on an L40S. Three scratch-trained variations passed too:
 flatter feet, quicker steps, and crouched walking. The hopping curriculum took
-about 23 minutes; the recorded course finished in 53.14 simulated seconds with
+about 23 minutes; the recorded course finished in 53.06 simulated seconds with
 visual steering and no falls. These are selected results from individual
 training seeds, not guaranteed outcomes. **Actual Google Colab execution remains
 untested.** See the short [results guide](docs/results.md) for matched-control
@@ -24,6 +24,9 @@ caveats and acceptance checks. Detailed timings accompany the lesson recordings.
 [Compare the reference and three walking styles](assets/lesson/walking_overview/comparison.mp4).
 [Watch the new course run](assets/lesson/course25_run/rollout.mp4) or
 [compare the hopping motions](assets/lesson/course_hops/comparison.mp4).
+
+The displayed head gaze is cosmetic; simulated leg motion and physical head
+targets are unchanged. A physical neutral-pose correction remains unvalidated.
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
 - [Short instructor notes](docs/instructor_notes.md)

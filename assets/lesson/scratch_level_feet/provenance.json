@@ -60,5 +60,6 @@
     "motion.png": "ef01d68a220176446919c08196bba32aab6021789eb680743e11f5a05eda8951",
     "learning_curves.png": "baa71e2304867fd4b09d706d6b85d69cf150590f396947109719218055b0e746"
   },
-  "plot_scope": "Forward command 0.3 m/s; mean and sample SD across five perturbed starts."
+  "plot_scope": "Forward command 0.3 m/s; mean and sample SD across five perturbed starts.",
+  "display_scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
 }

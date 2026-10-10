@@ -2,7 +2,7 @@
   {
     "file": "walking.gif",
     "source": "command_walking/rollout.mp4",
-    "source_sha256": "b6784eaa39a37d92526ad16a61e973b8aa4a2499aab1903f0f52ab92f767cc98",
+    "source_sha256": "84c1c55544565bddbbb11a79d69cb1a53045074a8fd72f3267e722e31eab9185",
     "seconds": 6,
     "fps": 8,
     "width": 480,
@@ -11,7 +11,7 @@
   {
     "file": "level_feet.gif",
     "source": "scratch_level_feet/comparison.mp4",
-    "source_sha256": "699f380b97678398554d57ff9856a7510c4a1f50b824aac2f05ac89604250d53",
+    "source_sha256": "fbdfd0da9309b76b9450875fe30de767cfaa7ee6804e022f42b30baad87aacce",
     "seconds": 6,
     "fps": 8,
     "width": 640,
@@ -20,7 +20,7 @@
   {
     "file": "quick_steps.gif",
     "source": "scratch_quick_steps/comparison.mp4",
-    "source_sha256": "d4a66c3cdbd61c9c9687c3361142d7ee4d0289652b35150ffdd62a3b1044de39",
+    "source_sha256": "7bf60c3bd9ee13343df17df0ae0e658c497523926d60a8151dfe559873915e58",
     "seconds": 6,
     "fps": 8,
     "width": 640,
@@ -29,7 +29,7 @@
   {
     "file": "crouched.gif",
     "source": "scratch_crouched/comparison.mp4",
-    "source_sha256": "ad034448cd65708edc33762128bdb620caec999842756756a4b89bff977a493e",
+    "source_sha256": "7fd551bd94ff3a2ccfa1ec3273a670befa7ba3935ec26c4c40b1f3da1ba38c52",
     "seconds": 6,
     "fps": 8,
     "width": 640,
@@ -38,7 +38,7 @@
   {
     "file": "hopping.gif",
     "source": "course_hops/comparison.mp4",
-    "source_sha256": "c6ed207d141a150b8e59c4c3403fc559aac3ae580a9df48822caaadd20662e3c",
+    "source_sha256": "67d9c5de6fd62ce25dc5be71803191b7f9b46cab4e0a87a617d9a1d68a8fa5dd",
     "seconds": 6,
     "fps": 12,
     "width": 480,
@@ -47,7 +47,7 @@
   {
     "file": "hopping_slow.gif",
     "source": "course_hops/half_speed.mp4",
-    "source_sha256": "0adae99fbdf8027b9f21e4a3aa322cccf28e8842606dd2941486af7868b41fc4",
+    "source_sha256": "11a295c12995b4bb8893ad7ba328e3286bfca55ddd330fa6968704a88b5571c8",
     "seconds": 8,
     "fps": 12,
     "width": 480,
@@ -56,7 +56,7 @@
   {
     "file": "obstacle.gif",
     "source": "obstacle_comparison/comparison.mp4",
-    "source_sha256": "24efbd6f198658c15457bb479aaad7c2e29ec7114fda247757f5e36af4df67ef",
+    "source_sha256": "2a8127cd95085f14824128e396b96ac6387576792fa1263a532a6b898078732b",
     "seconds": 6,
     "fps": 8,
     "width": 480,
@@ -66,7 +66,7 @@
   {
     "file": "course.gif",
     "source": "course25_run/rollout.mp4",
-    "source_sha256": "a58af732092316e90bd864f27d04b8da862d5e8f65c9c7432181a30580b421df",
+    "source_sha256": "a1f35a6ad9d03972fe83920f2b6127bfc8298110ec04371051e672b926be80e3",
     "seconds": 8,
     "fps": 8,
     "width": 480,

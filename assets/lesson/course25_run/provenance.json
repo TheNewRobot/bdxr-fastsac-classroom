@@ -1,11 +1,11 @@
 {
   "finished": true,
   "falls": 0,
-  "simulation_seconds": 53.14,
+  "simulation_seconds": 53.06,
   "checkpoints": 4,
-  "previews_recorded": 19,
-  "scope": "Full 25 mm middle-step course, visual steering with pauses. Not autonomous navigation or real-time human gameplay.",
-  "operator": "Commands chosen from rendered previews; no world-pose feedback controller.",
+  "previews_recorded": 15,
+  "scope": "Full 25 mm middle-step course, commands chosen from rendered previews with pauses. Not autonomous navigation or real-time human gameplay.",
+  "operator": "Visual steering; no world-pose feedback controller.",
   "walking_checkpoint": "final.pt",
   "hopping_checkpoint": "step_001000.pt",
   "head_motion": {
@@ -16,24 +16,11 @@
     "max_velocity": 0.4,
     "max_acceleration": 1.2,
     "response_frequency": 4.0,
-    "seed": 7
+    "seed": 7,
+    "level_gaze_in_render": true
   },
+  "display_scope": "Level gaze is a cosmetic render-only adjustment; physical head targets and simulated locomotion remain unchanged.",
   "video_source": "gameplay_001.mp4",
-  "video_sha256": "a58af732092316e90bd864f27d04b8da862d5e8f65c9c7432181a30580b421df",
-  "previous_neutral_runs": [
-    {
-      "simulation_seconds": 49.88
-    },
-    {
-      "finished": true,
-      "falls": 0,
-      "simulation_seconds": 49.4,
-      "checkpoints": 4,
-      "previews_inspected": 13,
-      "seed": 283,
-      "scope": "Full 25mm middle-step course, visually steered with pauses. Not autonomous navigation or real-time human play.",
-      "steering": "Different yaw commands were chosen from rendered previews; the fixed replay for this seed failed to finish."
-    }
-  ],
-  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.14 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play."
+  "video_sha256": "a1f35a6ad9d03972fe83920f2b6127bfc8298110ec04371051e672b926be80e3",
+  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.06 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play."
 }

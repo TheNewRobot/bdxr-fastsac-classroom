@@ -25,5 +25,6 @@
     "Crouched",
     "round2_step9000_showcase"
   ],
-  "claim": "The three style policies passed their full 50-trial command checks; this overview records forward motion only."
+  "claim": "The three style policies passed their full 50-trial command checks; this overview records forward motion only.",
+  "display_scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
 }

@@ -36,10 +36,6 @@
     "mean_clear_landing_peak_force_n": 1273.7634242466515
   },
   "obstacle_evidence": "summary.json",
-  "comparisons": {
-    "normal": "hopping_comparison_side.mp4",
-    "half_speed": "hopping_comparison_side_half_speed.mp4"
-  },
   "status": "Terrain, directions, repeated flat/step handovers, and one visually steered full-course run passed. Fixed command replay from another start missed the finish; steering remains necessary.",
   "seed": 7,
   "training_seconds_selected_lineage": 1370.3420276336838,
@@ -58,5 +54,14 @@
     "steering": "Different yaw commands were chosen from rendered previews; the fixed replay for this seed failed to finish."
   },
   "visual_course_finishes": 2,
-  "fixed_replay_finish_failed": true
+  "fixed_replay_finish_failed": true,
+  "display_scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
+  "original_comparisons": {
+    "normal": "hopping_comparison_side.mp4",
+    "half_speed": "hopping_comparison_side_half_speed.mp4"
+  },
+  "comparisons": {
+    "normal": "assets/lesson/course_hops/comparison.mp4",
+    "half_speed": "assets/lesson/course_hops/half_speed.mp4"
+  }
 }

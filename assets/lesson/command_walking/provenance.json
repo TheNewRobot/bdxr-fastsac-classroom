@@ -12,9 +12,11 @@
     "max_velocity": 0.4,
     "max_acceleration": 1.2,
     "response_frequency": 4.0,
-    "seed": 7
+    "seed": 7,
+    "level_gaze_in_render": true
   },
-  "video_sha256": "b6784eaa39a37d92526ad16a61e973b8aa4a2499aab1903f0f52ab92f767cc98",
+  "video_sha256": "84c1c55544565bddbbb11a79d69cb1a53045074a8fd72f3267e722e31eab9185",
   "encoding": "libx264 CRF28; source resolution, frames, and timing retained",
-  "learning_curve_scope": "Unchanged recovery stage of the reference walker; not the new scratch baseline."
+  "learning_curve_scope": "Unchanged recovery stage of the reference walker; not the new scratch baseline.",
+  "display_scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
 }
