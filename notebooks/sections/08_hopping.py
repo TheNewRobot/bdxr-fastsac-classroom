@@ -13,33 +13,26 @@
 # Watch both feet leave the ground, then inspect the landing.
 
 # %% [markdown]
-# ### Why use a curriculum?
+# ### A curriculum adds one skill at a time
 #
-# Start with an easier task, then add movement and physical terrain. The actor
-# gets a rhythm command for hopping, not a terrain map. Each stage starts from
-# the preceding stage's learned networks with fresh replay.
+# **Rhythm → clearance → foot control → landing.** The goal is not to make every
+# row taller. Some stages return to flat ground to isolate a new skill before
+# adding obstacles again. Each stage starts from its predecessor's networks.
 #
-# The complete eight-stage recorded lineage took about **23 minutes of training**
-# on an L40S, excluding setup and evaluation. This is an extended activity,
-# separate from the short walking exercise. Skipping it leaves walking available
-# for exploratory play; it does not provide a validated hopping controller.
-
-# %% [markdown]
-# ![Measured instructor hopping](lesson-asset:course_hops/motion.png)
+# | Phase | Stages, in order | What changes—and why |
+# |---|---|---|
+# | **1 · Find a rhythm** | 1. Tiny hops → 2. Moving hops | Start on flat ground; then add speed and turning commands. |
+# | **2 · Clear the ground** | 3. Terrain hops | Measure the whole sole in flight and introduce 25 mm terrain. |
+# | **3 · Control both feet** | 4. Level hops → 5. Level terrain hops | Reward simultaneous clearance and flatter soles on flat ground; then restore terrain. |
+# | **4 · Refine the landing** | 6. Natural hops → 7. Block hops → 8. Soft landing hops | Level feet during flight only, practise steps, then reduce body-lift reward. |
 #
-# Recorded measurements above; training stages below. Each stage continues its predecessor.
-
-# %% [markdown]
-# | Stage | Steps | Requested foot height (m) | Terrain height (m) |
-# |---|---:|---:|---:|
-# | tiny_hops | 4,000 | 0.04 | 0 |
-# | moving_hops | 6,000 | 0.07 | 0 |
-# | terrain_hops | 2,000 | 0.045 | 0.025 |
-# | level_hops | 5,000 | 0.065 | 0 |
-# | level_terrain_hops | 3,000 | 0.065 | 0.025 |
-# | natural_hops | 1,000 | 0.065 | 0.025 |
-# | block_hops | 2,000 | 0.065 | 0.025 |
-# | soft_landing_hops | 1,000 | 0.065 | 0.025 |
+# The last phases keep the same 6.5 cm foot target while changing **how** the
+# robot takes off, clears terrain, and lands. The eight recorded stages took
+# about **23 minutes** on an L40S, excluding setup and evaluation.
+#
+# | Recorded hopping measurements |
+# |:---:|
+# | ![Measured instructor hopping](lesson-asset:course_hops/motion.png) |
 #
 # ### Your optional activity · train and validate hopping
 #

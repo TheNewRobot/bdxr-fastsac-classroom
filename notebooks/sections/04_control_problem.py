@@ -46,7 +46,9 @@ print("Joint target scales:", env.cfg.actions["joint_pos"].scale)
 # may be during learning. Only the actor drives the deployed robot.
 
 # %% [markdown]
-# ![Control loop: actor inputs, joint targets, physics, and rewards](lesson-asset:reference/control_loop.png)
+# | Observations, actions and physics |
+# |:---:|
+# | ![Control loop: actor inputs, joint targets, physics, and rewards](lesson-asset:reference/control_loop.png) |
 
 # %% [markdown]
 # ### Define what good walking means

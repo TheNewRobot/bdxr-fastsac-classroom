@@ -11,7 +11,9 @@
 # %% [markdown]
 # ### Instructor example · the environment you will build
 #
-# ![BDX-R at its initial pose](lesson-asset:reference/robot.png)
+# | The model at reset |
+# |:---:|
+# | ![BDX-R at its initial pose](lesson-asset:reference/robot.png) |
 #
 # This is a render of the actual model at reset, before learning.
 #

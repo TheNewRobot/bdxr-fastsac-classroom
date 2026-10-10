@@ -67,51 +67,50 @@ def print_joint_table(env):
 
 
 def save_tree(env, destination):
-    """Collapse rigid links, but derive every joint connection from the model."""
+    """Expand the inspected left leg and collapse the other measured branches."""
     rows = joint_inventory(env)
-    coordinates = {"Floating base": (470, 52)}
-    branches = {"Left": (180, 0), "Right": (470, 0), "Head": (760, 0)}
-    for row in rows:
-        branch = row["name"].split("_")[0]
-        branch = branch if branch in ("Left", "Right") else "Head"
-        x, index = branches[branch]
-        coordinates[row["name"]] = (x, 157 + index * 83)
-        branches[branch] = (x, index + 1)
-    model, _ = model_state(env)
-    for side in ("left", "right"):
-        site = next(
-            i for i in range(model.nsite) if model.site(i).name.endswith(f"{side}_foot")
-        )
-        body = int(model.site_bodyid[site])
-        while body and not model.body_jntnum[body]:
-            body = int(model.body_parentid[body])
-        parent_joint = int(model.body_jntadr[body])
-        parent = model.joint(parent_joint).name.split("/")[-1]
-        name = f"{side}_foot (site)"
-        rows.append({"name": name, "parent": parent})
-        coordinates[name] = (coordinates[parent][0], coordinates[parent][1] + 83)
+    left = [row for row in rows if row["name"].startswith("Left_")]
+    right_count = sum(row["name"].startswith("Right_") for row in rows)
+    head_count = len(rows) - len(left) - right_count
+    coordinates = {"Floating base": (290, 58)}
+    for index, row in enumerate(left):
+        coordinates[row["name"]] = (180, 155 + index * 79)
     parts = [
-        '<svg xmlns="http://www.w3.org/2000/svg" width="940" height="690" viewBox="0 0 940 690">',
-        '<rect width="940" height="690" rx="18" fill="#faf7f0"/>',
+        '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="660" viewBox="0 0 600 660">',
+        '<rect width="600" height="660" rx="16" fill="#faf7f0"/>',
     ]
-    for row in rows:
+    for row in left:
         x1, y1 = coordinates[row["parent"]]
         x2, y2 = coordinates[row["name"]]
         parts.append(
-            f'<path d="M{x1},{y1 + 22} V{y2 - 34} H{x2} V{y2 - 22}" fill="none" stroke="#a6b7ad" stroke-width="3"/>'
+            f'<path d="M{x1},{y1 + 24} V{y2 - 35} H{x2} V{y2 - 24}" fill="none" stroke="#a6b7ad" stroke-width="3"/>'
         )
-    for name, (x, y) in coordinates.items():
-        color = COLORS.get(name.split("_")[0], "#263b3b")
-        if name.endswith("(site)"):
-            color = "#718c83"
-        parts.extend(
-            [
-                f'<rect x="{x - 124}" y="{y - 22}" width="248" height="44" rx="10" fill="{color}"/>',
-                f'<text x="{x}" y="{y + 6}" font-family="sans-serif" font-size="17" text-anchor="middle" fill="white">{html.escape(name)}</text>',
-            ]
+    for index, (name, (x, y)) in enumerate(coordinates.items()):
+        color = (
+            "#263b3b"
+            if not index
+            else ["#006c67", "#2355b9", "#a13e8e", "#cf6517", "#b0303e"][index - 1]
         )
+        label = name if not index else f"{index}  {name}"
+        parts.append(
+            f'<rect x="{x - 145}" y="{y - 24}" width="290" height="48" rx="10" fill="{color}"/><text x="{x}" y="{y + 6}" text-anchor="middle" fill="white" font-family="sans-serif" font-size="19">{label}</text>'
+        )
+    for y, label, color in [
+        (170, f"Right leg · {right_count} joints", "#a8753a"),
+        (285, f"Head/neck · {head_count} joints", "#6376ad"),
+    ]:
+        branch_path = (
+            f"M435,58 H476 V{y - 22}" if y == 170 else f"M435,58 H595 V{y + 11} H589"
+        )
+        parts.append(
+            f'<path d="{branch_path}" fill="none" stroke="#a6b7ad" stroke-width="3"/><rect x="363" y="{y - 22}" width="226" height="66" rx="10" fill="{color}"/><text x="476" y="{y + 3}" text-anchor="middle" fill="white" font-family="sans-serif" font-size="18">{label}</text><text x="476" y="{y + 27}" text-anchor="middle" fill="white" font-family="sans-serif" font-size="14">branch collapsed</text>'
+        )
+    x, y = coordinates[left[-1]["name"]]
     parts.append(
-        '<text x="470" y="658" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#516766">Fixed links collapsed • foot sites are measurement points, not motors</text></svg>'
+        f'<path d="M{x},{y + 24} V{y + 65}" stroke="#a6b7ad" stroke-width="3"/><rect x="55" y="{y + 65}" width="250" height="40" rx="10" fill="#718c83"/><text x="180" y="{y + 91}" text-anchor="middle" fill="white" font-family="sans-serif" font-size="17">left_foot · measurement site</text>'
+    )
+    parts.append(
+        '<text x="300" y="620" text-anchor="middle" fill="#516766" font-family="sans-serif" font-size="16">Connections read from the model. Fixed links collapsed.</text></svg>'
     )
     Path(destination).parent.mkdir(parents=True, exist_ok=True)
     Path(destination).write_text("".join(parts))
@@ -200,76 +199,142 @@ slider.oninput=update;update();</script>'''
 
 
 def save_annotated_pose(env, destination):
-    """Label left-leg joint anchors projected from the actual MuJoCo camera."""
+    """Show a measured joint-center skeleton through translucent model covers.
+
+    Markers are joint anchors, not guesses at points on the outer shell. The
+    annotation records projected centers and camera settings for verification.
+    """
     from PIL import ImageDraw, ImageFont
 
     model, data = model_state(env)
-    root_joint = next(
-        i for i in range(model.njnt) if model.jnt_type[i] == mujoco.mjtJoint.mjJNT_FREE
+    names = [
+        "Left_Hip_Yaw",
+        "Left_Hip_Roll",
+        "Left_Hip_Pitch",
+        "Left_Knee",
+        "Left_Ankle",
+    ]
+    ids = [
+        next(i for i in range(model.njnt) if model.joint(i).name.split("/")[-1] == name)
+        for name in names
+    ]
+    foot = next(
+        i for i in range(model.nsite) if model.site(i).name.endswith("left_foot")
     )
-    root_body = int(model.jnt_bodyid[root_joint])
+    anchors = [data.xanchor[i].copy() for i in ids] + [data.site_xpos[foot].copy()]
     camera = mujoco.MjvCamera()
     camera.type = mujoco.mjtCamera.mjCAMERA_FREE
-    camera.lookat[:] = data.xpos[root_body] + np.array([0, 0, 0.035])
-    camera.distance, camera.azimuth, camera.elevation = 1.15, 65, -12
-    width, height = 640, 620
-    with mujoco.Renderer(model, height=height, width=width) as renderer:
-        renderer.update_scene(data, camera=camera)
-        frame = Image.fromarray(renderer.render())
-        eyes = renderer.scene.camera
-        origin = (eyes[0].pos + eyes[1].pos) / 2
-        forward = eyes[0].forward / np.linalg.norm(eyes[0].forward)
-        up = eyes[0].up / np.linalg.norm(eyes[0].up)
-        right = np.cross(forward, up)
-        vertical = float(eyes[0].frustum_top - eyes[0].frustum_bottom)
-        near = float(eyes[0].frustum_near)
+    camera.lookat[:] = np.mean(anchors, axis=0) + np.array([0, 0, 0.075])
+    camera.distance, camera.azimuth, camera.elevation = 0.90, 115, -10
+    width, height = 600, 660
+    colors = ["#006c67", "#2355b9", "#a13e8e", "#cf6517", "#b0303e"]
+    original = model.geom_rgba.copy()
+    original_height = model.vis.global_.offheight
+    try:
+        model.vis.global_.offheight = max(original_height, height)
+        for geom in range(model.ngeom):
+            if model.geom_group[geom] == 2:
+                model.geom_rgba[geom, 3] = 0.40
+        with mujoco.Renderer(model, height=height, width=width) as renderer:
+            renderer.update_scene(data, camera=camera)
+            frame = Image.fromarray(renderer.render()).convert("RGBA")
+            eyes = renderer.scene.camera
+            origin = (eyes[0].pos + eyes[1].pos) / 2
+            forward = eyes[0].forward / np.linalg.norm(eyes[0].forward)
+            up = eyes[0].up / np.linalg.norm(eyes[0].up)
+            right = np.cross(forward, up)
+            near = float(eyes[0].frustum_near)
+            vertical = float(eyes[0].frustum_top - eyes[0].frustum_bottom)
 
-        def project(point):
-            delta = point - origin
-            depth = float(delta @ forward)
-            scale = near * height / (vertical * depth)
-            return (
-                width / 2 + float(delta @ right) * scale,
-                height / 2 - float(delta @ up) * scale,
-            )
+            def project(point):
+                delta = point - origin
+                depth = float(delta @ forward)
+                scale = near * height / (vertical * depth)
+                return (
+                    width / 2 + float(delta @ right) * scale,
+                    height / 2 - float(delta @ up) * scale,
+                )
 
-        annotated = Image.new("RGB", (1000, height), "#faf7f0")
-        annotated.paste(frame, (0, 0))
-        draw = ImageDraw.Draw(annotated)
-        try:
-            font = ImageFont.truetype("DejaVuSans.ttf", 18)
-            small = ImageFont.truetype("DejaVuSans.ttf", 15)
-        except OSError:
-            font = small = ImageFont.load_default()
-        draw.text((665, 30), "Follow the left leg", font=font, fill="#263b3b")
-        names = [
-            row["name"]
-            for row in joint_inventory(env)
-            if row["name"].startswith("Left_")
-        ]
-        for index, name in enumerate(names):
-            joint = next(
-                i
-                for i in range(model.njnt)
-                if model.joint(i).name.split("/")[-1] == name
-            )
-            x, y = project(data.xanchor[joint])
-            label_y = 115 + index * 88
-            draw.line(
-                [(x, y), (625, label_y + 12), (658, label_y + 12)],
-                fill="#58d5bc",
-                width=2,
-            )
-            draw.ellipse(
-                (x - 5, y - 5, x + 5, y + 5), fill="#25847a", outline="white", width=2
-            )
-            draw.text((665, label_y), name, font=font, fill="#263b3b")
-            axis = model.jnt_axis[joint].round(1).tolist()
-            draw.text(
-                (665, label_y + 28), f"local axis {axis}", font=small, fill="#516766"
-            )
-        draw.text(
-            (665, 580), "Anchors and axes read from model", font=small, fill="#516766"
+            points = [project(point) for point in anchors]
+    finally:
+        model.geom_rgba[:] = original
+        model.vis.global_.offheight = original_height
+    # A light wash makes the skeleton readable without erasing the robot outline.
+    frame = Image.alpha_composite(
+        frame, Image.new("RGBA", frame.size, (250, 247, 240, 45))
+    )
+    draw = ImageDraw.Draw(frame)
+    font = ImageFont.truetype("DejaVuSans.ttf", 19)
+    small = ImageFont.truetype("DejaVuSans.ttf", 15)
+    bold = ImageFont.truetype("DejaVuSans-Bold.ttf", 17)
+    draw.rounded_rectangle((12, 10, 588, 65), radius=12, fill="#faf7f0")
+    draw.text(
+        (26, 19),
+        "Left leg • joint centers inside the covers",
+        font=font,
+        fill="#263b3b",
+    )
+    draw.text(
+        (26, 43),
+        "Solid segments show the kinematic chain, not link shapes.",
+        font=small,
+        fill="#516766",
+    )
+    for a, b in zip(points, points[1:]):
+        draw.line([a, b], fill="white", width=7)
+        draw.line([a, b], fill="#263b3b", width=3)
+    # Place the three close hip labels separately; endpoints stay at exact centers.
+    label_positions = [(40, 130), (40, 205), (380, 265), (40, 390), (380, 490)]
+    for index, (name, point, label, color) in enumerate(
+        zip(names, points, label_positions, colors)
+    ):
+        x, y = point
+        lx, ly = label
+        draw.line([(x, y), (lx + 80, ly + 16)], fill=color, width=2)
+        draw.ellipse((x - 7, y - 7, x + 7, y + 7), fill=color, outline="white", width=2)
+        draw.rounded_rectangle(
+            (lx - 5, ly - 5, lx + 174, ly + 44), radius=8, fill="#faf7f0"
         )
-    Path(destination).parent.mkdir(parents=True, exist_ok=True)
-    annotated.save(destination)
+        draw.text(
+            (lx, ly),
+            f"{index + 1}  {name.replace('Left_', '').replace('_', ' ')}",
+            font=bold,
+            fill=color,
+        )
+        draw.text(
+            (lx, ly + 23),
+            f"axis {model.jnt_axis[ids[index]].round(1).tolist()}",
+            font=small,
+            fill="#516766",
+        )
+    x, y = points[-1]
+    draw.ellipse((x - 5, y - 5, x + 5, y + 5), fill="#263b3b", outline="white", width=2)
+    draw.rounded_rectangle((12, 612, 588, 651), radius=10, fill="#faf7f0")
+    draw.text(
+        (26, 622),
+        "Opaque dots = model anchors; covers shown translucent.",
+        font=small,
+        fill="#263b3b",
+    )
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    frame.convert("RGB").save(destination)
+    destination.with_suffix(".json").write_text(
+        json.dumps(
+            {
+                "description": "Actual MuJoCo joint anchors projected through the rendered camera; not shell landmarks.",
+                "camera": {"azimuth": 115, "elevation": -10, "distance": 0.90},
+                "joints": [
+                    {
+                        "name": name,
+                        "world_anchor": anchor.tolist(),
+                        "pixel": list(pixel),
+                        "local_axis": model.jnt_axis[joint].tolist(),
+                    }
+                    for name, joint, anchor, pixel in zip(names, ids, anchors, points)
+                ],
+            },
+            indent=2,
+        )
+        + "\n"
+    )

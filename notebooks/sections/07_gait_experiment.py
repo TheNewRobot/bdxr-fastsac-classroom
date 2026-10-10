@@ -29,26 +29,23 @@
 # %% [markdown]
 # #### Instructor example · Flatter feet
 #
-# ![Measured gait differences](lesson-asset:scratch_level_feet/motion.png)
-
-# %% [markdown]
-# ![Recorded flatter-foot comparison at matched commands](lesson-asset:inline/level_feet.gif)
+# | Matched-command example | Measured gait differences |
+# |:---:|:---:|
+# | ![Recorded flatter-foot comparison at matched commands](lesson-asset:inline/level_feet.gif) | ![Measured gait differences](lesson-asset:reference/level_feet_focus.png) |
 
 # %% [markdown]
 # #### Instructor example · Quicker steps
 #
-# ![Measured gait differences](lesson-asset:scratch_quick_steps/motion.png)
-
-# %% [markdown]
-# ![Recorded quick-step comparison at matched commands](lesson-asset:inline/quick_steps.gif)
+# | Matched-command example | Measured gait differences |
+# |:---:|:---:|
+# | ![Recorded quick-step comparison at matched commands](lesson-asset:inline/quick_steps.gif) | ![Measured gait differences](lesson-asset:reference/quick_steps_focus.png) |
 
 # %% [markdown]
 # #### Instructor example · Crouched walking
 #
-# ![Measured gait differences](lesson-asset:scratch_crouched/motion.png)
-
-# %% [markdown]
-# ![Recorded crouched comparison at matched commands](lesson-asset:inline/crouched.gif)
+# | Matched-command example | Measured gait differences |
+# |:---:|:---:|
+# | ![Recorded crouched comparison at matched commands](lesson-asset:inline/crouched.gif) | ![Measured gait differences](lesson-asset:reference/crouched_focus.png) |
 
 # %% [markdown]
 # ### Your turn

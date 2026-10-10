@@ -14,7 +14,9 @@
 # %% [markdown]
 # ### Instructor example · the course
 #
-# ![Desert Droid Run terrain](lesson-asset:course_preview.png)
+# | The course |
+# |:---:|
+# | ![Desert Droid Run terrain](lesson-asset:course_preview.png) |
 #
 # Locate the three obstacles, rough ground, and raised finish before watching the run.
 # You will steer your own trained controller through this same world.

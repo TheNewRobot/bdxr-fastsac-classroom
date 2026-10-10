@@ -6,12 +6,14 @@
       "sha256": "2a894d8b429d656e81b8bb28853ee9acbee6676b7072b84c81bd2385350da4d6"
     },
     "annotated_robot.png": {
-      "source": "/tmp/bdxr-lesson-release-check/figures/annotated_robot.png",
-      "sha256": "88764281b721dcbb745aa04e3f7825a5893ed29faebcfae0a1dbfdd3b0802336"
+      "source": "artifacts/final_round/kinematics/annotated_robot.png",
+      "sha256": "febd44e6203df8fa9f321c88f4aedad7b0b029604efadbac2865793157daa3b8",
+      "description": "Measured MuJoCo model joint centers and connectivity; left leg expanded, other branches collapsed."
     },
     "kinematic_tree.svg": {
-      "source": "/tmp/bdxr-lesson-release-check/figures/kinematic_tree.svg",
-      "sha256": "b8ddde416f9b22118c5554650f442221598160f6eae362a5924e01f7b10e5749"
+      "source": "artifacts/final_round/kinematics/kinematic_tree.svg",
+      "sha256": "aed308a6931014fa00d5bc0f23cf3b24d57e87a5c8b3822d1cecbf14feb734e2",
+      "description": "Measured MuJoCo model joint centers and connectivity; left leg expanded, other branches collapsed."
     },
     "scratch_learning.png": {
       "source": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/metrics/training.jsonl",
@@ -21,7 +23,7 @@
     "scratch_forward.png": {
       "source": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/evaluation/final_commands/forward_motion.json",
       "source_sha256": "c5f487cec134377855b4537d0ff6f5cc52781d7a6f82cf6261c2900b8d2a146e",
-      "description": "Measured drift, speed and yaw against time, replotted from the same recorded trials; no retraining."
+      "description": "Lateral drift from the original validated seed-7 forward trials."
     },
     "knee_path.png": {
       "source": "/tmp/bdxr-lesson-release-check/figures/knee_sweep.json",
@@ -29,9 +31,9 @@
       "description": "Plot of measured forward-kinematics positions; root and other joints fixed."
     },
     "kinematic_tree.png": {
-      "source": "assets/lesson/reference/kinematic_tree.svg",
-      "description": "PNG rendering of the original SVG for notebook attachment compatibility.",
-      "source_sha256": "b8ddde416f9b22118c5554650f442221598160f6eae362a5924e01f7b10e5749"
+      "source": "artifacts/final_round/kinematics/kinematic_tree.png",
+      "sha256": "85081c6d75d003a3f680393136851b12cd2086278af1d4167b209d685990c76d",
+      "description": "Measured MuJoCo model joint centers and connectivity; left leg expanded, other branches collapsed."
     },
     "control_loop.png": {
       "source": "assets/lesson/figures/control_loop.svg",
@@ -47,6 +49,222 @@
       "source": "https://d23.com/app/uploads/2025/04/ADK_00797.jpg",
       "credit": "D23 / Disney. Reference photograph; not our hardware, controller, or training result. Not relicensed.",
       "description": "Preserved from the previously executed notebook output for inline viewing."
+    },
+    "level_feet_focus.png": {
+      "sources": [
+        {
+          "path": "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/scratch/gait_measurements.json",
+          "sha256": "fc4960805e6a498083ab454b55011a20d43d55d4ec33bff5fd0eb51e7ab7180d"
+        },
+        {
+          "path": "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/level_feet/gait_measurements.json",
+          "sha256": "1481998e00dcb6556e72fe70c3a522809c200e057604f8f4a7476a38eb74635e"
+        }
+      ],
+      "means": {
+        "control": 11.996600589243224,
+        "variant": 5.834174814816657
+      },
+      "metric": "swing_sole_tilt_deg",
+      "description": "Means over the five freshly recorded forward starts. Same checkpoint and physical head targets; gaze correction is cosmetic."
+    },
+    "quick_steps_focus.png": {
+      "sources": [
+        {
+          "path": "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/scratch/gait_measurements.json",
+          "sha256": "fc4960805e6a498083ab454b55011a20d43d55d4ec33bff5fd0eb51e7ab7180d"
+        },
+        {
+          "path": "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/quick_steps/gait_measurements.json",
+          "sha256": "2f37822e9324d5c6d5aa53ccb61229dd381874d0aae34d92b830f5268af24321"
+        }
+      ],
+      "means": {
+        "control": 4.285714285714377,
+        "variant": 6.728571428571572
+      },
+      "metric": "foot_landings_per_second",
+      "description": "Means over the five freshly recorded forward starts. Same checkpoint and physical head targets; gaze correction is cosmetic."
+    },
+    "crouched_focus.png": {
+      "sources": [
+        {
+          "path": "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/crouch_control/gait_measurements.json",
+          "sha256": "0d1cbc6f3130c52788b4965b0a73d2b0aeeacc5efa59616046dcfcd12ca1e14f"
+        },
+        {
+          "path": "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/crouched/gait_measurements.json",
+          "sha256": "258d8254c2b75816adf4d361cd9775edf5c5d48bc22a63c544702b2bcff331c7"
+        }
+      ],
+      "means": {
+        "control": 0.2603458746756826,
+        "variant": 0.2315327979028225
+      },
+      "metric": "mean_torso_height_m",
+      "description": "Means over the five freshly recorded forward starts. Same checkpoint and physical head targets; gaze correction is cosmetic."
+    },
+    "../course_preview.png": {
+      "source": "artifacts/final_round/game_overview.png",
+      "sha256": "eacfad2f82a7ffabda970f5b385e492451dd3a91e7920c4e0db9e1df36f872cf",
+      "description": "Actual local browser and selected policies, paused overview camera; course and controls visible. Render-only level gaze."
     }
+  },
+  "joint_annotation_verification": [
+    {
+      "joint": "Left_Hip_Yaw",
+      "rendered_center": [
+        285.5897435897436,
+        272.0
+      ],
+      "predicted_center": [
+        285.9713340659675,
+        272.55905338387873
+      ],
+      "pixel_error": 0.6768692470271043
+    },
+    {
+      "joint": "Left_Hip_Roll",
+      "rendered_center": [
+        305.95454545454544,
+        330.0681818181818
+      ],
+      "predicted_center": [
+        306.49092829786804,
+        330.59994917199475
+      ],
+      "pixel_error": 0.7553032988091939
+    },
+    {
+      "joint": "Left_Hip_Pitch",
+      "rendered_center": [
+        326.4375,
+        318.6875
+      ],
+      "predicted_center": [
+        327.06723353171935,
+        319.23231112553805
+      ],
+      "pixel_error": 0.8326965134319722
+    },
+    {
+      "joint": "Left_Knee",
+      "rendered_center": [
+        266.8611111111111,
+        377.3888888888889
+      ],
+      "predicted_center": [
+        267.3018063589817,
+        377.7484125104689
+      ],
+      "pixel_error": 0.5687438227969814
+    },
+    {
+      "joint": "Left_Ankle",
+      "rendered_center": [
+        298.075,
+        486.8
+      ],
+      "predicted_center": [
+        298.57412876746804,
+        487.2425005567146
+      ],
+      "pixel_error": 0.6670354332469239
+    }
+  ],
+  "joint_anchors": {
+    "description": "Actual MuJoCo joint anchors projected through the rendered camera; not shell landmarks.",
+    "camera": {
+      "azimuth": 115,
+      "elevation": -10,
+      "distance": 0.9
+    },
+    "joints": [
+      {
+        "name": "Left_Hip_Yaw",
+        "world_anchor": [
+          0.014100263161474034,
+          0.04966041671304859,
+          0.4470980035513648
+        ],
+        "pixel": [
+          285.9713340659675,
+          272.55905338387873
+        ],
+        "local_axis": [
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      {
+        "name": "Left_Hip_Roll",
+        "world_anchor": [
+          0.032456670801016725,
+          0.06163089265743221,
+          0.3845540035175017
+        ],
+        "pixel": [
+          306.49092829786804,
+          330.59994917199475
+        ],
+        "local_axis": [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "name": "Left_Hip_Pitch",
+        "world_anchor": [
+          0.02588938303142682,
+          0.1331024712555952,
+          0.38589500353167167
+        ],
+        "pixel": [
+          327.06723353171935,
+          319.23231112553805
+        ],
+        "local_axis": [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      },
+      {
+        "name": "Left_Knee",
+        "world_anchor": [
+          -0.053382977315019564,
+          0.13541213444718941,
+          0.3081870036793749
+        ],
+        "pixel": [
+          267.3018063589817,
+          377.7484125104689
+        ],
+        "local_axis": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      },
+      {
+        "name": "Left_Ankle",
+        "world_anchor": [
+          -0.008408647880897624,
+          0.12875950555984847,
+          0.1781080035954321
+        ],
+        "pixel": [
+          298.57412876746804,
+          487.2425005567146
+        ],
+        "local_axis": [
+          -0.0,
+          -1.0,
+          -0.0
+        ]
+      }
+    ]
   }
 }

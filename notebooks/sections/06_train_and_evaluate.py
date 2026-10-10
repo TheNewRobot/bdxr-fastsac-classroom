@@ -9,15 +9,12 @@
 # %% [markdown]
 # ### Instructor example · a real fresh-training run
 #
-# ![Fresh seed-7 walking learning curve](lesson-asset:reference/scratch_learning.png)
+# | Learning: episode return | Independent check: lateral drift |
+# |:---:|:---:|
+# | ![Fresh seed-7 walking learning curve](lesson-asset:reference/scratch_learning.png) | ![Measured lateral drift during forward walking](lesson-asset:reference/scratch_forward.png) |
 #
-# Seed 7, trained from scratch. Rising return suggests learning; command tests
-# decide whether the controller is useful.
-#
-# ![Forward-command drift, speed, and turning rate](lesson-asset:reference/scratch_forward.png)
-#
-# Each color is one trial; dashed lines mark zero drift or the command. The left
-# plot measures lateral drift over time. World position is used only for evaluation.
+# Seed 7, trained from scratch. Rising return suggests learning; the drift plot
+# checks straightness. Each line is one trial. World position is evaluation-only.
 #
 # ### Your activity · train, record, and evaluate
 #
