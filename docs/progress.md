@@ -52,7 +52,7 @@ These short runs test the workflow; selected-policy quality comes from the
 separate physical evaluations.
 
 The presentation update embeds 13 Markdown figures and saves eight instructor
-video players. A no-kernel HTML rendering loaded all 20 displayed images and all
+video players. A no-kernel HTML rendering loaded all 18 displayed images and all
 eight videos; playback was checked. All 43 code cells passed a local short
 integration run. Student activities ship without outputs, and three focused
 checks protect the separation between instructor references and student results.
@@ -60,3 +60,9 @@ The final archive contains 114 files matching the repository byte for byte.
 
 **Actual Google Colab execution remains untested.** Training times are measured
 on the local L40S and exclude setup/evaluation unless stated otherwise.
+
+The layout pass bounds charts to 720 pixels and robot/course figures to 800.
+Section 6 uses a focused return curve and time-based tracking plots, avoiding
+a flattened equal-scale path panel. The course video row has matched heights.
+A real local game embedded in an iframe responded to Forward and Stop; this
+checks interactive controls locally, not the Colab proxy or a complete course run.

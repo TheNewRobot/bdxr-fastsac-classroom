@@ -14,12 +14,14 @@
       "sha256": "b8ddde416f9b22118c5554650f442221598160f6eae362a5924e01f7b10e5749"
     },
     "scratch_learning.png": {
-      "source": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/metrics/learning_curves.png",
-      "sha256": "6833e194ef04f9ef3de9e79fa1487e7545ab32ee4045135a61cd928afc498fe3"
+      "source": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/metrics/training.jsonl",
+      "source_sha256": "95d15819ef5d82076dd74f289454f66141c60ae66d370b684a10c236004b0624",
+      "description": "Focused episode-return chart from the same fresh seed-7 baseline logs."
     },
     "scratch_forward.png": {
-      "source": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/evaluation/final_commands/forward.png",
-      "sha256": "5f73aeb4351be74240f6a106ccb7c5e5990c72f05e9ad32710d7cf0ac515b1db"
+      "source": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/evaluation/final_commands/forward_motion.json",
+      "source_sha256": "c5f487cec134377855b4537d0ff6f5cc52781d7a6f82cf6261c2900b8d2a146e",
+      "description": "Measured drift, speed and yaw against time, replotted from the same recorded trials; no retraining."
     },
     "knee_path.png": {
       "source": "/tmp/bdxr-lesson-release-check/figures/knee_sweep.json",

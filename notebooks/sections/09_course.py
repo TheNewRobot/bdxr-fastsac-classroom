@@ -32,14 +32,24 @@ media_pair(
             WORK / "assets/lesson/course25_run/rollout.mp4",
             "Visually steered with pauses. Simulation time is not real-time operator performance.",
         ),
-    ]
+    ],
+    video_height=260,
 )
 
-recorded_details(WORK / "assets/lesson/obstacle_comparison")
-recorded_details(WORK / "assets/lesson/course25_run")
 
 # %% [markdown]
-# ### Load your controller and play
+# ### Your live interactive game · run the next cell
+#
+# Running this cell starts a live simulator and embeds its control panel below
+# the cell. The videos above are demonstrations; this panel responds to you.
+# No browser plugin is required. Keep the notebook runtime connected.
+#
+# **Click inside the game:** hold **W/S** to move, **A/D** to turn, and press
+# **Space** to switch walking/hopping. Release movement keys to stop. The panel
+# also has on-screen controls. Hopping requires a trained hopping checkpoint.
+#
+# On a remote VS Code session, forward port **8765** using the Ports panel if
+# the embedded panel is blank, then open its forwarded address in your browser.
 #
 # Leave paths blank to use the policies selected from your experiments. You can
 # also upload compatible checkpoints using Colab’s Files panel and enter their
@@ -55,6 +65,7 @@ recorded_details(WORK / "assets/lesson/course25_run")
 # checkpoints and reach the finish upright to win. **New game** resets the score.
 
 # %%
+# @title Start the interactive game with your trained controller
 from bdxr_classroom.lesson.play import launch_game, display_game, pause_and_recordings
 
 WALK_CHECKPOINT = ""  # @param {type:"string"}

@@ -20,6 +20,10 @@ If the frontend requests trust, trust the notebook to display its saved HTML.
 Clearing all outputs removes the video players, but keeps the attached figures;
 reopen the distributed copy or rerun the reference cells after setup to restore them.
 The builder regenerates reference displays without executing training cells.
+Charts are bounded to 720 pixels; larger robot/course illustrations to 800.
+Section 9’s launch cell embeds the live game beneath it. Click inside to use
+W/S, A/D and Space, or use its buttons. On remote VS Code sessions, forward
+port 8765 if needed; no browser plugin is required.
 
 The actor receives proprioception and commands; the critic may use additional
 simulator information during training. The actor controls ten leg joints.

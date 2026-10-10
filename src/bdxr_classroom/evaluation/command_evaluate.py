@@ -10,10 +10,6 @@ from pathlib import Path
 
 os.environ.setdefault("MUJOCO_GL", "egl")
 import imageio.v2 as imageio
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image, ImageDraw
@@ -27,6 +23,7 @@ from bdxr_classroom.experiments import (
 )
 from bdxr_classroom.learning.fastsac import FastSAC
 from bdxr_classroom.evaluation.motion_metrics import count_hops
+from bdxr_classroom.evaluation.plots import plot_command_motion
 from bdxr_classroom.simulation.training_terrain import (
     ground_height,
     sampled_sole_clearance,
@@ -469,38 +466,14 @@ def main():
             result["cases"][case] = reports
             (output / f"{case}_motion.json").write_text(json.dumps(rows))
             (output / "summary.json").write_text(json.dumps(result, indent=2))
-            fig, axes = plt.subplots(1, 3, figsize=(12, 3.5), layout="constrained")
-            for index in range(args.episodes):
-                data = [r for r in rows if r["episode"] == index]
-                axes[0].plot(
-                    [r["progress"] for r in data], [r["cross_track"] for r in data]
-                )
-                axes[1].plot(
-                    [r["time"] for r in data], [r["speed"] for r in data], alpha=0.7
-                )
-                yaw_key = (
-                    "imu_yaw_rate" if cfg.get("yaw_tracking") == "imu" else "yaw_rate"
-                )
-                axes[2].plot(
-                    [r["time"] for r in data], [r[yaw_key] for r in data], alpha=0.7
-                )
-            axes[0].set(xlabel="Along initial heading (m)", ylabel="Cross-track (m)")
-            axes[0].set_aspect("equal")
-            for axis, key, title in [
-                (axes[1], "command_speed", "Speed (m/s)"),
-                (axes[2], "command_yaw", "Yaw rate (rad/s)"),
-            ]:
-                data = [r for r in rows if r["episode"] == 0]
-                axis.plot(
-                    [r["time"] for r in data],
-                    [r[key] for r in data],
-                    color="black",
-                    linestyle="--",
-                )
-                axis.set(xlabel="Time (s)", ylabel=title)
-            fig.suptitle(case)
-            fig.savefig(output / f"{case}.png", dpi=140)
-            plt.close(fig)
+            plot_command_motion(
+                rows,
+                output / f"{case}.png",
+                case,
+                yaw_key="imu_yaw_rate"
+                if cfg.get("yaw_tracking") == "imu"
+                else "yaw_rate",
+            )
             print(
                 f"{case}: falls={sum(r['fell'] for r in reports)}, "
                 f"speedMAE={np.mean([r['speed_mae'] for r in reports]):.3f}, "

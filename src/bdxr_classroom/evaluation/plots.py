@@ -12,6 +12,45 @@ import numpy as np
 from bdxr_classroom.experiments import metrics_path
 
 
+def plot_command_motion(rows, output, case="forward", yaw_key="imu_yaw_rate"):
+    """Show tracking against time without flattening nearly straight XY paths."""
+    fig, axes = plt.subplots(1, 3, figsize=(10, 2.9), layout="constrained")
+    fields = [
+        ("cross_track", "Lateral deviation (m)", None),
+        ("speed", "Forward speed (m/s)", "command_speed"),
+        (yaw_key, "Turning rate (rad/s)", "command_yaw"),
+    ]
+    episodes = sorted({row["episode"] for row in rows})
+    for axis, (field, title, command) in zip(axes, fields):
+        for episode in episodes:
+            data = [row for row in rows if row["episode"] == episode]
+            axis.plot(
+                [row["time"] for row in data],
+                [row[field] for row in data],
+                alpha=0.7,
+                linewidth=1.2,
+            )
+        if episodes:
+            first = [row for row in rows if row["episode"] == episodes[0]]
+            if command:
+                axis.plot(
+                    [row["time"] for row in first],
+                    [row[command] for row in first],
+                    "k--",
+                    linewidth=1.4,
+                    label="Command",
+                )
+                axis.legend(fontsize=8)
+            else:
+                axis.axhline(0, color="black", linestyle="--", linewidth=1)
+        axis.set(title=title, xlabel="Time (s)")
+        axis.grid(alpha=0.2)
+    fig.suptitle(f"{case} · measured command tracking", fontsize=12)
+    fig.savefig(output, dpi=120)
+    plt.close(fig)
+    return Path(output)
+
+
 def plot_run(run_dir, through_step=None, output=None):
     run_dir = Path(run_dir)
     rows = [json.loads(s) for s in metrics_path(run_dir).read_text().splitlines()]

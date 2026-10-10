@@ -36,18 +36,23 @@ def table(rows, headings):
     )
 
 
-def media_pair(items):
+def media_pair(items, video_height=None):
     """Display local image/video panels with explicit titles and captions."""
     from IPython.display import HTML, display
 
     items = list(items)
     cards = []
-    card_style = ' style="max-width:1040px"' if len(items) == 1 else ""
+    card_style = ' style="max-width:760px"' if len(items) == 1 else ""
     for title, path, caption in items:
         path = Path(path)
         data = base64.b64encode(path.read_bytes()).decode()
         if path.suffix == ".mp4":
-            media = f'<video controls playsinline preload="metadata" src="data:video/mp4;base64,{data}"></video>'
+            video_style = (
+                f' style="height:{int(video_height)}px;object-fit:contain;background:#18352e"'
+                if video_height is not None
+                else ""
+            )
+            media = f'<video{video_style} controls playsinline preload="metadata" src="data:video/mp4;base64,{data}"></video>'
         else:
             mime = (
                 "image/svg+xml"
@@ -159,7 +164,7 @@ def recorded_details(
         if path.is_file():
             data = base64.b64encode(path.read_bytes()).decode()
             figures.append(
-                f'<img style="max-width:100%;margin:12px 0" src="data:image/png;base64,{data}" alt="{html.escape(name)}">'
+                f'<img style="width:720px;max-width:100%;margin:12px 0;display:block" src="data:image/png;base64,{data}" alt="{html.escape(name)}">'
             )
     if figures:
         display(
