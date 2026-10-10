@@ -17,6 +17,7 @@ import sys
 from unittest.mock import patch
 
 import nbformat
+from PIL import Image
 from IPython.core.formatters import DisplayFormatter
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -55,7 +56,27 @@ def embed_references(cells):
                     raise ValueError(f"Reference escapes lesson assets: {relative}")
                 mime = "image/svg+xml" if path.suffix == ".svg" else "image/png"
                 name = relative.replace("/", "-")
-                data = base64.b64encode(path.read_bytes()).decode()
+                raw = path.read_bytes()
+                if path.suffix == ".png":
+                    # Smaller charts keep the explanation in view. Robot portraits
+                    # retain more space; originals remain in the lesson archive.
+                    width = (
+                        800
+                        if path.name
+                        in {
+                            "robot.png",
+                            "annotated_robot.png",
+                            "course_preview.png",
+                            "kinematic_tree.png",
+                        }
+                        else 720
+                    )
+                    image = Image.open(io.BytesIO(raw))
+                    image.thumbnail((width, 900), Image.Resampling.LANCZOS)
+                    buffer = io.BytesIO()
+                    image.save(buffer, format="PNG")
+                    raw = buffer.getvalue()
+                data = base64.b64encode(raw).decode()
                 attachments[name] = {mime: data}
                 return f"(attachment:{name})"
 

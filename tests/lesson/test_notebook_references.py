@@ -2,11 +2,13 @@
 
 import base64
 import importlib.util
+import io
 from pathlib import Path
 import re
 import unittest
 
 import nbformat
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -46,6 +48,15 @@ class NotebookReferences(unittest.TestCase):
                 self.assertIn(mime, ("image/png", "image/svg+xml"))
                 raw = base64.b64decode(data)
                 self.assertTrue(raw)
+                if mime == "image/png":
+                    image = Image.open(io.BytesIO(raw))
+                    large_figure = name in {
+                        "reference-robot.png",
+                        "reference-annotated_robot.png",
+                        "reference-kinematic_tree.png",
+                        "course_preview.png",
+                    }
+                    self.assertLessEqual(image.width, 800 if large_figure else 720)
                 count += 1
         self.assertGreaterEqual(count, 12)
 

@@ -15,9 +15,11 @@
 # not the recovery-stage curve of the opening walker. A rising return is evidence
 # of learning, but the command tests still decide whether the policy is useful.
 #
-# ![Measured forward trajectory of the scratch baseline](lesson-asset:reference/scratch_forward.png)
+# ![Forward-command drift, speed, and turning rate](lesson-asset:reference/scratch_forward.png)
 #
-# A zero-turn command should give a nearly straight path. Evaluation uses world
+# Each colored line is one evaluation trial; dashed lines mark zero drift or
+# the requested command. Read lateral deviation against time in the left panel.
+# This is not a map: the axes use seconds and metres. Evaluation uses world
 # position to measure drift; the actor does not receive that position.
 #
 # ### Your activity · train, record, and evaluate
@@ -47,7 +49,7 @@ media_pair(
 )
 
 # %%
-display(Image(filename=str(lab.learning_curve(BASELINE)), width=900))
+display(Image(filename=str(lab.learning_curve(BASELINE)), width=720))
 print("Actual timing:", read_json(BASELINE / "metrics/timing.json"))
 
 # %% [markdown]
@@ -94,20 +96,9 @@ if not BASELINE_CHECK["passed"]:
 SELECTED_WALK_CHECKPOINT = selected_walking([BASELINE_CHECK])
 
 # %%
-media_pair(
-    [
-        (
-            "Direct forward command",
-            BASELINE / "videos/final_commands/forward.mp4",
-            "Check foot motion and body orientation.",
-        ),
-        (
-            "Measured forward trajectory",
-            BASELINE / "evaluation/final_commands/forward.png",
-            "Does a zero-yaw command produce a straight path?",
-        ),
-    ]
-)
+# Keep the robot video separate from the smaller diagnostic chart.
+display(Video(str(BASELINE / "videos/final_commands/forward.mp4"), embed=True, width=640))
+display(Image(filename=str(BASELINE / "evaluation/final_commands/forward.png"), width=720))
 
 # %% [markdown]
 # **Interpret:** can you point to evidence for straight walking, beyond the video?
