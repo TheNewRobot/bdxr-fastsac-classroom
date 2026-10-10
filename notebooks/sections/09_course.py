@@ -11,7 +11,15 @@
 # Recorded visually steered runs finished without falls in about 50–53 simulated
 # seconds. Fixed command replays can miss the finish; players need to steer.
 
-# %%
+# %% [markdown]
+# ### Instructor example · the course and a complete run
+#
+# ![Desert Droid Run terrain](lesson-asset:course_preview.png)
+#
+# Locate the three obstacles, rough ground, and raised finish before watching the run.
+# You will steer your own trained controller through this same world.
+
+# %% [hidden] [instructor]
 media_pair(
     [
         (

@@ -22,8 +22,9 @@ selection, and camera settings. Our FastSAC loop adapts logging and checkpointin
 to mjlab while importing the credited upstream network and replay source.
 
 The notebook links to D23's article “BDX Droids: Disney’s Perfect Marriage of
-Creativity and Technological Achievement” and displays its reference photograph
-from the publisher's server. That photograph is not bundled, relicensed, or
+Creativity and Technological Achievement” and embeds its credited reference
+photograph for viewing without executing a cell or contacting the publisher.
+The photograph remains D23 / Disney reference imagery; it is not relicensed or
 presented as our robot or training result. Source:
 https://d23.com/bdx-droids-disneys-perfect-marriage-of-creativity-and-technological-achievement/
 The classroom diagrams are original; robot renders use the credited BDX-R model.

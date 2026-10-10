@@ -11,6 +11,11 @@
 # **Route through the lesson:** robot → environment → kinematics → control problem
 # → SAC → your walking policy → one controlled experiment → optional hopping → play.
 #
+# Read the explanations and embedded instructor examples first. Run activity cells
+# to produce your own results below them; your results never replace the references.
+# If a frontend asks, trust this notebook to enable saved video players. Images
+# remain attached to the text even if outputs are cleared.
+#
 # Recorded examples below are instructor results. Your own videos are generated
 # from the checkpoints you train later. Actual Google Colab execution is still
 # untested; reported training times come from a local L40S GPU.
@@ -55,10 +60,11 @@ print("Lesson files:", WORK)
 # separately developed **BDX-R open-source model**, simulated with **MuJoCo Warp**
 # through mjlab. We train with **FastSAC**; this is not Disney's controller.
 #
-# The reference photograph is loaded from the credited publisher, not included
-# in the notebook archive. If it does not load, the source link remains available.
+# **Instructor example — already displayed:** press Play to watch; no kernel is needed.
+# The reference photograph is embedded with credit to D23 / Disney. It is
+# reference imagery, not our hardware or training result; the source is linked below.
 
-# %% [hidden]
+# %% [hidden] [instructor]
 # @title Real-world inspiration beside our simulated walking policy
 from bdxr_classroom.lesson.presentation import reference_comparison
 
@@ -66,6 +72,7 @@ reference_comparison(
     WORK / "assets/lesson/command_walking/rollout.mp4",
     reference_image="https://d23.com/app/uploads/2025/04/ADK_00797.jpg",
     reference_page="https://d23.com/bdx-droids-disneys-perfect-marriage-of-creativity-and-technological-achievement/",
+    reference_photo=WORK / "assets/lesson/reference/disney_bdx.jpg",
 )
 
 recorded_details(

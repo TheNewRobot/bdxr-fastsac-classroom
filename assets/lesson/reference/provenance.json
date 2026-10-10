@@ -1,0 +1,50 @@
+{
+  "description": "Instructor references: actual model inspection and seed-7 fresh scratch baseline; not student outputs.",
+  "files": {
+    "robot.png": {
+      "source": "/tmp/bdxr-lesson-release-check/figures/robot.png",
+      "sha256": "2a894d8b429d656e81b8bb28853ee9acbee6676b7072b84c81bd2385350da4d6"
+    },
+    "annotated_robot.png": {
+      "source": "/tmp/bdxr-lesson-release-check/figures/annotated_robot.png",
+      "sha256": "88764281b721dcbb745aa04e3f7825a5893ed29faebcfae0a1dbfdd3b0802336"
+    },
+    "kinematic_tree.svg": {
+      "source": "/tmp/bdxr-lesson-release-check/figures/kinematic_tree.svg",
+      "sha256": "b8ddde416f9b22118c5554650f442221598160f6eae362a5924e01f7b10e5749"
+    },
+    "scratch_learning.png": {
+      "source": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/metrics/learning_curves.png",
+      "sha256": "6833e194ef04f9ef3de9e79fa1487e7545ab32ee4045135a61cd928afc498fe3"
+    },
+    "scratch_forward.png": {
+      "source": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/evaluation/final_commands/forward.png",
+      "sha256": "5f73aeb4351be74240f6a106ccb7c5e5990c72f05e9ad32710d7cf0ac515b1db"
+    },
+    "knee_path.png": {
+      "source": "/tmp/bdxr-lesson-release-check/figures/knee_sweep.json",
+      "source_sha256": "0e584ec0af85e8ceff6ae5e51359273f79bbde62acfc64f6783697e0fef1a25a",
+      "description": "Plot of measured forward-kinematics positions; root and other joints fixed."
+    },
+    "kinematic_tree.png": {
+      "source": "assets/lesson/reference/kinematic_tree.svg",
+      "description": "PNG rendering of the original SVG for notebook attachment compatibility.",
+      "source_sha256": "b8ddde416f9b22118c5554650f442221598160f6eae362a5924e01f7b10e5749"
+    },
+    "control_loop.png": {
+      "source": "assets/lesson/figures/control_loop.svg",
+      "description": "PNG rendering of the original SVG for notebook attachment compatibility.",
+      "source_sha256": "107b93e802a4cdaf463af8992a181f6713570a81a39974544dfef4b57af4ffd8"
+    },
+    "sac_loop.png": {
+      "source": "assets/lesson/figures/sac_loop.svg",
+      "description": "PNG rendering of the original SVG for notebook attachment compatibility.",
+      "source_sha256": "6a2a0ed491bad4748e06756ee46e71acbbeff5e44a53fa3dfa8253f55819cd61"
+    },
+    "disney_bdx.jpg": {
+      "source": "https://d23.com/app/uploads/2025/04/ADK_00797.jpg",
+      "credit": "D23 / Disney. Reference photograph; not our hardware, controller, or training result. Not relicensed.",
+      "description": "Preserved from the previously executed notebook output for inline viewing."
+    }
+  }
+}

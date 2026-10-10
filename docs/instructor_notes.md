@@ -12,6 +12,15 @@
 Prepare training beforehand for a short presentation. Installation, training,
 video generation and gameplay are separate from presentation time.
 
+Each chapter places instructor examples before the student activity.
+Images and diagrams are Markdown attachments. Eight video players have saved
+instructor outputs: open the notebook and press Play, without starting a kernel.
+Student activity cells ship without results; running them creates separate evidence.
+If the frontend requests trust, trust the notebook to display its saved HTML.
+Clearing all outputs removes the video players, but keeps the attached figures;
+reopen the distributed copy or rerun the reference cells after setup to restore them.
+The builder regenerates reference displays without executing training cells.
+
 The actor receives proprioception and commands; the critic may use additional
 simulator information during training. The actor controls ten leg joints.
 

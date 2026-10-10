@@ -17,6 +17,75 @@
 # with one successful training seed per style. That is an example, not proof that
 # every seed will succeed.
 
+# %% [markdown]
+# ### A recorded example to compare with your prediction
+#
+# This instructor comparison is shown at equal commands. Local variant training
+# took 14m54s (level feet), 15m1s (quick steps), or 11m13s (crouched).
+# The unchanged seed-8 control missed command checks; it is labeled as a matched
+# comparison, not another validated baseline. The selected crouched checkpoint
+# is the 9,000-step result; training longer did not improve its acceptance checks.
+
+# %% [markdown]
+# #### Instructor example · Flatter feet
+#
+# ![Measured gait differences](lesson-asset:scratch_level_feet/motion.png)
+
+# %% [hidden] [instructor]
+# @title Recorded instructor comparison: Flatter feet
+example = WORK / "assets/lesson/scratch_level_feet"
+media_pair(
+    [
+        (
+            "Flatter feet: matched commands",
+            example / "comparison.mp4",
+            read_json(example / "provenance.json")["caption"],
+        )
+    ]
+)
+
+# %% [markdown]
+# #### Instructor example · Quicker steps
+#
+# ![Measured gait differences](lesson-asset:scratch_quick_steps/motion.png)
+
+# %% [hidden] [instructor]
+# @title Recorded instructor comparison: Quicker steps
+example = WORK / "assets/lesson/scratch_quick_steps"
+media_pair(
+    [
+        (
+            "Quicker steps: matched commands",
+            example / "comparison.mp4",
+            read_json(example / "provenance.json")["caption"],
+        )
+    ]
+)
+
+# %% [markdown]
+# #### Instructor example · Crouched walking
+#
+# ![Measured gait differences](lesson-asset:scratch_crouched/motion.png)
+
+# %% [hidden] [instructor]
+# @title Recorded instructor comparison: Crouched walking
+example = WORK / "assets/lesson/scratch_crouched"
+media_pair(
+    [
+        (
+            "Crouched walking: matched commands",
+            example / "comparison.mp4",
+            read_json(example / "provenance.json")["caption"],
+        )
+    ]
+)
+
+# %% [markdown]
+# ### Your activity · choose one change and train a matched pair
+#
+# Predict a measurable difference, then run your control and variation. Your videos
+# and measurements appear below the training cells; the examples above stay fixed.
+
 # %%
 EXPERIMENT = "level_feet"  # @param ["level_feet", "quick_steps", "crouched"]
 PREDICTION = "The feet will stay flatter during stepping."  # @param {type:"string"}
@@ -33,34 +102,6 @@ PAIR_LEARNING = {
 }
 print("Prediction:", PREDICTION)
 print("Only changed behavior setting:", CHANGES[EXPERIMENT])
-
-# %% [markdown]
-# ### A recorded example to compare with your prediction
-#
-# This instructor comparison is shown at equal commands. Local variant training
-# took 14m54s (level feet), 15m1s (quick steps), or 11m13s (crouched).
-# The unchanged seed-8 control missed command checks; it is labeled as a matched
-# comparison, not another validated baseline. The selected crouched checkpoint
-# is the 9,000-step result; training longer did not improve its acceptance checks.
-
-# %%
-example = WORK / "assets/lesson" / f"scratch_{EXPERIMENT}"
-media_pair(
-    [
-        (
-            "Recorded matched comparison",
-            example / "comparison.mp4",
-            read_json(example / "provenance.json")["caption"],
-        ),
-        (
-            "Measured gait differences",
-            example / "motion.png",
-            "Compare the measurement relevant to your prediction.",
-        ),
-    ]
-)
-
-recorded_details(example)
 
 # %%
 # Neither call has a parent checkpoint: both start from scratch.

@@ -6,6 +6,21 @@
 # The neck/head is another branch. The tree below is read from the actual model;
 # fixed connections are collapsed to keep it readable.
 
+# %% [markdown]
+# ### Instructor example · joints on the actual model
+#
+# ![Left-leg joints on BDX-R](lesson-asset:reference/annotated_robot.png)
+#
+# ![Articulated kinematic tree](lesson-asset:reference/kinematic_tree.png)
+#
+# Trace the left leg from hip yaw to ankle. The floating root is not an actuator.
+# The images show the same model that the following code inspects.
+#
+# ### Your activity · inspect joints, then move one
+#
+# Run the inspection to print joint axes and limits and regenerate these figures.
+# Then use the knee slider below to compare your prediction with forward kinematics.
+
 # %%
 %%robot
 from bdxr_classroom.lesson.kinematics import (
@@ -49,6 +64,13 @@ media_pair(
 #
 # **Predict:** holding all other angles fixed, what path will the foot trace as
 # the knee turns? Is the path a straight line?
+
+# %% [markdown]
+# ![Measured knee-sweep foot path](lesson-asset:reference/knee_path.png)
+#
+# **Instructor example:** measured positions from −20° to +40° of left-knee motion,
+# with the root and all other joints fixed. The curve is geometry, not a stable gait.
+# Run the next cells to generate your own interactive view and change the angle range.
 
 # %%
 %%robot

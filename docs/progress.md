@@ -23,14 +23,14 @@ the media in `assets/lesson/`; raw development history stays out of Git.
 
 The refactored lesson has ten readable chapter sources, with explicit environment
 and learning settings, an actual-model joint tree, an interactive knee sweep,
-and a visible network/experience-collection example. The release notebook completed
+and a visible network/experience-collection example. The previous release notebook completed
 all 43 code cells locally with short training runs and reused pinned dependencies.
 Its 103 bundled files match the repository byte for byte.
 The integration copy records failed short-run policy verdicts and bypasses its
 classroom stop gate so later game/export cells can be exercised; this is not
 evidence that those short runs learned to walk.
 
-The current 64-test suite passed, including simulator checks with the selected
+The previous release’s 64-test suite passed, including simulator checks with the selected
 walking checkpoint. The 29 protected checkpoint/configuration files retain their
 original hashes. All nine retained distribution videos decode successfully;
 compression preserved their resolution, frame count, and playback speed.
@@ -50,6 +50,13 @@ stages at short budgets. Its backup contained all eleven training runs' resumabl
 checkpoints and passed integrity, duplicate-entry, and byte-for-byte checks.
 These short runs test the workflow; selected-policy quality comes from the
 separate physical evaluations.
+
+The presentation update embeds 13 Markdown figures and saves eight instructor
+video players. A no-kernel HTML rendering loaded all 20 displayed images and all
+eight videos; playback was checked. All 43 code cells passed a local short
+integration run. Student activities ship without outputs, and three focused
+checks protect the separation between instructor references and student results.
+The final archive contains 114 files matching the repository byte for byte.
 
 **Actual Google Colab execution remains untested.** Training times are measured
 on the local L40S and exclude setup/evaluation unless stated otherwise.

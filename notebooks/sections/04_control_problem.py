@@ -11,6 +11,19 @@
 # Here $a_i$ is a policy action and $s_i$ is its configured joint scale. This
 # connects the action vector to the joint-angle picture we just explored.
 
+# %% [markdown]
+# ### Instructor example · the policy interface
+#
+# For one robot, the baseline has **47 actor inputs**, **62 critic inputs**, and
+# **10 actions**. The actor uses proprioception and commands; additional simulator
+# measurements help the critic learn. The action scale converts a dimensionless
+# network output into a joint-angle offset in radians.
+#
+# ### Your activity · verify the interface
+#
+# Print the actual observation terms and action scales below. Use the table to
+# explain why true base linear velocity is not available to the deployed actor.
+
 # %%
 %%robot
 print("Actor observation shape:", observations["actor"].shape)
@@ -32,16 +45,8 @@ print("Joint target scales:", env.cfg.actions["joint_pos"].scale)
 # **Actor:** chooses the next action. **Critic:** estimates how useful that action
 # may be during learning. Only the actor drives the deployed robot.
 
-# %%
-media_pair(
-    [
-        (
-            "The control loop",
-            WORK / "assets/lesson/figures/control_loop.svg",
-            "The simulator supplies rewards during training. Privileged measurements do not become actor inputs.",
-        )
-    ]
-)
+# %% [markdown]
+# ![Control loop: actor inputs, joint targets, physics, and rewards](lesson-asset:reference/control_loop.png)
 
 # %% [markdown]
 # ### Define what good walking means
@@ -55,6 +60,25 @@ media_pair(
 # weights. For example, an exponential tracking reward has the form
 # $r_{\mathrm{track}}=\exp(-e^2/\sigma^2)$: small tracking error earns more reward.
 # Simulator measurements may score the task without being given to the actor.
+
+# %% [markdown]
+# ### Instructor example · selected baseline reward terms
+#
+# | Term | Weight | Interpretation |
+# |---|---:|---|
+# | Forward-speed tracking | 8.0 | Follow the requested speed |
+# | Turn-rate tracking | 4.0 | Follow the requested yaw rate |
+# | Upright posture | 2.0 | Keep the body upright |
+# | Foot airtime | 1.5 | Encourage a useful swing interval (0.10–0.60 s) |
+# | Foot clearance cost | −4.0 | Penalize deviation from the 0.06 m target |
+# | Action-change cost | −0.1 | Discourage abrupt target changes |
+#
+# These are selected terms from the actual baseline, not the complete reward.
+# Weights multiply different quantities with different scales; a larger weight
+# alone does not tell us which contribution dominates.
+#
+# **Your activity:** print the full reward configuration below and identify which
+# term you would change to encourage quicker stepping.
 
 # %%
 %%robot
