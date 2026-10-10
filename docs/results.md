@@ -7,7 +7,7 @@ records resolved environment settings and a source snapshot. Selected media
 used in the lesson are copied to `assets/lesson/`.
 
 Read each recording's caption and provenance before comparing policies.
-Earlier fixed-speed recordings are marked preliminary; attractive motion and
+Retired preliminary recordings stay in local archives. Attractive motion and
 zero falls alone do not establish directional control.
 
 For command walking, inspect speed/yaw tracking, straight-line drift, falls,

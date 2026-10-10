@@ -8,7 +8,8 @@
     "experiment": "experiments/evaluations/comparisons/2026-10-09_214904_772718_policy_comparison",
     "used_by": [
       "README.md"
-    ]
+    ],
+    "head_motion": "neutral targets in these recorded comparisons"
   },
   {
     "id": "command_walking",
@@ -21,7 +22,8 @@
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/gqgbud4j",
     "used_by": [
       "notebooks/sections/01_welcome.py"
-    ]
+    ],
+    "head_motion": "restrained procedural presentation"
   },
   {
     "id": "scratch_level_feet",
@@ -34,7 +36,8 @@
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/uusaodqp",
     "used_by": [
       "notebooks/sections/07_gait_experiment.py"
-    ]
+    ],
+    "head_motion": "neutral targets in these recorded comparisons"
   },
   {
     "id": "scratch_quick_steps",
@@ -47,7 +50,8 @@
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/u05i7srk",
     "used_by": [
       "notebooks/sections/07_gait_experiment.py"
-    ]
+    ],
+    "head_motion": "neutral targets in these recorded comparisons"
   },
   {
     "id": "course_hops",
@@ -62,20 +66,22 @@
     "used_by": [
       "notebooks/sections/08_hopping.py",
       "README.md"
-    ]
+    ],
+    "head_motion": "neutral targets in these recorded comparisons"
   },
   {
     "id": "course25_run",
     "title": "The taller-obstacle challenge",
     "video": "course25_run/rollout.mp4",
     "motion": "course25_run/finish.png",
-    "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 49.88 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
-    "experiment": "experiments/evaluations/courses/2026-10-09_211902_852068_manual_course_trial",
-    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/marh984o",
+    "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.14 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
+    "experiment": "experiments/evaluations/courses/2026-10-10_053951_480708_manual_course_trial",
     "used_by": [
       "notebooks/sections/09_course.py",
       "README.md"
-    ]
+    ],
+    "head_motion": "restrained procedural presentation",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/fw159fnm"
   },
   {
     "id": "scratch_crouched",
@@ -88,7 +94,8 @@
     "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/y4du6db2",
     "used_by": [
       "notebooks/sections/07_gait_experiment.py"
-    ]
+    ],
+    "head_motion": "neutral targets in these recorded comparisons"
   },
   {
     "id": "obstacle_comparison",
@@ -99,6 +106,7 @@
     "experiment": "experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison",
     "used_by": [
       "notebooks/sections/09_course.py"
-    ]
+    ],
+    "head_motion": "neutral targets in these recorded comparisons"
   }
 ]

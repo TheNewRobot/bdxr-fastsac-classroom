@@ -5,25 +5,21 @@ Train, measure, change one parameter, and play a small desert-droid course.
 
 ![Desert Droid Run interface](assets/lesson/course_preview.png)
 
-**Status:** an earlier version of the full lesson completed local execution from fresh training,
-including command walking, hopping, policy handovers and exports. Browser
-controls and exported checkpoints have been checked. The fresh policies
-completed the course without falling. Curated style examples passed evaluation;
-fresh style attempts can fail and are labeled accordingly.
-Actual Google Colab execution has not been performed.
-The current scratch-training recipe passed all 50 command trials with seed 7
-after 9 minutes of training on a local L40S. Three scratch-trained variations
-passed: flatter feet, quicker steps, and crouched walking. Their local training
-took 14m 54s, 15m 1s, and 11m 13s respectively. The crouched example changes
-walking posture and foot clearance; its unchanged seed-8 control failed some
-command checks and is labeled as a comparison, not another validated baseline.
-The updated hopper passed terrain, directional, and repeated handover checks,
-then completed the taller-obstacle course in 49.88 simulated seconds without
-falling under visual steering. On its 25 mm step, hopping crossed 3/3 trials;
-walking crossed 0/6 at normal and fast commands. Its eight-stage training
-lineage took about 23 minutes locally, excluding setup and evaluation.
-Sampled touchdown peaks were about 30% lower than the previous hopper.
-Replaying fixed commands from another start missed the finish: players must steer.
+The lesson walks through the actual robot's joints and forward kinematics,
+environment configuration, observations, actions, rewards, and SAC. Students
+train a controller, change a reward setting, compare measured behavior, and
+load their policies into the final interactive course.
+
+**Measured locally:** the scratch walking baseline passed 50 command trials
+after about 9 minutes on an L40S. Three scratch-trained variations passed too:
+flatter feet, quicker steps, and crouched walking. The hopping curriculum took
+about 23 minutes; the recorded course finished in 53.14 simulated seconds with
+visual steering and no falls. These are selected results from individual
+training seeds, not guaranteed outcomes. **Actual Google Colab execution remains
+untested.** See the short [results guide](docs/results.md) for matched-control
+caveats and acceptance checks. Detailed timings accompany the lesson recordings.
+
+[![Reference and three walking styles](assets/lesson/walking_overview/comparison.png)](assets/lesson/walking_overview/comparison.mp4)
 
 [Compare the reference and three walking styles](assets/lesson/walking_overview/comparison.mp4).
 [Watch the new course run](assets/lesson/course25_run/rollout.mp4) or
@@ -56,8 +52,9 @@ heading correction. World measurements are used for evaluation and game scoring.
 | `src/bdxr_classroom/learning/` | FastSAC, replay symmetry, training, and policy export |
 | `src/bdxr_classroom/evaluation/` | Rollouts, command checks, measurements, and plots |
 | `src/bdxr_classroom/game/` | Course, controller handovers, scoring, and web interface |
-| `notebooks/` | Portable student lesson |
-| `configs/` | Pinned upstream revisions |
+| `src/bdxr_classroom/lesson/` | Notebook execution, visualizations, assessment, and exports |
+| `notebooks/` | Portable notebook and readable chapter sources in `sections/` |
+| `configs/` | Pinned revisions, evaluation targets, course, and hopping curriculum |
 | `assets/lesson/` | Only selected media used by the lesson |
 | `scripts/` | Entry points grouped into setup, lesson, training, evaluation, and media |
 | `tests/` | Tests grouped by simulation, learning, evaluation, game, lesson, and storage |
@@ -74,6 +71,10 @@ Local results are explained in `experiments/INDEX.md`; its linked catalog record
 individual trials. Each run keeps its `<timestamp>_<name>` directory and its
 configuration, checkpoints, metrics, and videos together. New training runs go
 to `candidates/`; selection requires review of their results.
+
+Edit the teaching cells in `notebooks/sections/`, then rebuild the portable file
+with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classroom
+code and selected recordings; students do not need access to this private repo.
 
 ## Local use
 
@@ -112,7 +113,8 @@ Launch the game with walking and optional hopping checkpoints:
 .venv/bin/python -m bdxr_classroom.game.server \
   --walking experiments/lesson/<walking-run>/checkpoints/final.pt \
   --hopping experiments/lesson/<hopping-run>/checkpoints/<selected-checkpoint>.pt \
-  --course-config configs/classroom_course.json
+  --course-config configs/classroom_course.json \
+  --head-motion-config configs/head_motion.json
 ```
 
 The local panel runs on port 8765. The notebook includes the Colab port-proxy

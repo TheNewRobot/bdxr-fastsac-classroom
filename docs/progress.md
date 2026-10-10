@@ -21,11 +21,35 @@ and whether a run was a short integration test or full training. They live in
 ignored experiment/artifact folders. Curated results and limitations accompany
 the media in `assets/lesson/`; raw development history stays out of Git.
 
-The final notebook completed every cell locally with short training runs.
-Its 106 bundled files match the repository; the exported backup passed integrity,
-duplicate-entry, and byte-for-byte checks. The 60-test suite passed with one
-optional simulator test skipped; that test then passed separately using the
-selected walking checkpoint.
+The refactored lesson has ten readable chapter sources, with explicit environment
+and learning settings, an actual-model joint tree, an interactive knee sweep,
+and a visible network/experience-collection example. The release notebook completed
+all 43 code cells locally with short training runs and reused pinned dependencies.
+Its 103 bundled files match the repository byte for byte.
+The integration copy records failed short-run policy verdicts and bypasses its
+classroom stop gate so later game/export cells can be exercised; this is not
+evidence that those short runs learned to walk.
+
+The current 64-test suite passed, including simulator checks with the selected
+walking checkpoint. The 29 protected checkpoint/configuration files retain their
+original hashes. All nine retained distribution videos decode successfully;
+compression preserved their resolution, frame count, and playback speed.
+Local browser inspection verified the reference photo, annotated model, joint
+tree, knee slider, and SAC diagram. The game controls also passed a Chromium
+transport-fixture check, including checkpoint suggestions and focus-loss stopping.
+
+The internal presentation layer passed 50 command trials for each of the five
+selected walkers, plus the hopper's 15 terrain trials and repeated flat/on-step
+handovers. A visually steered course run finished in 53.14 simulated seconds,
+with four checkpoints and no falls. The earlier larger idle gesture destabilized
+the quick-step policy; its failure remains recorded. The checked, smaller gesture
+is enabled by the internal inference configuration and is not a student topic.
+
+An additional local integration execution exercised all eight optional hopping
+stages at short budgets. Its backup contained all eleven training runs' resumable
+checkpoints and passed integrity, duplicate-entry, and byte-for-byte checks.
+These short runs test the workflow; selected-policy quality comes from the
+separate physical evaluations.
 
 **Actual Google Colab execution remains untested.** Training times are measured
 on the local L40S and exclude setup/evaluation unless stated otherwise.

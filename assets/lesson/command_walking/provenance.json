@@ -1,0 +1,20 @@
+{
+  "checkpoint": "experiments/lesson/2026-10-08_045922_707542_unchanged_control/checkpoints/final.pt",
+  "checkpoint_sha256": "7ad415c383b61e23dba06d51c4964614a5cdc93baf41d47b315e8a1fa93801a9",
+  "video_source": "experiments/lesson/2026-10-08_045922_707542_unchanged_control/videos/restrained_intro_preview/forward.mp4",
+  "evaluation": "experiments/evaluations/head_motion/2026-10-10_050913_846409_head_motion_validation/evaluation/restrained_intro_preview/summary.json",
+  "command_validation": "experiments/evaluations/head_motion/2026-10-10_050913_846409_head_motion_validation/evaluation/0_restrained/selection_check.json",
+  "head_motion": {
+    "enabled": true,
+    "walk_amplitude": 0.025,
+    "idle_yaw": 0.08,
+    "idle_tilt": 0.0075,
+    "max_velocity": 0.4,
+    "max_acceleration": 1.2,
+    "response_frequency": 4.0,
+    "seed": 7
+  },
+  "video_sha256": "b6784eaa39a37d92526ad16a61e973b8aa4a2499aab1903f0f52ab92f767cc98",
+  "encoding": "libx264 CRF28; source resolution, frames, and timing retained",
+  "learning_curve_scope": "Unchanged recovery stage of the locked reference walker; not the new scratch baseline."
+}
