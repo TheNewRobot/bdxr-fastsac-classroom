@@ -1,13 +1,13 @@
 {
   "finished": true,
   "falls": 0,
-  "simulation_seconds": 53.14,
+  "simulation_seconds": 53.06,
   "checkpoints": 4,
-  "previews_recorded": 19,
-  "scope": "Full 25 mm middle-step course, visual steering with pauses. Not autonomous navigation or real-time human gameplay.",
-  "operator": "Commands chosen from rendered previews; no world-pose feedback controller.",
-  "walking_checkpoint": "experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-  "hopping_checkpoint": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+  "previews_recorded": 15,
+  "scope": "Full 25 mm middle-step course, commands chosen from rendered previews with pauses. Not autonomous navigation or real-time human gameplay.",
+  "operator": "Visual steering; no world-pose feedback controller.",
+  "walking_checkpoint": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+  "hopping_checkpoint": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
   "head_motion": {
     "enabled": true,
     "walk_amplitude": 0.025,
@@ -16,31 +16,24 @@
     "max_velocity": 0.4,
     "max_acceleration": 1.2,
     "response_frequency": 4.0,
-    "seed": 7
+    "seed": 7,
+    "level_gaze_in_render": true
   },
-  "experiment": "experiments/evaluations/courses/2026-10-10_053951_480708_manual_course_trial",
-  "video_source": "experiments/evaluations/courses/2026-10-10_053951_480708_manual_course_trial/videos/gameplay_001.mp4",
-  "video_sha256": "a58af732092316e90bd864f27d04b8da862d5e8f65c9c7432181a30580b421df",
-  "previous_neutral_runs": [
-    {
-      "simulation_seconds": 49.88,
-      "experiment": "experiments/evaluations/courses/2026-10-09_211902_852068_manual_course_trial"
-    },
-    {
-      "finished": true,
-      "falls": 0,
-      "simulation_seconds": 49.4,
-      "checkpoints": 4,
-      "previews_inspected": 13,
-      "seed": 283,
-      "scope": "Full 25mm middle-step course, visually steered with pauses. Not autonomous navigation or real-time human play.",
-      "steering": "Different yaw commands were chosen from rendered previews; the fixed replay for this seed failed to finish.",
-      "experiment": "experiments/evaluations/courses/2026-10-09_213216_645591_manual_course_trial"
+  "display_scope": "Level gaze is a cosmetic render-only adjustment; physical head targets and simulated locomotion remain unchanged.",
+  "experiment": "experiments/evaluations/courses/2026-10-10_194953_427183_manual_course_trial",
+  "video_source": "experiments/evaluations/courses/2026-10-10_194953_427183_manual_course_trial/videos/gameplay_001.mp4",
+  "video_sha256": "a1f35a6ad9d03972fe83920f2b6127bfc8298110ec04371051e672b926be80e3",
+  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.06 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
+  "previous_run": {
+    "experiment": "experiments/evaluations/courses/2026-10-10_053951_480708_manual_course_trial",
+    "simulation_seconds": 53.14,
+    "wandb": {
+      "url": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/fw159fnm",
+      "id": "fw159fnm"
     }
-  ],
-  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.14 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
+  },
   "wandb": {
-    "url": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/fw159fnm",
-    "id": "fw159fnm"
+    "url": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/2qher8b5",
+    "id": "2qher8b5"
   }
 }

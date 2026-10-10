@@ -1,68 +1,43 @@
 # Implementation and testing scope
 
-The repository includes pinned robot/simulator dependencies, FastSAC training,
-command evaluation, resumable checkpoints, W&B logging, and the playable course.
-The actor uses proprioception and commands; the critic may use privileged
-training observations. GPU tests cover that separation.
+The lesson covers the actual robot's kinematics, environment settings, FastSAC,
+matched scratch-training experiments, hopping, and the interactive course.
+The actor receives proprioception and commands; the critic may receive privileged
+training observations. Selected policy weights and training settings are unchanged.
 
-The lesson contains scratch-trained walking variations and an extended hopping
-curriculum. It checks command tracking, drift, falls, hopping, and repeated
-walk/hop handovers before selecting controllers. Course scoring requires three
-obstacles, the rough patch, and the raised finish. Recorded fixed-command
-failures remain distinct from visually steered successes.
+Teaching figures and eight silent example animations live in Markdown attachments.
+All code cells ship without outputs. The hopping explanation groups the existing
+eight stages into four phases; it does not change their configuration. Joint
+annotations use model anchors, independently checked against rendered markers.
+Related plots and examples share rows; standalone figures are centered.
 
-An earlier full notebook version completed fresh local training, evaluation,
-and export. Local browser checks exercised policy loading, keyboard/buttons,
-focus-loss stopping, mode changes, and backup integrity. Those checks do not
-establish actual Google Colab compatibility or performance.
+Local checks passed 70 tests, including GPU environment and game contracts.
+All 29 protected checkpoint/configuration hashes match their originals. The nine
+curated MP4s decode successfully. Browser inspection loaded all 22 Markdown images
+with outputs cleared and confirmed that the opening animation advances. The live
+local game responded to Forward, Stop, pause, and the overview camera.
 
-Current validation records identify the notebook hash, hardware, settings,
-and whether a run was a short integration test or full training. They live in
-ignored experiment/artifact folders. Curated results and limitations accompany
-the media in `assets/lesson/`; raw development history stays out of Git.
+The local integration copy executed all 37 code cells, including all eight
+hopping stages at 60-step test budgets. Its backup contains eleven resumable
+runs with no duplicate entries. This checks workflow and export, not learned
+policy quality; the test copy retains failed short-run verdicts. Dependencies
+were reused. Final media were checked separately, and the 119 bundled files
+match the repository byte for byte.
 
-The refactored lesson has ten readable chapter sources, with explicit environment
-and learning settings, an actual-model joint tree, an interactive knee sweep,
-and a visible network/experience-collection example. The previous release notebook completed
-all 43 code cells locally with short training runs and reused pinned dependencies.
-Its 103 bundled files match the repository byte for byte.
-The integration copy records failed short-run policy verdicts and bypasses its
-classroom stop gate so later game/export cells can be exercised; this is not
-evidence that those short runs learned to walk.
+Refreshed recordings include five forward starts for eight policies/control
+recordings, plus a second camera view of the locked walker: 45 trials without
+falls. On the isolated 25 mm step, walking crossed 0/6 trials and hopping 3/3.
+The new visually steered course finished in 53.06 simulated seconds with all four
+checkpoints and no falls. A fixed replay missed the finish; that failure remains
+separate from the successful visually steered recording.
 
-The previous release’s 64-test suite passed, including simulator checks with the selected
-walking checkpoint. The 29 protected checkpoint/configuration files retain their
-original hashes. All nine retained distribution videos decode successfully;
-compression preserved their resolution, frame count, and playback speed.
-Local browser inspection verified the reference photo, annotated model, joint
-tree, knee slider, and SAC diagram. The game controls also passed a Chromium
-transport-fixture check, including checkpoint suggestions and focus-loss stopping.
+**The level head gaze is cosmetic.** It changes only the renderer's CPU state;
+physical head targets and leg control are retained. Tested physical pose offsets
+reduced locomotion quality and were rejected. Direct checks found no change to
+simulation state or actor observations during rendering. A validated physical
+neutral-pose correction remains unfinished.
 
-The internal presentation layer passed 50 command trials for each of the five
-selected walkers, plus the hopper's 15 terrain trials and repeated flat/on-step
-handovers. A visually steered course run finished in 53.14 simulated seconds,
-with four checkpoints and no falls. The earlier larger idle gesture destabilized
-the quick-step policy; its failure remains recorded. The checked, smaller gesture
-is enabled by the internal inference configuration and is not a student topic.
-
-An additional local integration execution exercised all eight optional hopping
-stages at short budgets. Its backup contained all eleven training runs' resumable
-checkpoints and passed integrity, duplicate-entry, and byte-for-byte checks.
-These short runs test the workflow; selected-policy quality comes from the
-separate physical evaluations.
-
-Teaching examples now live only in Markdown attachments: the opening photo,
-figures, and eight silent animated excerpts. Every code cell ships without outputs.
-The builder executes no lesson code. A browser check with all outputs cleared
-loaded all 22 images and confirmed that the opening animation advances.
-The original MP4s remain bundled for reference; GIF bytes are stored only in
-Markdown, avoiding duplicate copies in the runtime archive.
-
-**Actual Google Colab execution remains untested.** Training times are measured
-on the local L40S and exclude setup/evaluation unless stated otherwise.
-
-The layout pass bounds charts to 720 pixels and robot/course figures to 800.
-Section 6 uses a focused return curve and time-based tracking plots, avoiding
-a flattened equal-scale path panel. The course video row has matched heights.
-A real local game embedded in an iframe responded to Forward and Stop; this
-checks interactive controls locally, not the Colab proxy or a complete course run.
+Raw checks, failed trials, and execution artifacts stay in ignored folders.
+Curated recordings retain their source and W&B provenance beside the media.
+**Actual Google Colab execution remains untested.** Reported training timings
+come from the local L40S and exclude setup/evaluation unless stated otherwise.

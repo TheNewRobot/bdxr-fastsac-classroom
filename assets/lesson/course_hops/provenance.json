@@ -37,10 +37,6 @@
     "mean_clear_landing_peak_force_n": 1273.7634242466515
   },
   "obstacle_evidence": "experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/summary.json",
-  "comparisons": {
-    "normal": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/videos/hopping_comparison_side.mp4",
-    "half_speed": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/videos/hopping_comparison_side_half_speed.mp4"
-  },
   "course_experiment": "experiments/evaluations/courses/2026-10-09_211902_852068_manual_course_trial",
   "status": "Terrain, directions, repeated flat/step handovers, and one visually steered full-course run passed. Fixed command replay from another start missed the finish; steering remains necessary.",
   "seed": 7,
@@ -62,5 +58,47 @@
     "experiment": "experiments/evaluations/courses/2026-10-09_213216_645591_manual_course_trial"
   },
   "visual_course_finishes": 2,
-  "fixed_replay_finish_failed": true
+  "fixed_replay_finish_failed": true,
+  "display_refresh": {
+    "head_motion": {
+      "enabled": true,
+      "walk_amplitude": 0.025,
+      "idle_yaw": 0.08,
+      "idle_tilt": 0.0075,
+      "max_velocity": 0.4,
+      "max_acceleration": 1.2,
+      "response_frequency": 4.0,
+      "seed": 7,
+      "level_gaze_in_render": true
+    },
+    "scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
+    "evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/hop_previous",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/hop_course"
+    ],
+    "video_sha256": "67d9c5de6fd62ce25dc5be71803191b7f9b46cab4e0a87a617d9a1d68a8fa5dd",
+    "half_speed_sha256": "11a295c12995b4bb8893ad7ba328e3286bfca55ddd330fa6968704a88b5571c8",
+    "metrics": {
+      "hop_previous": {
+        "mean_clear_flight_peak_m": 0.05557285818670477,
+        "mean_clear_flight_duration_s": 0.14171428571428268,
+        "mean_clear_flight_tilt_deg": 6.848437323747632,
+        "mean_clear_landing_peak_force_n": 1338.3558646065849
+      },
+      "hop_course": {
+        "mean_clear_flight_peak_m": 0.05928430078285081,
+        "mean_clear_flight_duration_s": 0.1599999999999966,
+        "mean_clear_flight_tilt_deg": 9.012400811258178,
+        "mean_clear_landing_peak_force_n": 921.734845842634
+      }
+    }
+  },
+  "original_comparisons": {
+    "normal": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/videos/hopping_comparison_side.mp4",
+    "half_speed": "experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/videos/hopping_comparison_side_half_speed.mp4"
+  },
+  "comparisons": {
+    "normal": "assets/lesson/course_hops/comparison.mp4",
+    "half_speed": "assets/lesson/course_hops/half_speed.mp4"
+  }
 }

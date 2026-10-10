@@ -62,5 +62,24 @@
     "motion.png": "ef01d68a220176446919c08196bba32aab6021789eb680743e11f5a05eda8951",
     "learning_curves.png": "baa71e2304867fd4b09d706d6b85d69cf150590f396947109719218055b0e746"
   },
-  "plot_scope": "Forward command 0.3 m/s; mean and sample SD across five perturbed starts."
+  "plot_scope": "Forward command 0.3 m/s; mean and sample SD across five perturbed starts.",
+  "display_refresh": {
+    "head_motion": {
+      "enabled": true,
+      "walk_amplitude": 0.025,
+      "idle_yaw": 0.08,
+      "idle_tilt": 0.0075,
+      "max_velocity": 0.4,
+      "max_acceleration": 1.2,
+      "response_frequency": 4.0,
+      "seed": 7,
+      "level_gaze_in_render": true
+    },
+    "scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
+    "evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/scratch",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/level_feet"
+    ],
+    "video_sha256": "fbdfd0da9309b76b9450875fe30de767cfaa7ee6804e022f42b30baad87aacce"
+  }
 }

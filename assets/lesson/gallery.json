@@ -5,11 +5,18 @@
     "video": "walking_overview/comparison.mp4",
     "motion": "walking_overview/comparison.png",
     "caption": "All four at the same 0.3 m/s command and side camera. Compare foot angle, step cadence, and crouched posture. The reference is the locked approved walker; this overview is not the matched-control experiment. Each variation has its own paired comparison below and passed the full 50-trial command suite. One successful training seed per style.",
-    "experiment": "experiments/evaluations/comparisons/2026-10-09_214904_772718_policy_comparison",
+    "experiment": "experiments/evaluations/comparisons/2026-10-10_195800_226695_policy_comparison",
     "used_by": [
       "README.md"
     ],
-    "head_motion": "neutral targets in these recorded comparisons"
+    "head_motion": "Cosmetic level gaze in rendering; physical head targets and leg trajectories unchanged.",
+    "display_evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/locked_side",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/level_feet",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/quick_steps",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/crouched"
+    ],
+    "video_sha256": "b9ba132e5ead99e1dcd21954f48786cc0cf4d6b71836b9d559942728776525bf"
   },
   {
     "id": "command_walking",
@@ -23,7 +30,11 @@
     "used_by": [
       "notebooks/sections/01_welcome.py"
     ],
-    "head_motion": "restrained procedural presentation"
+    "head_motion": "Cosmetic level gaze in rendering; physical head targets and leg trajectories unchanged.",
+    "display_evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/locked"
+    ],
+    "video_sha256": "84c1c55544565bddbbb11a79d69cb1a53045074a8fd72f3267e722e31eab9185"
   },
   {
     "id": "scratch_level_feet",
@@ -37,7 +48,13 @@
     "used_by": [
       "notebooks/sections/07_gait_experiment.py"
     ],
-    "head_motion": "neutral targets in these recorded comparisons"
+    "head_motion": "Cosmetic level gaze in rendering; physical head targets and leg trajectories unchanged.",
+    "teaching_motion": "reference/level_feet_focus.png",
+    "display_evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/scratch",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/level_feet"
+    ],
+    "video_sha256": "fbdfd0da9309b76b9450875fe30de767cfaa7ee6804e022f42b30baad87aacce"
   },
   {
     "id": "scratch_quick_steps",
@@ -51,7 +68,13 @@
     "used_by": [
       "notebooks/sections/07_gait_experiment.py"
     ],
-    "head_motion": "neutral targets in these recorded comparisons"
+    "head_motion": "Cosmetic level gaze in rendering; physical head targets and leg trajectories unchanged.",
+    "teaching_motion": "reference/quick_steps_focus.png",
+    "display_evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/scratch",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/quick_steps"
+    ],
+    "video_sha256": "7bf60c3bd9ee13343df17df0ae0e658c497523926d60a8151dfe559873915e58"
   },
   {
     "id": "course_hops",
@@ -67,21 +90,27 @@
       "notebooks/sections/08_hopping.py",
       "README.md"
     ],
-    "head_motion": "neutral targets in these recorded comparisons"
+    "head_motion": "Cosmetic level gaze in rendering; physical head targets and leg trajectories unchanged.",
+    "display_evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/hop_previous",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/hop_course"
+    ],
+    "video_sha256": "67d9c5de6fd62ce25dc5be71803191b7f9b46cab4e0a87a617d9a1d68a8fa5dd"
   },
   {
     "id": "course25_run",
     "title": "The taller-obstacle challenge",
     "video": "course25_run/rollout.mp4",
     "motion": "course25_run/finish.png",
-    "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.14 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
-    "experiment": "experiments/evaluations/courses/2026-10-10_053951_480708_manual_course_trial",
+    "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.06 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
+    "experiment": "experiments/evaluations/courses/2026-10-10_194953_427183_manual_course_trial",
     "used_by": [
       "notebooks/sections/09_course.py",
       "README.md"
     ],
-    "head_motion": "restrained procedural presentation",
-    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/fw159fnm"
+    "head_motion": "Cosmetic level gaze in rendering; physical head targets and leg trajectories unchanged.",
+    "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/2qher8b5",
+    "video_sha256": "a1f35a6ad9d03972fe83920f2b6127bfc8298110ec04371051e672b926be80e3"
   },
   {
     "id": "scratch_crouched",
@@ -95,7 +124,13 @@
     "used_by": [
       "notebooks/sections/07_gait_experiment.py"
     ],
-    "head_motion": "neutral targets in these recorded comparisons"
+    "head_motion": "Cosmetic level gaze in rendering; physical head targets and leg trajectories unchanged.",
+    "teaching_motion": "reference/crouched_focus.png",
+    "display_evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/crouch_control",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/crouched"
+    ],
+    "video_sha256": "7fd551bd94ff3a2ccfa1ec3273a670befa7ba3935ec26c4c40b1f3da1ba38c52"
   },
   {
     "id": "obstacle_comparison",
@@ -107,6 +142,7 @@
     "used_by": [
       "notebooks/sections/09_course.py"
     ],
-    "head_motion": "neutral targets in these recorded comparisons"
+    "head_motion": "Cosmetic level gaze in rendering; physical head targets and leg trajectories unchanged.",
+    "video_sha256": "2a8127cd95085f14824128e396b96ac6387576792fa1263a532a6b898078732b"
   }
 ]

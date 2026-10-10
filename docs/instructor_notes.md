@@ -56,3 +56,8 @@ The notebook's `%%robot` cells share a pinned simulator process. Readable model
 and environment code stays in the lesson; package installation and repetitive
 subprocess handling are collapsed or delegated to the lesson helpers. If that
 process is restarted, rerun environment creation before later simulator cells.
+
+The refreshed media levels the head only in the renderer's private state.
+Physical head targets and the learned leg controller are unchanged. Physical
+neutral-pose offsets reduced locomotion quality in testing and were not adopted;
+these images are not evidence of a validated physical head-control correction.

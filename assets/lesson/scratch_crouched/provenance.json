@@ -358,5 +358,24 @@
   },
   "colab_tested": false,
   "caption": "Crouched walking: add a 23 cm torso-height target. Both policies start from scratch with seed 8 and 9000 steps. The crouched policy passes all 50 command trials and lowers the torso by 2.9 cm; foot clearance drops from 3.2 to 1.8 cm. The unchanged control fails forward/fast checks and is not a validated baseline. Selected 9000-step prefix; later training was not better. Local training: 11m 13s for the variant, 12m 12s for its control. One training seed; actual Colab untested.",
-  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/y4du6db2"
+  "wandb_gallery": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/y4du6db2",
+  "display_refresh": {
+    "head_motion": {
+      "enabled": true,
+      "walk_amplitude": 0.025,
+      "idle_yaw": 0.08,
+      "idle_tilt": 0.0075,
+      "max_velocity": 0.4,
+      "max_acceleration": 1.2,
+      "response_frequency": 4.0,
+      "seed": 7,
+      "level_gaze_in_render": true
+    },
+    "scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
+    "evaluations": [
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/crouch_control",
+      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/crouched"
+    ],
+    "video_sha256": "7fd551bd94ff3a2ccfa1ec3273a670befa7ba3935ec26c4c40b1f3da1ba38c52"
+  }
 }

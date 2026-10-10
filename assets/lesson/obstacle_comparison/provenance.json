@@ -33,6 +33,10 @@
   ],
   "scope": "Injected start, fixed commands, middle step only; not full-course evidence.",
   "crossing_rule": "No falls, final x > 5.3 m, and all samples over the step remain within |y| < .6 m.",
+  "head_motion": {
+    "enabled": false,
+    "level_gaze_in_render": true
+  },
   "records": [
     {
       "seed": 282,
@@ -48,8 +52,9 @@
         "speed": 0.3,
         "mode": "walk",
         "seed": 282,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
         "scope": "Injected start, partial course only; not a full traversal",
         "status": {
           "time": 13.0,
@@ -59,241 +64,7 @@
           "course_checkpoints": 0,
           "paused": false,
           "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_211707_251096_course_segment_diagnostic",
-          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-          "speed": 0.3,
-          "yaw": 0.0
-        },
-        "full_course_completed": false,
-        "final_position": [
-          4.527689456939697,
-          -0.015499548986554146,
-          0.280207097530365
-        ]
-      }
-    },
-    {
-      "seed": 282,
-      "mode": "walk",
-      "speed": 0.45,
-      "crossed": false,
-      "within_step_width": false,
-      "result": {
-        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-        "start_x": 4.0,
-        "seconds": 12.0,
-        "speed": 0.45,
-        "mode": "walk",
-        "seed": 282,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
-        "scope": "Injected start, partial course only; not a full traversal",
-        "status": {
-          "time": 13.0,
-          "falls": 0,
-          "finished": false,
-          "mode": "walk",
-          "course_checkpoints": 0,
-          "paused": false,
-          "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_211735_444794_course_segment_diagnostic",
-          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-          "speed": 0.45,
-          "yaw": 0.0
-        },
-        "full_course_completed": false,
-        "final_position": [
-          4.562475681304932,
-          0.20487961173057556,
-          0.2808278501033783
-        ]
-      }
-    },
-    {
-      "seed": 282,
-      "mode": "hop",
-      "speed": 0.3,
-      "crossed": true,
-      "within_step_width": true,
-      "result": {
-        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-        "start_x": 4.0,
-        "seconds": 12.0,
-        "speed": 0.3,
-        "mode": "hop",
-        "seed": 282,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
-        "scope": "Injected start, partial course only; not a full traversal",
-        "status": {
-          "time": 13.0,
-          "falls": 0,
-          "finished": false,
-          "mode": "hop",
-          "course_checkpoints": 0,
-          "paused": false,
-          "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_211800_067493_course_segment_diagnostic",
-          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-          "speed": 0.3,
-          "yaw": 0.0
-        },
-        "full_course_completed": false,
-        "final_position": [
-          5.911222457885742,
-          0.5352157950401306,
-          0.25414493680000305
-        ]
-      }
-    },
-    {
-      "seed": 283,
-      "mode": "walk",
-      "speed": 0.3,
-      "crossed": false,
-      "within_step_width": false,
-      "result": {
-        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-        "start_x": 4.0,
-        "seconds": 12.0,
-        "speed": 0.3,
-        "mode": "walk",
-        "seed": 283,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
-        "scope": "Injected start, partial course only; not a full traversal",
-        "status": {
-          "time": 13.0,
-          "falls": 0,
-          "finished": false,
-          "mode": "walk",
-          "course_checkpoints": 0,
-          "paused": false,
-          "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_211837_264571_course_segment_diagnostic",
-          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-          "speed": 0.3,
-          "yaw": 0.0
-        },
-        "full_course_completed": false,
-        "final_position": [
-          4.527689456939697,
-          -0.01549597829580307,
-          0.2802071273326874
-        ]
-      }
-    },
-    {
-      "seed": 283,
-      "mode": "walk",
-      "speed": 0.45,
-      "crossed": false,
-      "within_step_width": false,
-      "result": {
-        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-        "start_x": 4.0,
-        "seconds": 12.0,
-        "speed": 0.45,
-        "mode": "walk",
-        "seed": 283,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
-        "scope": "Injected start, partial course only; not a full traversal",
-        "status": {
-          "time": 13.0,
-          "falls": 0,
-          "finished": false,
-          "mode": "walk",
-          "course_checkpoints": 0,
-          "paused": false,
-          "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_211919_879445_course_segment_diagnostic",
-          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-          "speed": 0.45,
-          "yaw": 0.0
-        },
-        "full_course_completed": false,
-        "final_position": [
-          4.562476634979248,
-          0.2048840969800949,
-          0.2808280289173126
-        ]
-      }
-    },
-    {
-      "seed": 283,
-      "mode": "hop",
-      "speed": 0.3,
-      "crossed": true,
-      "within_step_width": true,
-      "result": {
-        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-        "start_x": 4.0,
-        "seconds": 12.0,
-        "speed": 0.3,
-        "mode": "hop",
-        "seed": 283,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
-        "scope": "Injected start, partial course only; not a full traversal",
-        "status": {
-          "time": 13.0,
-          "falls": 0,
-          "finished": false,
-          "mode": "hop",
-          "course_checkpoints": 0,
-          "paused": false,
-          "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_212003_042913_course_segment_diagnostic",
-          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-          "speed": 0.3,
-          "yaw": 0.0
-        },
-        "full_course_completed": false,
-        "final_position": [
-          5.847755432128906,
-          0.4423357844352722,
-          0.2553870975971222
-        ]
-      }
-    },
-    {
-      "seed": 284,
-      "mode": "walk",
-      "speed": 0.3,
-      "crossed": false,
-      "within_step_width": false,
-      "result": {
-        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
-        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
-        "start_x": 4.0,
-        "seconds": 12.0,
-        "speed": 0.3,
-        "mode": "walk",
-        "seed": 284,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
-        "scope": "Injected start, partial course only; not a full traversal",
-        "status": {
-          "time": 13.0,
-          "falls": 0,
-          "finished": false,
-          "mode": "walk",
-          "course_checkpoints": 0,
-          "paused": false,
-          "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_212030_127849_course_segment_diagnostic",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_194919_730063_course_segment_diagnostic",
           "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
           "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
           "speed": 0.3,
@@ -302,7 +73,247 @@
         "full_course_completed": false,
         "final_position": [
           4.5276899337768555,
-          -0.015496333129703999,
+          -0.015497313812375069,
+          0.2802071273326874
+        ]
+      }
+    },
+    {
+      "seed": 282,
+      "mode": "walk",
+      "speed": 0.45,
+      "crossed": false,
+      "within_step_width": false,
+      "result": {
+        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+        "start_x": 4.0,
+        "seconds": 12.0,
+        "speed": 0.45,
+        "mode": "walk",
+        "seed": 282,
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
+        "scope": "Injected start, partial course only; not a full traversal",
+        "status": {
+          "time": 13.0,
+          "falls": 0,
+          "finished": false,
+          "mode": "walk",
+          "course_checkpoints": 0,
+          "paused": false,
+          "message": "Ready. Load your policies, then drive to the finish beacon.",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_194946_727492_course_segment_diagnostic",
+          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+          "speed": 0.45,
+          "yaw": 0.0
+        },
+        "full_course_completed": false,
+        "final_position": [
+          4.562475204467773,
+          0.20487536489963531,
+          0.280828058719635
+        ]
+      }
+    },
+    {
+      "seed": 282,
+      "mode": "hop",
+      "speed": 0.3,
+      "crossed": true,
+      "within_step_width": true,
+      "result": {
+        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+        "start_x": 4.0,
+        "seconds": 12.0,
+        "speed": 0.3,
+        "mode": "hop",
+        "seed": 282,
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
+        "scope": "Injected start, partial course only; not a full traversal",
+        "status": {
+          "time": 13.0,
+          "falls": 0,
+          "finished": false,
+          "mode": "hop",
+          "course_checkpoints": 0,
+          "paused": false,
+          "message": "Ready. Load your policies, then drive to the finish beacon.",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_195010_437389_course_segment_diagnostic",
+          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+          "speed": 0.3,
+          "yaw": 0.0
+        },
+        "full_course_completed": false,
+        "final_position": [
+          5.843687534332275,
+          0.5011566281318665,
+          0.2557480037212372
+        ]
+      }
+    },
+    {
+      "seed": 283,
+      "mode": "walk",
+      "speed": 0.3,
+      "crossed": false,
+      "within_step_width": false,
+      "result": {
+        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+        "start_x": 4.0,
+        "seconds": 12.0,
+        "speed": 0.3,
+        "mode": "walk",
+        "seed": 283,
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
+        "scope": "Injected start, partial course only; not a full traversal",
+        "status": {
+          "time": 13.0,
+          "falls": 0,
+          "finished": false,
+          "mode": "walk",
+          "course_checkpoints": 0,
+          "paused": false,
+          "message": "Ready. Load your policies, then drive to the finish beacon.",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_195035_286808_course_segment_diagnostic",
+          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+          "speed": 0.3,
+          "yaw": 0.0
+        },
+        "full_course_completed": false,
+        "final_position": [
+          4.527689456939697,
+          -0.015496519394218922,
+          0.2802070677280426
+        ]
+      }
+    },
+    {
+      "seed": 283,
+      "mode": "walk",
+      "speed": 0.45,
+      "crossed": false,
+      "within_step_width": false,
+      "result": {
+        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+        "start_x": 4.0,
+        "seconds": 12.0,
+        "speed": 0.45,
+        "mode": "walk",
+        "seed": 283,
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
+        "scope": "Injected start, partial course only; not a full traversal",
+        "status": {
+          "time": 13.0,
+          "falls": 0,
+          "finished": false,
+          "mode": "walk",
+          "course_checkpoints": 0,
+          "paused": false,
+          "message": "Ready. Load your policies, then drive to the finish beacon.",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_195059_338182_course_segment_diagnostic",
+          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+          "speed": 0.45,
+          "yaw": 0.0
+        },
+        "full_course_completed": false,
+        "final_position": [
+          4.5624775886535645,
+          0.20489190518856049,
+          0.2808283865451813
+        ]
+      }
+    },
+    {
+      "seed": 283,
+      "mode": "hop",
+      "speed": 0.3,
+      "crossed": true,
+      "within_step_width": true,
+      "result": {
+        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+        "start_x": 4.0,
+        "seconds": 12.0,
+        "speed": 0.3,
+        "mode": "hop",
+        "seed": 283,
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
+        "scope": "Injected start, partial course only; not a full traversal",
+        "status": {
+          "time": 13.0,
+          "falls": 0,
+          "finished": false,
+          "mode": "hop",
+          "course_checkpoints": 0,
+          "paused": false,
+          "message": "Ready. Load your policies, then drive to the finish beacon.",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_195123_373323_course_segment_diagnostic",
+          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+          "speed": 0.3,
+          "yaw": 0.0
+        },
+        "full_course_completed": false,
+        "final_position": [
+          5.946091175079346,
+          0.3894677460193634,
+          0.2545316219329834
+        ]
+      }
+    },
+    {
+      "seed": 284,
+      "mode": "walk",
+      "speed": 0.3,
+      "crossed": false,
+      "within_step_width": false,
+      "result": {
+        "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+        "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+        "start_x": 4.0,
+        "seconds": 12.0,
+        "speed": 0.3,
+        "mode": "walk",
+        "seed": 284,
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
+        "scope": "Injected start, partial course only; not a full traversal",
+        "status": {
+          "time": 13.0,
+          "falls": 0,
+          "finished": false,
+          "mode": "walk",
+          "course_checkpoints": 0,
+          "paused": false,
+          "message": "Ready. Load your policies, then drive to the finish beacon.",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_195147_598072_course_segment_diagnostic",
+          "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
+          "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
+          "speed": 0.3,
+          "yaw": 0.0
+        },
+        "full_course_completed": false,
+        "final_position": [
+          4.5276899337768555,
+          -0.015496679581701756,
           0.280207097530365
         ]
       }
@@ -321,8 +332,9 @@
         "speed": 0.45,
         "mode": "walk",
         "seed": 284,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
         "scope": "Injected start, partial course only; not a full traversal",
         "status": {
           "time": 13.0,
@@ -332,7 +344,7 @@
           "course_checkpoints": 0,
           "paused": false,
           "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_212110_090716_course_segment_diagnostic",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_195211_930099_course_segment_diagnostic",
           "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
           "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
           "speed": 0.45,
@@ -340,9 +352,9 @@
         },
         "full_course_completed": false,
         "final_position": [
-          4.562476634979248,
-          0.20488056540489197,
-          0.28082844614982605
+          4.562477111816406,
+          0.2048766314983368,
+          0.2808285355567932
         ]
       }
     },
@@ -360,8 +372,9 @@
         "speed": 0.3,
         "mode": "hop",
         "seed": 284,
-        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/config/course.json",
-        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials",
+        "course_config": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/config/course.json",
+        "head_motion_config": "/home/ubuntu/workspace/263A/artifacts/final_round/cosmetic_only.json",
+        "run_root": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials",
         "scope": "Injected start, partial course only; not a full traversal",
         "status": {
           "time": 13.0,
@@ -371,7 +384,7 @@
           "course_checkpoints": 0,
           "paused": false,
           "message": "Ready. Load your policies, then drive to the finish beacon.",
-          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-09_211658_930612_obstacle_mode_comparison/evaluation/trials/2026-10-09_212153_796778_course_segment_diagnostic",
+          "experiment": "/home/ubuntu/workspace/263A/experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison/evaluation/trials/2026-10-10_195233_115992_course_segment_diagnostic",
           "walking": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
           "hopping": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/step_001000.pt",
           "speed": 0.3,
@@ -379,9 +392,9 @@
         },
         "full_course_completed": false,
         "final_position": [
-          5.85252571105957,
-          0.574753999710083,
-          0.2542528808116913
+          5.76524543762207,
+          0.5948917865753174,
+          0.2541452646255493
         ]
       }
     }
@@ -390,5 +403,8 @@
   "hop_required_for_tested_cases": true,
   "limitation": "Does not prove that all possible walking commands fail. Inspect crossing videos and validate the full course separately.",
   "shown_seed": 282,
-  "caption": "Same 25 mm step and start: walking stalls at both 0.30 and 0.45 m/s commands; hopping crosses. The video shows seed 282. Across three starting seeds, walking crossed 0/6 trials and hopping 3/3. This is an isolated obstacle check, not a full-course run, and does not prove every possible walking controller fails."
+  "caption": "Same 25 mm step and injected start: walking stalls at both 0.30 and 0.45 m/s commands; hopping crosses. Seed 282 shown. Walking crossed 0/6 trials and hopping 3/3. Isolated obstacle check; not a full course and not proof that every walking controller fails.",
+  "display_scope": "Head gaze corrected only in the renderer; no physical head gesture or altered leg trajectory.",
+  "experiment": "experiments/evaluations/obstacles/2026-10-10_194910_962751_obstacle_mode_comparison",
+  "video_sha256": "2a8127cd95085f14824128e396b96ac6387576792fa1263a532a6b898078732b"
 }
