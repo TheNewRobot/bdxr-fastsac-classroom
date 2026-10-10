@@ -9,12 +9,12 @@
 # %% [markdown]
 # ### Instructor example · joints on the actual model
 #
-# ![Left-leg joints on BDX-R](lesson-asset:reference/annotated_robot.png)
+# | Joint centers through the covers | The same chain in the model |
+# |:---:|:---:|
+# | ![Left-leg joints on BDX-R](lesson-asset:reference/annotated_robot.png) | ![Articulated kinematic tree](lesson-asset:reference/kinematic_tree.png) |
 #
-# ![Articulated kinematic tree](lesson-asset:reference/kinematic_tree.png)
-#
-# Trace the left leg from hip yaw to ankle. The floating root is not an actuator.
-# The images show the same model that the following code inspects.
+# Follow matching colors and numbers. Dots mark the model's internal joint centers;
+# translucent covers make hidden joints visible. Other tree branches are collapsed.
 #
 # ### Your activity · inspect joints, then move one
 #
@@ -66,7 +66,9 @@ media_pair(
 # the knee turns? Is the path a straight line?
 
 # %% [markdown]
-# ![Measured knee-sweep foot path](lesson-asset:reference/knee_path.png)
+# | One-joint forward kinematics |
+# |:---:|
+# | ![Measured knee-sweep foot path](lesson-asset:reference/knee_path.png) |
 #
 # **Instructor example:** measured positions from −20° to +40° of left-knee motion,
 # with the root and all other joints fixed. The curve is geometry, not a stable gait.

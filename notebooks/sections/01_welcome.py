@@ -27,6 +27,8 @@
 # |:---:|:---:|
 # | ![Disney BDX droid — D23 reference photograph](lesson-asset:reference/disney_bdx.jpg) | ![Recorded instructor walking example](lesson-asset:inline/walking.gif) |
 #
+# Head gaze is a cosmetic rendering adjustment; leg motion comes from simulation.
+#
 # Photo: [D23 / Disney](https://d23.com/bdx-droids-disneys-perfect-marriage-of-creativity-and-technological-achievement/), not relicensed. Simulation: the open-source BDX-R model with our recorded walking policy.
 
 # %% [markdown]

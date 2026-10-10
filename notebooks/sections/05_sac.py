@@ -14,7 +14,9 @@
 # off-policy learning loop efficient on the GPU. This lesson uses SAC, not PPO.
 
 # %% [markdown]
-# ![SAC: collect experience, sample replay, update actor and critics](lesson-asset:reference/sac_loop.png)
+# | Learning from replay |
+# |:---:|
+# | ![SAC: collect experience, sample replay, update actor and critics](lesson-asset:reference/sac_loop.png) |
 
 # %% [markdown]
 # ### Separate learning settings from environment settings
