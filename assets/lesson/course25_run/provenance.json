@@ -1,25 +1,39 @@
 {
   "finished": true,
   "falls": 0,
-  "simulation_seconds": 49.88,
+  "simulation_seconds": 53.14,
   "checkpoints": 4,
-  "previews_inspected": 16,
+  "previews_recorded": 19,
   "scope": "Full 25 mm middle-step course, visual steering with pauses. Not autonomous navigation or real-time human gameplay.",
-  "operator": "Commands selected from rendered previews; no world-pose feedback controller",
+  "operator": "Commands chosen from rendered previews; no world-pose feedback controller.",
   "walking_checkpoint": "final.pt",
   "hopping_checkpoint": "step_001000.pt",
-  "remaining": "None for this recorded course example; actual Colab execution remains untested.",
-  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 49.88 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
-  "additional_course": {
-    "finished": true,
-    "falls": 0,
-    "simulation_seconds": 49.4,
-    "checkpoints": 4,
-    "previews_inspected": 13,
-    "seed": 283,
-    "scope": "Full 25mm middle-step course, visually steered with pauses. Not autonomous navigation or real-time human play.",
-    "steering": "Different yaw commands were chosen from rendered previews; the fixed replay for this seed failed to finish."
+  "head_motion": {
+    "enabled": true,
+    "walk_amplitude": 0.025,
+    "idle_yaw": 0.08,
+    "idle_tilt": 0.0075,
+    "max_velocity": 0.4,
+    "max_acceleration": 1.2,
+    "response_frequency": 4.0,
+    "seed": 7
   },
-  "visual_course_finishes": 2,
-  "fixed_replay_finish_failed": true
+  "video_source": "gameplay_001.mp4",
+  "video_sha256": "a58af732092316e90bd864f27d04b8da862d5e8f65c9c7432181a30580b421df",
+  "previous_neutral_runs": [
+    {
+      "simulation_seconds": 49.88
+    },
+    {
+      "finished": true,
+      "falls": 0,
+      "simulation_seconds": 49.4,
+      "checkpoints": 4,
+      "previews_inspected": 13,
+      "seed": 283,
+      "scope": "Full 25mm middle-step course, visually steered with pauses. Not autonomous navigation or real-time human play.",
+      "steering": "Different yaw commands were chosen from rendered previews; the fixed replay for this seed failed to finish."
+    }
+  ],
+  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.14 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play."
 }
