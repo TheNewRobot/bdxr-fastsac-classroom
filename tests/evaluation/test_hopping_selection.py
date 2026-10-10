@@ -10,17 +10,27 @@ from scripts.evaluation.check_hopping_results import check, choose
 
 class HoppingSelection(unittest.TestCase):
     def setUp(self):
-        self.targets = json.loads((Path(__file__).resolve().parents[2] /
-                                   "configs/hopping_targets.json").read_text())
+        self.targets = json.loads(
+            (
+                Path(__file__).resolve().parents[2] / "configs/hopping_targets.json"
+            ).read_text()
+        )
         self.report = {
-            "checkpoint": "earlier.pt", "terrain_style": "mixed",
-            "terrain_height_m": .015,
+            "checkpoint": "earlier.pt",
+            "terrain_style": "mixed",
+            "terrain_height_m": 0.015,
             "foot_height_measurement": "Sampled collision-sole clearance",
             "cases": {
-                case: [dict(fell=False, duration_s=15., landed_hops=10,
-                            peak_simultaneous_foot_clearance=.04,
-                            mean_speed=0. if case == "stop" else .1)
-                       for _ in range(5)]
+                case: [
+                    dict(
+                        fell=False,
+                        duration_s=15.0,
+                        landed_hops=10,
+                        peak_simultaneous_foot_clearance=0.04,
+                        mean_speed=0.0 if case == "stop" else 0.1,
+                    )
+                    for _ in range(5)
+                ]
                 for case in ("slow", "forward", "stop")
             },
         }
@@ -35,9 +45,13 @@ class HoppingSelection(unittest.TestCase):
         self.assertIsNone(choose([final], self.targets)["selected_checkpoint"])
 
     def test_standing_wrong_direction_and_missing_measurements_fail(self):
-        for field, value in (("landed_hops", 0), ("mean_speed", -.1),
-                             ("peak_simultaneous_foot_clearance", .01),
-                             ("duration_s", 8.), ("mean_speed", float("nan"))):
+        for field, value in (
+            ("landed_hops", 0),
+            ("mean_speed", -0.1),
+            ("peak_simultaneous_foot_clearance", 0.01),
+            ("duration_s", 8.0),
+            ("mean_speed", float("nan")),
+        ):
             with self.subTest(field=field, value=value):
                 report = copy.deepcopy(self.report)
                 report["cases"]["forward"][0][field] = value
@@ -82,6 +96,8 @@ class HoppingSelection(unittest.TestCase):
         moved = dict(self.report, checkpoint_sha256="same-weights")
         moved["cases"] = copy.deepcopy(self.report["cases"])
         moved["cases"]["forward"][0]["fell"] = True
-        result = choose([moved], self.targets, {"new-location/earlier.pt": "same-weights"})
+        result = choose(
+            [moved], self.targets, {"new-location/earlier.pt": "same-weights"}
+        )
         self.assertIsNone(result["selected_checkpoint"])
         self.assertEqual(result["candidates"][0]["evaluation_count"], 1)

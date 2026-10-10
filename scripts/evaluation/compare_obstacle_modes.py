@@ -45,16 +45,22 @@ def main():
     walkers = args.walking.resolve()
     hopper = args.hopping.resolve()
     identities = {
-        name: {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        name: {
+            "path": str(path),
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
         for name, path in [("walking", walkers), ("hopping", hopper)]
     }
     out = create_experiment("obstacle_mode_comparison", ROOT / "experiments")
     config = out / "config/course.json"
     config.write_text(json.dumps({"step_height": args.step_height}, indent=2))
     manifest = {
-        "policies": identities, "seeds": args.seeds, "seconds": args.seconds,
-        "step_height_m": args.step_height, "start_x_m": 4.0,
-        "cases": [["walk", .3], ["walk", .45], ["hop", .3]],
+        "policies": identities,
+        "seeds": args.seeds,
+        "seconds": args.seconds,
+        "step_height_m": args.step_height,
+        "start_x_m": 4.0,
+        "cases": [["walk", 0.3], ["walk", 0.45], ["hop", 0.3]],
         "scope": "Injected start, fixed commands, middle step only; not full-course evidence.",
         "crossing_rule": "No falls, final x > 5.3 m, and all samples over the step remain within |y| < .6 m.",
     }
@@ -66,38 +72,76 @@ def main():
         for mode, speed in manifest["cases"]:
             log = out / "evaluation" / f"{seed}_{mode}_{speed}.log"
             with log.open("w") as stream:
-                subprocess.run([
-                    sys.executable, str(ROOT / "scripts/evaluation/diagnose_course_segment.py"),
-                    str(walkers), "--hopping", str(hopper), "--start-x", "4",
-                    "--seconds", str(args.seconds), "--mode", mode, "--speed",
-                    str(speed), "--seed", str(seed), "--course-config", str(config),
-                    "--run-root", str(out / "evaluation/trials"),
-                ], cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT, check=True)
+                subprocess.run(
+                    [
+                        sys.executable,
+                        str(ROOT / "scripts/evaluation/diagnose_course_segment.py"),
+                        str(walkers),
+                        "--hopping",
+                        str(hopper),
+                        "--start-x",
+                        "4",
+                        "--seconds",
+                        str(args.seconds),
+                        "--mode",
+                        mode,
+                        "--speed",
+                        str(speed),
+                        "--seed",
+                        str(seed),
+                        "--course-config",
+                        str(config),
+                        "--run-root",
+                        str(out / "evaluation/trials"),
+                    ],
+                    cwd=ROOT,
+                    env=env,
+                    stdout=stream,
+                    stderr=subprocess.STDOUT,
+                    check=True,
+                )
             result = read_report(log.read_text())
             trial = ROOT / result["status"]["experiment"]
-            rows = [json.loads(line) for line in
-                    (trial / "metrics/gameplay.jsonl").read_text().splitlines()]
+            rows = [
+                json.loads(line)
+                for line in (trial / "metrics/gameplay.jsonl").read_text().splitlines()
+            ]
             over_step = [row for row in rows if 4.58 <= row["position"][0] <= 5.02]
             within_width = bool(over_step) and all(
-                abs(row["position"][1]) < .6 for row in over_step)
-            crossed = (result["status"]["falls"] == 0
-                       and result["final_position"][0] > 5.3 and within_width)
-            record = {"seed": seed, "mode": mode, "speed": speed,
-                      "crossed": crossed, "within_step_width": within_width,
-                      "result": result}
+                abs(row["position"][1]) < 0.6 for row in over_step
+            )
+            crossed = (
+                result["status"]["falls"] == 0
+                and result["final_position"][0] > 5.3
+                and within_width
+            )
+            record = {
+                "seed": seed,
+                "mode": mode,
+                "speed": speed,
+                "crossed": crossed,
+                "within_step_width": within_width,
+                "result": result,
+            }
             records.append(record)
             summary = {
-                **manifest, "records": records,
+                **manifest,
+                "records": records,
                 "complete": len(records) == 3 * len(args.seeds),
                 "hop_required_for_tested_cases": (
                     len(records) == 3 * len(args.seeds)
-                    and all(r["crossed"] == (r["mode"] == "hop") for r in records)),
+                    and all(r["crossed"] == (r["mode"] == "hop") for r in records)
+                ),
                 "limitation": "Does not prove that all possible walking commands fail. "
-                              "Inspect crossing videos and validate the full course separately.",
+                "Inspect crossing videos and validate the full course separately.",
             }
             (out / "evaluation/summary.json").write_text(json.dumps(summary, indent=2))
-            print(json.dumps({key: record[key] for key in
-                              ["seed", "mode", "speed", "crossed"]}), flush=True)
+            print(
+                json.dumps(
+                    {key: record[key] for key in ["seed", "mode", "speed", "crossed"]}
+                ),
+                flush=True,
+            )
     print(out, flush=True)
 
 

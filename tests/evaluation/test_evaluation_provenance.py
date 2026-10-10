@@ -5,7 +5,10 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from bdxr_classroom.evaluation.command_evaluate import preserve_previous_evaluation, checkpoint_hash
+from bdxr_classroom.evaluation.command_evaluate import (
+    preserve_previous_evaluation,
+    checkpoint_hash,
+)
 
 
 class EvaluationProvenanceTests(unittest.TestCase):
@@ -21,7 +24,9 @@ class EvaluationProvenanceTests(unittest.TestCase):
             preserve_previous_evaluation(output, video)
             archived = list(output.parent.glob("final_commands_previous_*"))
             self.assertEqual(len(archived), 1)
-            self.assertFalse(json.loads((archived[0] / "summary.json").read_text())["passed"])
+            self.assertFalse(
+                json.loads((archived[0] / "summary.json").read_text())["passed"]
+            )
             archived_video = video.parent / archived[0].name / "forward.mp4"
             self.assertEqual(archived_video.read_bytes(), b"previous recording")
             self.assertFalse(output.exists())
