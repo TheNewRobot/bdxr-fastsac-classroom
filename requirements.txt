@@ -1,4 +1,4 @@
-# PyTorch's CUDA wheel is installed separately by scripts/setup.py.
+# PyTorch's CUDA wheel is installed separately by scripts/setup/setup.py.
 torch==2.8.0
 mujoco==3.8.1
 mujoco-warp==3.8.0.3
