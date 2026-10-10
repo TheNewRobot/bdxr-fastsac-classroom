@@ -39,7 +39,9 @@ def experiment_root(path):
 
 def create_experiment(name, root="experiments", category="evaluations"):
     if not re.fullmatch(r"[A-Za-z0-9_-]+", name):
-        raise ValueError("Experiment names may contain letters, numbers, underscores and hyphens")
+        raise ValueError(
+            "Experiment names may contain letters, numbers, underscores and hyphens"
+        )
     timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d_%H%M%S_%f")
     root = Path(root)
     if root.name == "experiments":
@@ -51,7 +53,10 @@ def create_experiment(name, root="experiments", category="evaluations"):
                 root = root / "comparisons"
             elif name in {"obstacle_mode_comparison", "course_segment_diagnostic"}:
                 root = root / "obstacles"
-            elif name in {"manual_course_trial", "desert_droid_game"} or name.startswith("course"):
+            elif name in {
+                "manual_course_trial",
+                "desert_droid_game",
+            } or name.startswith("course"):
                 root = root / "courses"
             elif name.startswith("transition_validation"):
                 root = root / "transitions"
@@ -65,7 +70,9 @@ def create_experiment(name, root="experiments", category="evaluations"):
 def jsonable(value):
     """Record resolved dataclasses and named callables without executing them."""
     if dataclasses.is_dataclass(value) and not isinstance(value, type):
-        return {f.name: jsonable(getattr(value, f.name)) for f in dataclasses.fields(value)}
+        return {
+            f.name: jsonable(getattr(value, f.name)) for f in dataclasses.fields(value)
+        }
     if isinstance(value, dict):
         return {str(k): jsonable(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
@@ -75,8 +82,11 @@ def jsonable(value):
     if isinstance(value, Path):
         return str(value)
     if isinstance(value, functools.partial):
-        return {"callable": jsonable(value.func), "args": jsonable(value.args),
-                "keywords": jsonable(value.keywords)}
+        return {
+            "callable": jsonable(value.func),
+            "args": jsonable(value.args),
+            "keywords": jsonable(value.keywords),
+        }
     if callable(value):
         return f"{value.__module__}.{value.__qualname__}"
     if hasattr(value, "tolist"):
@@ -88,18 +98,34 @@ def write_manifest(out, config, env_config):
     source = Path(__file__).resolve().parents[2]
     try:
         revision = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=source, stderr=subprocess.DEVNULL, text=True).strip()
-        dirty = bool(subprocess.check_output(
-            ["git", "status", "--porcelain"], cwd=source, stderr=subprocess.DEVNULL, text=True).strip())
+            ["git", "rev-parse", "HEAD"],
+            cwd=source,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        dirty = bool(
+            subprocess.check_output(
+                ["git", "status", "--porcelain"],
+                cwd=source,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            ).strip()
+        )
     except subprocess.CalledProcessError:
         revision, dirty = None, None
-    (out / "config/environment.json").write_text(json.dumps(jsonable(env_config), indent=2))
+    (out / "config/environment.json").write_text(
+        json.dumps(jsonable(env_config), indent=2)
+    )
     pins = source / "configs/upstream_revisions.json"
     manifest = {
         "created_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-        "name": config["name"], "source_revision": revision, "source_dirty": dirty,
-        "parent_checkpoint": config.get("resume"), "hardware": config["hardware"],
-        "seed": config["seed"], "upstream": json.loads(pins.read_text()) if pins.exists() else {},
+        "name": config["name"],
+        "source_revision": revision,
+        "source_dirty": dirty,
+        "parent_checkpoint": config.get("resume"),
+        "hardware": config["hardware"],
+        "seed": config["seed"],
+        "upstream": json.loads(pins.read_text()) if pins.exists() else {},
         "layout_version": 2,
     }
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
@@ -111,8 +137,13 @@ def capture_source(out):
     source = Path(__file__).resolve().parents[2]
     path = out / "config" / f"source_{time.time_ns()}.zip"
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
-        for pattern in ["src/**/*.py", "src/**/*.html", "scripts/**/*.py",
-                        "configs/*.json", "requirements*.txt"]:
+        for pattern in [
+            "src/**/*.py",
+            "src/**/*.html",
+            "scripts/**/*.py",
+            "configs/*.json",
+            "requirements*.txt",
+        ]:
             for file in source.glob(pattern):
                 archive.write(file, file.relative_to(source))
     return path
@@ -120,9 +151,17 @@ def capture_source(out):
 
 def config_path(root):
     root = experiment_root(root)
-    return root / "config/training.json" if (root / "config").exists() else root / "config.json"
+    return (
+        root / "config/training.json"
+        if (root / "config").exists()
+        else root / "config.json"
+    )
 
 
 def metrics_path(root):
     root = experiment_root(root)
-    return root / "metrics/training.jsonl" if (root / "metrics").exists() else root / "metrics.jsonl"
+    return (
+        root / "metrics/training.jsonl"
+        if (root / "metrics").exists()
+        else root / "metrics.jsonl"
+    )

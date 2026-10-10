@@ -7,7 +7,9 @@ import torch
 
 def export_policy(checkpoint, destination):
     state = torch.load(checkpoint, map_location="cpu", weights_only=False)
-    compact = {k: state[k] for k in ["actor", "actor_norm", "dimensions", "config", "step"]}
+    compact = {
+        k: state[k] for k in ["actor", "actor_norm", "dimensions", "config", "step"]
+    }
     compact["format"] = "bdxr-inference-only-v1"
     compact["source_checkpoint"] = str(checkpoint)
     destination = Path(destination)

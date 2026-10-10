@@ -49,8 +49,10 @@ def build_maps(env):
     maps = {"actions": actions}
     for group in ("actor", "critic"):
         indices, signs, offset = [], [], 0
-        for name, shape in zip(env.observation_manager.active_terms[group],
-                               env.observation_manager.group_obs_term_dim[group]):
+        for name, shape in zip(
+            env.observation_manager.active_terms[group],
+            env.observation_manager.group_obs_term_dim[group],
+        ):
             if name not in rules:
                 raise ValueError(f"No reflection rule for {group}/{name}")
             permutation, factors = rules[name]
@@ -66,8 +68,10 @@ def build_maps(env):
 class ReplayMirror:
     def __init__(self, maps, device):
         self.maps = {
-            key: (torch.tensor(value["indices"], device=device),
-                  torch.tensor(value["signs"], device=device))
+            key: (
+                torch.tensor(value["indices"], device=device),
+                torch.tensor(value["signs"], device=device),
+            )
             for key, value in maps.items()
         }
 
@@ -78,7 +82,10 @@ class ReplayMirror:
     def augment(self, batch):
         mirrored = batch.clone()
         for prefix in ((), ("next",)):
-            for key, group in (("observations", "actor"), ("critic_observations", "critic")):
+            for key, group in (
+                ("observations", "actor"),
+                ("critic_observations", "critic"),
+            ):
                 location = prefix + (key,)
                 mirrored[location] = self.reflect(batch[location], group)
         mirrored["actions"] = self.reflect(batch["actions"], "actions")

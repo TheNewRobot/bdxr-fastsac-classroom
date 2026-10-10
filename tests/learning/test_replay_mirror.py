@@ -1,6 +1,7 @@
 """Mirror real BDX-R coordinates without mixing actor and critic information."""
 
 import os
+
 os.environ.setdefault("MUJOCO_GL", "egl")
 import unittest
 import tempfile
@@ -31,14 +32,20 @@ class ReplayReflection(unittest.TestCase):
                 displacements = []
                 for foot, side, sign in [(0, "Left", 1), (1, "Right", -1)]:
                     mujoco.mj_resetData(model, data)
-                    index = int(robot.indexing.joint_ids[
-                        robot.joint_names.index(f"{side}_{joint}")])
-                    data.qpos[model.jnt_qposadr[index]] += sign * .02
+                    index = int(
+                        robot.indexing.joint_ids[
+                            robot.joint_names.index(f"{side}_{joint}")
+                        ]
+                    )
+                    data.qpos[model.jnt_qposadr[index]] += sign * 0.02
                     mujoco.mj_forward(model, data)
                     displacements.append(data.site_xpos[sites[foot]] - neutral[foot])
                 np.testing.assert_allclose(
-                    displacements[0] * [1, -1, 1], displacements[1], atol=.0005,
-                    err_msg=joint)
+                    displacements[0] * [1, -1, 1],
+                    displacements[1],
+                    atol=0.0005,
+                    err_msg=joint,
+                )
         finally:
             env.close()
 
@@ -50,29 +57,55 @@ class ReplayReflection(unittest.TestCase):
             mirror = ReplayMirror(maps, "cuda")
             for group, width in (("actor", 49), ("critic", 64), ("actions", 10)):
                 values = torch.randn(2, width, device="cuda")
-                torch.testing.assert_close(mirror.reflect(mirror.reflect(values, group), group), values)
+                torch.testing.assert_close(
+                    mirror.reflect(mirror.reflect(values, group), group), values
+                )
             self.assertLess(max(maps["actor"]["indices"]), 49)
             joints = joint_map(list(env.scene["robot"].joint_names))
             neutral = env.scene["robot"].data.default_joint_pos
             torch.testing.assert_close(
-                neutral[:, joints["indices"]] * neutral.new_tensor(joints["signs"]), neutral)
-            cfg = dict(num_envs=2, actor_hidden=32, critic_hidden=32, buffer_size=8,
-                       batch_size=4, updates=2, gamma=.97, compile=False,
-                       mirror_replay=True, mirror_maps=maps)
+                neutral[:, joints["indices"]] * neutral.new_tensor(joints["signs"]),
+                neutral,
+            )
+            cfg = dict(
+                num_envs=2,
+                actor_hidden=32,
+                critic_hidden=32,
+                buffer_size=8,
+                batch_size=4,
+                updates=2,
+                gamma=0.97,
+                compile=False,
+                mirror_replay=True,
+                mirror_maps=maps,
+            )
             agent = FastSAC(49, 64, 10, cfg)
             flags = torch.tensor([False, True], device="cuda")
-            agent.add(obs, torch.zeros(2, 10, device="cuda"), obs,
-                      torch.ones(2, device="cuda"), flags, ~flags)
+            agent.add(
+                obs,
+                torch.zeros(2, 10, device="cuda"),
+                obs,
+                torch.ones(2, device="cuda"),
+                flags,
+                ~flags,
+            )
             batch = agent.buffer.sample(1)
             augmented = mirror.augment(batch)
             for field in ("rewards", "dones", "truncations"):
-                torch.testing.assert_close(augmented["next", field][2:], batch["next", field])
+                torch.testing.assert_close(
+                    augmented["next", field][2:], batch["next", field]
+                )
             actor_copy = augmented["observations"].clone()
             batch["critic_observations"].add_(1000)
-            torch.testing.assert_close(mirror.augment(batch)["observations"], actor_copy)
+            torch.testing.assert_close(
+                mirror.augment(batch)["observations"], actor_copy
+            )
             metrics = agent.learn()
-            self.assertTrue(all(torch.isfinite(value).all() for value in metrics.values()))
+            self.assertTrue(
+                all(torch.isfinite(value).all() for value in metrics.values())
+            )
             from bdxr_classroom.evaluation.command_evaluate import load_agent
+
             with tempfile.TemporaryDirectory() as directory:
                 checkpoint = Path(directory) / "mirror.pt"
                 agent.save(checkpoint, 1)
@@ -80,8 +113,11 @@ class ReplayReflection(unittest.TestCase):
                 self.assertEqual(restored_cfg["mirror_maps"], maps)
                 self.assertIsNotNone(restored.replay_mirror)
                 torch.testing.assert_close(
-                    restored.act(obs["actor"], True), agent.act(obs["actor"], True),
-                    rtol=0, atol=0)
+                    restored.act(obs["actor"], True),
+                    agent.act(obs["actor"], True),
+                    rtol=0,
+                    atol=0,
+                )
         finally:
             env.close()
 
