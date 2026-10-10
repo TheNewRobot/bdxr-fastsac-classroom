@@ -29,6 +29,37 @@
 # beneath the final display cell. Compare its pose with the reference above.
 
 # %% [hidden]
+# @title Unpack the lesson files
+import base64
+import io
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+import zipfile
+from IPython.display import display, HTML, Image, Video
+
+WORK = (
+    Path("/content/bdxr_classroom")
+    if Path("/content").exists()
+    else Path.cwd() / "bdxr_classroom_lab"
+)
+WORK.mkdir(parents=True, exist_ok=True)
+SOURCE_BUNDLE = "__SOURCE_BUNDLE__"
+with zipfile.ZipFile(io.BytesIO(base64.b64decode(SOURCE_BUNDLE))) as archive:
+    archive.extractall(WORK)
+sys.path.insert(0, str(WORK / "src"))
+sys.path.insert(0, str(WORK))
+from bdxr_classroom.lesson.presentation import (
+    media_pair,
+    read_json,
+)
+
+print("Lesson files:", WORK)
+
+# %% [hidden]
 # @title Install pinned dependencies
 setup_start = time.monotonic()
 setup_log = WORK / "setup.log"

@@ -1,36 +1,16 @@
 # %% [markdown]
 # ## 8 · Optional extension: learn to hop
 #
-# Walking alternates support. A hop has an interval when **both feet leave the
-# ground**, followed by a controlled landing. A foot marker moving upward does
-# not prove the whole sole cleared an obstacle.
+# A hop lifts **both feet** before a controlled landing. This recorded hopper
+# reached about 5.9 cm bilateral clearance and 0.16 s of clear flight; its feet
+# still tilt about 9°. Foot-marker height alone does not prove obstacle clearance.
+
+# %% [markdown]
+# | Earlier vs updated hopping | Same motion at half speed |
+# |:---:|:---:|
+# | ![Recorded hopping comparison](lesson-asset:inline/hopping.gif) | ![Recorded hopping comparison at half speed](lesson-asset:inline/hopping_slow.gif) |
 #
-# Compare bilateral sole clearance, flight duration, foot tilt, and landing.
-# The recorded course hopper averaged about 5.9 cm bilateral peak clearance and
-# 0.16 s clear flight. Its feet still tilt about 9 degrees; they are not perfectly
-# parallel to the floor. Sampled touchdown-force peaks were about 30% lower than
-# the earlier hopper, but 20 ms samples are not exact substep impact forces.
-
-# %% [hidden] [instructor]
-media_pair(
-    [
-        (
-            "Earlier and updated hopping",
-            WORK / "assets/lesson/course_hops/comparison.mp4",
-            "Recorded instructor policies at the same forward command.",
-        ),
-        (
-            "The same motion at half speed",
-            WORK / "assets/lesson/course_hops/half_speed.mp4",
-            "Inspect bilateral takeoff, flight, and landing.",
-        ),
-    ]
-)
-
-recorded_details(
-    WORK / "assets/lesson/course_hops",
-    "Measured instructor hopping. The learning curve covers only the final 1,000-step stage, not all eight stages.",
-)
+# Watch both feet leave the ground, then inspect the landing.
 
 # %% [markdown]
 # ### Why use a curriculum?
@@ -47,8 +27,7 @@ recorded_details(
 # %% [markdown]
 # ![Measured instructor hopping](lesson-asset:course_hops/motion.png)
 #
-# The video above is an instructor reference, available without training.
-# The table below is the recorded curriculum; every stage starts from its listed predecessor.
+# Recorded measurements above; training stages below. Each stage continues its predecessor.
 
 # %% [markdown]
 # | Stage | Steps | Requested foot height (m) | Terrain height (m) |
