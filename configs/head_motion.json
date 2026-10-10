@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "walk_amplitude": 0.025,
+  "idle_yaw": 0.08,
+  "idle_tilt": 0.0075,
+  "max_velocity": 0.4,
+  "max_acceleration": 1.2,
+  "response_frequency": 4.0,
+  "seed": 7
+}

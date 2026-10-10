@@ -1,0 +1,198 @@
+[
+  {
+    "name": "tiny_hops",
+    "environment": {
+      "task_version": "hop",
+      "speed": 0,
+      "hop_height": 0.04
+    },
+    "learning": {
+      "steps": 4000,
+      "minutes": 10
+    },
+    "parent": null
+  },
+  {
+    "name": "moving_hops",
+    "environment": {
+      "task_version": "hop",
+      "speed": 0,
+      "command_mode": "balanced",
+      "speed_min": -0.1,
+      "speed_max": 0.3,
+      "yaw_max": 0.3,
+      "yaw_tracking": "rate",
+      "yaw_std": 0.2,
+      "hop_height": 0.07,
+      "hop_body_weight": 6,
+      "linear_weight": 6
+    },
+    "learning": {
+      "steps": 6000,
+      "minutes": 15
+    },
+    "parent": "tiny_hops/checkpoints/final.pt"
+  },
+  {
+    "name": "terrain_hops",
+    "environment": {
+      "task_version": "hop",
+      "speed": 0.3,
+      "command_mode": "balanced",
+      "speed_min": -0.1,
+      "speed_max": 0.3,
+      "yaw_max": 0.3,
+      "yaw_tracking": "rate",
+      "yaw_std": 0.2,
+      "hop_height": 0.045,
+      "hop_body_weight": 6,
+      "linear_weight": 6,
+      "hop_clearance": "sole",
+      "hop_height_reward": "flight",
+      "training_terrain_height": 0.025,
+      "training_terrain_style": "mixed",
+      "training_start_span": 1.5
+    },
+    "learning": {
+      "steps": 2000,
+      "minutes": 10,
+      "mirror_replay": true
+    },
+    "parent": "moving_hops/checkpoints/final.pt"
+  },
+  {
+    "name": "level_hops",
+    "environment": {
+      "task_version": "hop",
+      "command_mode": "balanced",
+      "speed_min": -0.1,
+      "speed_max": 0.3,
+      "yaw_max": 0.3,
+      "yaw_tracking": "rate",
+      "yaw_std": 0.2,
+      "hop_height": 0.065,
+      "hop_body_weight": 6,
+      "linear_weight": 6,
+      "hop_clearance": "sole",
+      "hop_height_reward": "flight_both",
+      "level_feet_weight": 3
+    },
+    "learning": {
+      "steps": 5000,
+      "minutes": 12,
+      "mirror_replay": true
+    },
+    "parent": "terrain_hops/checkpoints/final.pt"
+  },
+  {
+    "name": "level_terrain_hops",
+    "environment": {
+      "task_version": "hop",
+      "command_mode": "balanced",
+      "speed_min": -0.1,
+      "speed_max": 0.3,
+      "yaw_max": 0.3,
+      "yaw_tracking": "rate",
+      "yaw_std": 0.2,
+      "hop_height": 0.065,
+      "hop_body_weight": 6,
+      "linear_weight": 6,
+      "hop_clearance": "sole",
+      "hop_height_reward": "flight_both",
+      "level_feet_weight": 3,
+      "training_terrain_height": 0.025,
+      "training_terrain_style": "mixed",
+      "training_start_span": 1.5
+    },
+    "learning": {
+      "steps": 3000,
+      "minutes": 10,
+      "mirror_replay": true
+    },
+    "parent": "level_hops/checkpoints/final.pt"
+  },
+  {
+    "name": "natural_hops",
+    "environment": {
+      "task_version": "hop",
+      "command_mode": "balanced",
+      "speed_min": -0.1,
+      "speed_max": 0.3,
+      "yaw_max": 0.3,
+      "yaw_tracking": "rate",
+      "yaw_std": 0.2,
+      "hop_height": 0.065,
+      "hop_body_weight": 6,
+      "linear_weight": 6,
+      "hop_clearance": "sole",
+      "hop_height_reward": "flight_both",
+      "level_feet_weight": 3,
+      "training_terrain_height": 0.025,
+      "training_terrain_style": "mixed",
+      "training_start_span": 1.5,
+      "level_feet_flight_only": true
+    },
+    "learning": {
+      "steps": 1000,
+      "minutes": 6,
+      "mirror_replay": true
+    },
+    "parent": "level_terrain_hops/checkpoints/final.pt"
+  },
+  {
+    "name": "block_hops",
+    "environment": {
+      "task_version": "hop",
+      "command_mode": "balanced",
+      "speed_min": -0.1,
+      "speed_max": 0.3,
+      "yaw_max": 0.3,
+      "yaw_tracking": "rate",
+      "yaw_std": 0.2,
+      "hop_height": 0.065,
+      "hop_body_weight": 6,
+      "linear_weight": 6,
+      "hop_clearance": "sole",
+      "hop_height_reward": "flight_both",
+      "level_feet_weight": 3,
+      "training_terrain_height": 0.025,
+      "training_terrain_style": "steps",
+      "training_start_span": 1.5,
+      "level_feet_flight_only": true
+    },
+    "learning": {
+      "steps": 2000,
+      "minutes": 8,
+      "mirror_replay": true
+    },
+    "parent": "natural_hops/checkpoints/final.pt"
+  },
+  {
+    "name": "soft_landing_hops",
+    "environment": {
+      "task_version": "hop",
+      "command_mode": "balanced",
+      "speed_min": -0.1,
+      "speed_max": 0.3,
+      "yaw_max": 0.3,
+      "yaw_tracking": "rate",
+      "yaw_std": 0.2,
+      "hop_height": 0.065,
+      "hop_body_weight": 3,
+      "linear_weight": 6,
+      "hop_clearance": "sole",
+      "hop_height_reward": "flight_both",
+      "level_feet_weight": 3,
+      "training_terrain_height": 0.025,
+      "training_terrain_style": "steps",
+      "training_start_span": 1.5,
+      "level_feet_flight_only": true
+    },
+    "learning": {
+      "steps": 1000,
+      "minutes": 6,
+      "mirror_replay": true
+    },
+    "parent": "block_hops/checkpoints/final.pt"
+  }
+]
