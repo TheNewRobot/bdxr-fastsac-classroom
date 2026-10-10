@@ -33,7 +33,6 @@ Replaying fixed commands from another start missed the finish: players must stee
 - [Short instructor notes](docs/instructor_notes.md)
 - [Measured results and their limits](docs/results.md)
 - [Implementation status](docs/progress.md)
-- [Original class notebook](ref/25F_163A_263A_BipedalWalker_SeminarRL101.ipynb)
 
 Upload the notebook to Colab and select a GPU runtime. It includes lesson source
 and curated recordings, then fetches pinned upstream robot assets. Publishing
@@ -53,12 +52,15 @@ heading correction. World measurements are used for evaluation and game scoring.
 
 | Path | Purpose |
 | --- | --- |
-| `src/bdxr_classroom/` | Simulator, FastSAC, evaluation, and game |
+| `src/bdxr_classroom/simulation/` | Robot environment, commands, terrain, and rewards |
+| `src/bdxr_classroom/learning/` | FastSAC, replay symmetry, training, and policy export |
+| `src/bdxr_classroom/evaluation/` | Rollouts, command checks, measurements, and plots |
+| `src/bdxr_classroom/game/` | Course, controller handovers, scoring, and web interface |
 | `notebooks/` | Portable student lesson |
 | `configs/` | Pinned upstream revisions |
 | `assets/lesson/` | Only selected media used by the lesson |
-| `scripts/` | Setup, comparisons, and notebook packaging |
-| `tests/` | Observation, learning, and game contracts |
+| `scripts/` | Entry points grouped into setup, lesson, training, evaluation, and media |
+| `tests/` | Tests grouped by simulation, learning, evaluation, game, lesson, and storage |
 | `experiments/lesson/` | **Gitignored** selected policy runs |
 | `experiments/candidates/` | New or unfinished training runs |
 | `experiments/evaluations/` | Course, obstacle, and controller checks |
@@ -76,10 +78,10 @@ to `candidates/`; selection requires review of their results.
 ## Local use
 
 ```bash
-python scripts/setup.py
+python scripts/setup/setup.py
 export PYTHONPATH="$PWD/src"
 export MUJOCO_GL=egl
-.venv/bin/python -m bdxr_classroom.train \
+.venv/bin/python -m bdxr_classroom.learning.train \
   --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
   --steps 10000 --minutes 15 --command-mode balanced \
   --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 6 \
@@ -91,9 +93,9 @@ the time limit can stop training before 10,000 steps. The trainer prints the
 actual timestamped experiment path. To evaluate it:
 
 ```bash
-.venv/bin/python -m bdxr_classroom.command_evaluate \
+.venv/bin/python -m bdxr_classroom.evaluation.command_evaluate \
   experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt
-python scripts/check_command_results.py \
+python scripts/evaluation/check_command_results.py \
   experiments/candidates/<timestamp>_command_walking/evaluation/final_commands/summary.json
 ```
 
@@ -107,7 +109,7 @@ W&B is on by default; students can use `--wandb-mode disabled`.
 Launch the game with walking and optional hopping checkpoints:
 
 ```bash
-.venv/bin/python -m bdxr_classroom.game_server \
+.venv/bin/python -m bdxr_classroom.game.server \
   --walking experiments/lesson/<walking-run>/checkpoints/final.pt \
   --hopping experiments/lesson/<hopping-run>/checkpoints/<selected-checkpoint>.pt \
   --course-config configs/classroom_course.json

@@ -111,7 +111,7 @@ def capture_source(out):
     source = Path(__file__).resolve().parents[2]
     path = out / "config" / f"source_{time.time_ns()}.zip"
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
-        for pattern in ["src/**/*.py", "src/**/*.html", "scripts/*.py",
+        for pattern in ["src/**/*.py", "src/**/*.html", "scripts/**/*.py",
                         "configs/*.json", "requirements*.txt"]:
             for file in source.glob(pattern):
                 archive.write(file, file.relative_to(source))
