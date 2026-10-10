@@ -31,60 +31,30 @@
 #
 # ![Measured gait differences](lesson-asset:scratch_level_feet/motion.png)
 
-# %% [hidden] [instructor]
-# @title Recorded instructor comparison: Flatter feet
-example = WORK / "assets/lesson/scratch_level_feet"
-media_pair(
-    [
-        (
-            "Flatter feet: matched commands",
-            example / "comparison.mp4",
-            read_json(example / "provenance.json")["caption"],
-        )
-    ]
-)
+# %% [markdown]
+# ![Recorded flatter-foot comparison at matched commands](lesson-asset:inline/level_feet.gif)
 
 # %% [markdown]
 # #### Instructor example · Quicker steps
 #
 # ![Measured gait differences](lesson-asset:scratch_quick_steps/motion.png)
 
-# %% [hidden] [instructor]
-# @title Recorded instructor comparison: Quicker steps
-example = WORK / "assets/lesson/scratch_quick_steps"
-media_pair(
-    [
-        (
-            "Quicker steps: matched commands",
-            example / "comparison.mp4",
-            read_json(example / "provenance.json")["caption"],
-        )
-    ]
-)
+# %% [markdown]
+# ![Recorded quick-step comparison at matched commands](lesson-asset:inline/quick_steps.gif)
 
 # %% [markdown]
 # #### Instructor example · Crouched walking
 #
 # ![Measured gait differences](lesson-asset:scratch_crouched/motion.png)
 
-# %% [hidden] [instructor]
-# @title Recorded instructor comparison: Crouched walking
-example = WORK / "assets/lesson/scratch_crouched"
-media_pair(
-    [
-        (
-            "Crouched walking: matched commands",
-            example / "comparison.mp4",
-            read_json(example / "provenance.json")["caption"],
-        )
-    ]
-)
+# %% [markdown]
+# ![Recorded crouched comparison at matched commands](lesson-asset:inline/crouched.gif)
 
 # %% [markdown]
-# ### Your activity · choose one change and train a matched pair
+# ### Your turn
 #
-# Predict a measurable difference, then run your control and variation. Your videos
-# and measurements appear below the training cells; the examples above stay fixed.
+# Predict a measurable change. Train a matched control and variant, then compare
+# your videos, measurements, and command checks.
 
 # %%
 EXPERIMENT = "level_feet"  # @param ["level_feet", "quick_steps", "crouched"]

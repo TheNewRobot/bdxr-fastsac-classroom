@@ -51,12 +51,12 @@ checkpoints and passed integrity, duplicate-entry, and byte-for-byte checks.
 These short runs test the workflow; selected-policy quality comes from the
 separate physical evaluations.
 
-The presentation update embeds 13 Markdown figures and saves eight instructor
-video players. A no-kernel HTML rendering loaded all 18 displayed images and all
-eight videos; playback was checked. All 43 code cells passed a local short
-integration run. Student activities ship without outputs, and three focused
-checks protect the separation between instructor references and student results.
-The final archive contains 114 files matching the repository byte for byte.
+Teaching examples now live only in Markdown attachments: the opening photo,
+figures, and eight silent animated excerpts. Every code cell ships without outputs.
+The builder executes no lesson code. A browser check with all outputs cleared
+loaded all 22 images and confirmed that the opening animation advances.
+The original MP4s remain bundled for reference; GIF bytes are stored only in
+Markdown, avoiding duplicate copies in the runtime archive.
 
 **Actual Google Colab execution remains untested.** Training times are measured
 on the local L40S and exclude setup/evaluation unless stated otherwise.

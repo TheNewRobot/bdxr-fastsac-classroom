@@ -11,22 +11,18 @@
 #
 # ![Fresh seed-7 walking learning curve](lesson-asset:reference/scratch_learning.png)
 #
-# This is the recorded seed-7 baseline trained from scratch, not a student run and
-# not the recovery-stage curve of the opening walker. A rising return is evidence
-# of learning, but the command tests still decide whether the policy is useful.
+# Seed 7, trained from scratch. Rising return suggests learning; command tests
+# decide whether the controller is useful.
 #
 # ![Forward-command drift, speed, and turning rate](lesson-asset:reference/scratch_forward.png)
 #
-# Each colored line is one evaluation trial; dashed lines mark zero drift or
-# the requested command. Read lateral deviation against time in the left panel.
-# This is not a map: the axes use seconds and metres. Evaluation uses world
-# position to measure drift; the actor does not receive that position.
+# Each color is one trial; dashed lines mark zero drift or the command. The left
+# plot measures lateral drift over time. World position is used only for evaluation.
 #
 # ### Your activity · train, record, and evaluate
 #
-# The following cells create **your** before/after videos, learning curve, and
-# command checks. Compare them with the instructor examples; different hardware
-# or random outcomes may change the result.
+# Train, record your before/after videos, and check command following. Compare
+# your results with the examples above.
 
 # %%
 BASELINE = lab.train("command_walking_baseline", ENV_CONFIG, LEARNING_CONFIG)

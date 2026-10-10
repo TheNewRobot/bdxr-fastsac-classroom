@@ -12,58 +12,34 @@
 # seconds. Fixed command replays can miss the finish; players need to steer.
 
 # %% [markdown]
-# ### Instructor example · the course and a complete run
+# ### Instructor example · the course
 #
 # ![Desert Droid Run terrain](lesson-asset:course_preview.png)
 #
 # Locate the three obstacles, rough ground, and raised finish before watching the run.
 # You will steer your own trained controller through this same world.
 
-# %% [hidden] [instructor]
-media_pair(
-    [
-        (
-            "Why hopping matters here",
-            WORK / "assets/lesson/obstacle_comparison/comparison.mp4",
-            "Same obstacle: two walking commands versus hopping.",
-        ),
-        (
-            "One complete instructor run",
-            WORK / "assets/lesson/course25_run/rollout.mp4",
-            "Visually steered with pauses. Simulation time is not real-time operator performance.",
-        ),
-    ],
-    video_height=260,
-)
-
+# %% [markdown]
+# | Why hopping matters | Course preview |
+# |:---:|:---:|
+# | ![Walking versus hopping over the obstacle](lesson-asset:inline/obstacle.gif) | ![First eight seconds of the recorded instructor run](lesson-asset:inline/course.gif) |
+#
+# Left: the same step at two walking speeds and with hopping. Right: a visually
+# steered run’s first eight seconds. These are recorded examples.
 
 # %% [markdown]
-# ### Your live interactive game · run the next cell
+# ### Your live interactive game
 #
-# Running this cell starts a live simulator and embeds its control panel below
-# the cell. The videos above are demonstrations; this panel responds to you.
-# No browser plugin is required. Keep the notebook runtime connected.
+# Run the next cell to open the live control panel here. Keep the runtime connected.
+# Leave paths blank to use your selected policies, or enter compatible checkpoints.
 #
-# **Click inside the game:** hold **W/S** to move, **A/D** to turn, and press
-# **Space** to switch walking/hopping. Release movement keys to stop. The panel
-# also has on-screen controls. Hopping requires a trained hopping checkpoint.
+# **Click inside:** W/S moves, A/D turns, Space switches walk/hop. Release keys to
+# stop, or use the on-screen buttons. Hopping needs a trained hopping checkpoint.
+# Switch before the obstacle and allow the robot to settle after landing.
 #
-# On a remote VS Code session, forward port **8765** using the Ports panel if
-# the embedded panel is blank, then open its forwarded address in your browser.
+# **Fall → reset; time accumulates.** Reach the raised finish upright to win.
+# On remote VS Code, forward port 8765 if the panel is blank. No plugin is needed.
 #
-# Leave paths blank to use the policies selected from your experiments. You can
-# also upload compatible checkpoints using Colab’s Files panel and enter their
-# paths. Walking-only play
-# is available if hopping was skipped, but this does not establish that your
-# walker can cross the course.
-#
-# Switch to hopping before an obstacle and allow room for the handover. Return
-# to walking after the feet clear the obstacle and land. Watch the active mode
-# and transition state in the interface.
-#
-# **Fall → reset to the start; time and falls accumulate.** Clear the route's
-# checkpoints and reach the finish upright to win. **New game** resets the score.
-
 # %%
 # @title Start the interactive game with your trained controller
 from bdxr_classroom.lesson.play import launch_game, display_game, pause_and_recordings

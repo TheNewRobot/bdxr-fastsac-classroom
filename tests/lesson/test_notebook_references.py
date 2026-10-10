@@ -1,4 +1,4 @@
-"""Instructor examples must be visible without fabricating student execution."""
+"""Teaching examples must live in Markdown and survive clearing all outputs."""
 
 import base64
 import importlib.util
@@ -20,65 +20,63 @@ class NotebookReferences(unittest.TestCase):
             ROOT / "notebooks/BDXR_Walking_101.ipynb", as_version=4
         )
 
-    def test_only_instructor_cells_have_saved_outputs(self):
-        references = []
+    def test_no_examples_or_saved_results_in_code_cells(self):
         for cell in self.notebook.cells:
-            if cell.cell_type != "code":
-                continue
-            self.assertIsNone(cell.execution_count)
-            if cell.metadata.get("instructor_reference"):
-                references.append(cell)
-                self.assertTrue(cell.outputs)
-                self.assertTrue(
-                    all(output.output_type == "display_data" for output in cell.outputs)
-                )
-            else:
+            if cell.cell_type == "code":
+                self.assertIsNone(cell.execution_count)
                 self.assertEqual(cell.outputs, [], cell.id)
-        self.assertEqual(len(references), 6)  # Intro, three gaits, hopping, game.
+                self.assertNotIn("instructor_reference", cell.metadata)
+                self.assertNotIn("reference_comparison(", cell.source)
+                self.assertNotIn("recorded_details(", cell.source)
 
-    def test_markdown_assets_are_self_contained(self):
-        count = 0
+    def test_opening_photo_and_walking_example_belong_to_the_intro_text(self):
+        opening = self.notebook.cells[0]
+        self.assertEqual(opening.cell_type, "markdown")
+        self.assertIn("Meet the droid", opening.source)
+        self.assertIn("attachment:reference-disney_bdx.jpg", opening.source)
+        self.assertIn("attachment:inline-walking.gif", opening.source)
+        self.assertIn("D23 / Disney", opening.source)
+        self.assertIn("reference-disney_bdx.jpg", opening.attachments)
+        self.assertIn("inline-walking.gif", opening.attachments)
+
+    def test_all_markdown_media_are_self_contained_and_sized(self):
+        animations = 0
         for cell in self.notebook.cells:
             if cell.cell_type != "markdown":
                 continue
             self.assertNotIn("lesson-asset:", cell.source)
             for name in re.findall(r"\(attachment:([^)]+)\)", cell.source):
-                bundle = cell.attachments[name]
-                mime, data = next(iter(bundle.items()))
-                self.assertIn(mime, ("image/png", "image/svg+xml"))
-                raw = base64.b64decode(data)
-                self.assertTrue(raw)
-                if mime == "image/png":
-                    image = Image.open(io.BytesIO(raw))
-                    large_figure = name in {
-                        "reference-robot.png",
-                        "reference-annotated_robot.png",
-                        "reference-kinematic_tree.png",
-                        "course_preview.png",
-                    }
-                    self.assertLessEqual(image.width, 800 if large_figure else 720)
-                count += 1
-        self.assertGreaterEqual(count, 12)
+                mime, data = next(iter(cell.attachments[name].items()))
+                self.assertIn(mime, ("image/png", "image/gif"))
+                image = Image.open(io.BytesIO(base64.b64decode(data)))
+                large = name in {
+                    "reference-robot.png",
+                    "reference-annotated_robot.png",
+                    "reference-kinematic_tree.png",
+                    "course_preview.png",
+                }
+                self.assertLessEqual(image.width, 800 if large else 720)
+                if mime == "image/gif":
+                    self.assertGreater(image.n_frames, 1)
+                    animations += 1
+        self.assertEqual(animations, 8)
 
-    def test_student_training_is_not_executed_when_rendering_references(self):
+    def test_builder_never_executes_code(self):
         spec = importlib.util.spec_from_file_location(
             "lesson_builder", ROOT / "scripts/lesson/build_notebook.py"
         )
         builder = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(builder)
         activity = nbformat.v4.new_code_cell(
-            'raise AssertionError("Student activity was executed during the build")'
+            'raise AssertionError("No code may execute while building Markdown")'
         )
-        reference = nbformat.v4.new_code_cell(
-            "from IPython.display import HTML, display\n"
-            "display(HTML('<p>Instructor example</p>'))",
-            metadata={"instructor_reference": True},
+        reference = nbformat.v4.new_markdown_cell(
+            "Explain the robot.\n\n![Robot](lesson-asset:reference/robot.png)"
         )
         builder.embed_references([activity, reference])
         self.assertEqual(activity.outputs, [])
-        self.assertEqual(
-            reference.outputs[0].data["text/html"], "<p>Instructor example</p>"
-        )
+        self.assertIn("attachment:reference-robot.png", reference.source)
+        self.assertTrue(reference.attachments)
 
 
 if __name__ == "__main__":

@@ -75,8 +75,8 @@ to `candidates/`; selection requires review of their results.
 Edit the teaching cells in `notebooks/sections/`, then rebuild the portable file
 with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classroom
 code and selected recordings; students do not need access to this private repo.
-Instructor figures and video players are already visible on opening; students
-run the activity cells to generate their own separate results.
+Instructor figures and short animated examples are Markdown attachments, visible
+without executing cells. Student activities generate separate results.
 
 ## Local use
 

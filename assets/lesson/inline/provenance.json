@@ -1,0 +1,75 @@
+[
+  {
+    "file": "walking.gif",
+    "source": "command_walking/rollout.mp4",
+    "source_sha256": "b6784eaa39a37d92526ad16a61e973b8aa4a2499aab1903f0f52ab92f767cc98",
+    "seconds": 6,
+    "fps": 8,
+    "width": 480,
+    "description": "Silent excerpt from the beginning of the recording; playback speed retained, frames resampled. Original complete MP4 remains in lesson assets."
+  },
+  {
+    "file": "level_feet.gif",
+    "source": "scratch_level_feet/comparison.mp4",
+    "source_sha256": "699f380b97678398554d57ff9856a7510c4a1f50b824aac2f05ac89604250d53",
+    "seconds": 6,
+    "fps": 8,
+    "width": 640,
+    "description": "Silent excerpt from the beginning of the recording; playback speed retained, frames resampled. Original complete MP4 remains in lesson assets."
+  },
+  {
+    "file": "quick_steps.gif",
+    "source": "scratch_quick_steps/comparison.mp4",
+    "source_sha256": "d4a66c3cdbd61c9c9687c3361142d7ee4d0289652b35150ffdd62a3b1044de39",
+    "seconds": 6,
+    "fps": 8,
+    "width": 640,
+    "description": "Silent excerpt from the beginning of the recording; playback speed retained, frames resampled. Original complete MP4 remains in lesson assets."
+  },
+  {
+    "file": "crouched.gif",
+    "source": "scratch_crouched/comparison.mp4",
+    "source_sha256": "ad034448cd65708edc33762128bdb620caec999842756756a4b89bff977a493e",
+    "seconds": 6,
+    "fps": 8,
+    "width": 640,
+    "description": "Silent excerpt from the beginning of the recording; playback speed retained, frames resampled. Original complete MP4 remains in lesson assets."
+  },
+  {
+    "file": "hopping.gif",
+    "source": "course_hops/comparison.mp4",
+    "source_sha256": "c6ed207d141a150b8e59c4c3403fc559aac3ae580a9df48822caaadd20662e3c",
+    "seconds": 6,
+    "fps": 12,
+    "width": 480,
+    "description": "Silent excerpt from the beginning of the recording; playback speed retained, frames resampled. Original complete MP4 remains in lesson assets."
+  },
+  {
+    "file": "hopping_slow.gif",
+    "source": "course_hops/half_speed.mp4",
+    "source_sha256": "0adae99fbdf8027b9f21e4a3aa322cccf28e8842606dd2941486af7868b41fc4",
+    "seconds": 8,
+    "fps": 12,
+    "width": 480,
+    "description": "Silent excerpt from the beginning of the recording; playback speed retained, frames resampled. Original complete MP4 remains in lesson assets."
+  },
+  {
+    "file": "obstacle.gif",
+    "source": "obstacle_comparison/comparison.mp4",
+    "source_sha256": "24efbd6f198658c15457bb479aaad7c2e29ec7114fda247757f5e36af4df67ef",
+    "seconds": 6,
+    "fps": 8,
+    "width": 480,
+    "description": "Silent excerpt from the beginning of the recording; playback speed retained, frames resampled. Original complete MP4 remains in lesson assets.",
+    "canvas_height": 320
+  },
+  {
+    "file": "course.gif",
+    "source": "course25_run/rollout.mp4",
+    "source_sha256": "a58af732092316e90bd864f27d04b8da862d5e8f65c9c7432181a30580b421df",
+    "seconds": 8,
+    "fps": 8,
+    "width": 480,
+    "description": "Silent excerpt from the beginning of the recording; playback speed retained, frames resampled. Original complete MP4 remains in lesson assets."
+  }
+]

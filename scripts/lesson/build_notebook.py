@@ -1,7 +1,6 @@
 """Build the portable notebook from readable, chapter-sized source files.
 
 Sections use # %% for Python cells and # %% [markdown] for commented Markdown.
-Mark read-only instructor display cells [instructor] to save their outputs.
 Use Markdown lesson-asset: links for self-contained image attachments.
 Only the bootstrap cell receives an embedded archive; authored lesson code stays
 readable in notebooks/sections/. No remote/private-repository access is needed.
@@ -13,37 +12,20 @@ import io
 from pathlib import Path
 import re
 import zipfile
-import sys
-from unittest.mock import patch
 
 import nbformat
 from PIL import Image
-from IPython.core.formatters import DisplayFormatter
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def embed_references(cells):
-    """Attach prose illustrations and render only explicitly marked reference cells.
+    """Embed teaching images and animated previews in Markdown attachments only.
 
-    Student code is never executed by the builder. Reference cells are authored
-    local-media displays, with saved outputs that can also be regenerated after
-    setup. Markdown attachments survive clearing notebook outputs.
+    No cell is executed and no code output is populated. Animated GIF previews
+    use native Markdown image syntax, so clearing outputs cannot remove them.
+    Student-generated MP4 players remain outputs of their activity cells.
     """
-    sys.path.insert(0, str(ROOT / "src"))
-    from bdxr_classroom.lesson.presentation import (
-        media_pair,
-        read_json,
-        recorded_details,
-    )
-
-    scope = dict(
-        WORK=ROOT,
-        media_pair=media_pair,
-        read_json=read_json,
-        recorded_details=recorded_details,
-    )
-    formatter = DisplayFormatter()
     asset_root = (ROOT / "assets/lesson").resolve()
     for cell in cells:
         if cell.cell_type == "markdown":
@@ -54,10 +36,15 @@ def embed_references(cells):
                 path = (asset_root / relative).resolve()
                 if not path.is_relative_to(asset_root):
                     raise ValueError(f"Reference escapes lesson assets: {relative}")
-                mime = "image/svg+xml" if path.suffix == ".svg" else "image/png"
+                mime = {
+                    ".svg": "image/svg+xml",
+                    ".png": "image/png",
+                    ".jpg": "image/jpeg",
+                    ".gif": "image/gif",
+                }[path.suffix]
                 name = relative.replace("/", "-")
                 raw = path.read_bytes()
-                if path.suffix == ".png":
+                if path.suffix in {".png", ".jpg"}:
                     # Smaller charts keep the explanation in view. Robot portraits
                     # retain more space; originals remain in the lesson archive.
                     width = (
@@ -71,10 +58,19 @@ def embed_references(cells):
                         }
                         else 720
                     )
+                    if path.suffix == ".jpg":
+                        width = 480
                     image = Image.open(io.BytesIO(raw))
                     image.thumbnail((width, 900), Image.Resampling.LANCZOS)
+                    if path.suffix == ".jpg":
+                        canvas = Image.new("RGB", (480, 320), "#faf7f0")
+                        canvas.paste(
+                            image, ((480 - image.width) // 2, (320 - image.height) // 2)
+                        )
+                        image = canvas
                     buffer = io.BytesIO()
                     image.save(buffer, format="PNG")
+                    mime = "image/png"
                     raw = buffer.getvalue()
                 data = base64.b64encode(raw).decode()
                 attachments[name] = {mime: data}
@@ -83,28 +79,11 @@ def embed_references(cells):
             cell.source = re.sub(r"\(lesson-asset:([^)]+)\)", attach, cell.source)
             if attachments:
                 cell.attachments = attachments
-        elif cell.metadata.get("instructor_reference"):
-            outputs = []
-
-            def save_display(*objects, **kwargs):
-                for obj in objects:
-                    data, metadata = formatter.format(obj)
-                    outputs.append(
-                        nbformat.v4.new_output(
-                            "display_data", data=data, metadata=metadata
-                        )
-                    )
-
-            with patch("IPython.display.display", save_display):
-                exec(compile(cell.source, cell.id, "exec"), scope)
-            if not outputs:
-                raise ValueError(f"Empty instructor reference: {cell.id}")
-            cell.outputs = outputs
-            cell.metadata["jupyter"] = {"source_hidden": True}
-            cell.metadata["tags"] = ["instructor-reference", "hide-input"]
 
 
 def source_bundle():
+    # GIF previews already live in Markdown attachments; bundle the original MP4s
+    # for student use without duplicating the preview bytes.
     archive_buffer = io.BytesIO()
     files = set()
     for pattern in (
@@ -119,7 +98,7 @@ def source_bundle():
         files.update(
             p
             for p in ROOT.glob(pattern)
-            if p.is_file() and "__pycache__" not in p.parts
+            if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".gif"
         )
     with zipfile.ZipFile(archive_buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(files):
@@ -154,7 +133,9 @@ def section_cells(path):
                 cell.metadata["jupyter"] = {"source_hidden": True}
                 cell.metadata["tags"] = ["hide-input"]
             if "[instructor]" in marker:
-                cell.metadata["instructor_reference"] = True
+                raise ValueError(
+                    "Teaching examples belong in Markdown, not code cells."
+                )
         cell.metadata["lesson_section"] = path.stem
         cell.id = f"{path.stem}-{index // 2:02d}"
         yield cell
@@ -173,6 +154,18 @@ def main():
     ]
     if not cells:
         raise RuntimeError("No authored notebook sections found.")
+    # Keep illustrations with their explanation, rather than in detached cells.
+    merged = []
+    for cell in cells:
+        if (
+            merged
+            and cell.cell_type == merged[-1].cell_type == "markdown"
+            and (cell.metadata.lesson_section == merged[-1].metadata.lesson_section)
+        ):
+            merged[-1].source += "\n\n" + cell.source
+        else:
+            merged.append(cell)
+    cells = merged
     embed_references(cells)
     encoded = source_bundle()
     replacements = 0

@@ -11,47 +11,8 @@
 # **Route through the lesson:** robot → environment → kinematics → control problem
 # → SAC → your walking policy → one controlled experiment → optional hopping → play.
 #
-# Read the explanations and embedded instructor examples first. Run activity cells
-# to produce your own results below them; your results never replace the references.
-# If a frontend asks, trust this notebook to enable saved video players. Images
-# remain attached to the text even if outputs are cleared.
-#
-# Recorded examples below are instructor results. Your own videos are generated
-# from the checkpoints you train later. Actual Google Colab execution is still
-# untested; reported training times come from a local L40S GPU.
-
-# %% [hidden]
-# @title Unpack the lesson files
-import base64
-import io
-import json
-import os
-from pathlib import Path
-import subprocess
-import sys
-import time
-import zipfile
-from IPython.display import display, HTML, Image, Video
-
-WORK = (
-    Path("/content/bdxr_classroom")
-    if Path("/content").exists()
-    else Path.cwd() / "bdxr_classroom_lab"
-)
-WORK.mkdir(parents=True, exist_ok=True)
-SOURCE_BUNDLE = "__SOURCE_BUNDLE__"
-with zipfile.ZipFile(io.BytesIO(base64.b64decode(SOURCE_BUNDLE))) as archive:
-    archive.extractall(WORK)
-sys.path.insert(0, str(WORK / "src"))
-sys.path.insert(0, str(WORK))
-from bdxr_classroom.lesson.presentation import (
-    media_pair,
-    table,
-    read_json,
-    recorded_details,
-)
-
-print("Lesson files:", WORK)
+# Examples are part of this text: images and short, silent looping clips. Run the exercises
+# to create your own results. Timings are from a local L40S; Colab remains untested.
 
 # %% [markdown]
 # ## 1 · Meet the droid
@@ -60,26 +21,13 @@ print("Lesson files:", WORK)
 # separately developed **BDX-R open-source model**, simulated with **MuJoCo Warp**
 # through mjlab. We train with **FastSAC**; this is not Disney's controller.
 #
-# **Instructor example — already displayed:** press Play to watch; no kernel is needed.
-# The reference photograph is embedded with credit to D23 / Disney. It is
-# reference imagery, not our hardware or training result; the source is linked below.
 
-# %% [hidden] [instructor]
-# @title Real-world inspiration beside our simulated walking policy
-from bdxr_classroom.lesson.presentation import reference_comparison
-
-reference_comparison(
-    WORK / "assets/lesson/command_walking/rollout.mp4",
-    reference_image="https://d23.com/app/uploads/2025/04/ADK_00797.jpg",
-    reference_page="https://d23.com/bdx-droids-disneys-perfect-marriage-of-creativity-and-technological-achievement/",
-    reference_photo=WORK / "assets/lesson/reference/disney_bdx.jpg",
-)
-
-recorded_details(
-    WORK / "assets/lesson/command_walking",
-    "Locked instructor reference. The curve covers its unchanged recovery stage "
-    "only; the walking experiment below starts from scratch.",
-)
+# %% [markdown]
+# | Real-world inspiration | Our simulated walker |
+# |:---:|:---:|
+# | ![Disney BDX droid — D23 reference photograph](lesson-asset:reference/disney_bdx.jpg) | ![Recorded instructor walking example](lesson-asset:inline/walking.gif) |
+#
+# Photo: [D23 / Disney](https://d23.com/bdx-droids-disneys-perfect-marriage-of-creativity-and-technological-achievement/), not relicensed. Simulation: the open-source BDX-R model with our recorded walking policy.
 
 # %% [markdown]
 # **Before running anything:** which joints do you expect to be most important

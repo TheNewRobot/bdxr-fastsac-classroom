@@ -12,18 +12,13 @@
 Prepare training beforehand for a short presentation. Installation, training,
 video generation and gameplay are separate from presentation time.
 
-Each chapter places instructor examples before the student activity.
-Images and diagrams are Markdown attachments. Eight video players have saved
-instructor outputs: open the notebook and press Play, without starting a kernel.
-Student activity cells ship without results; running them creates separate evidence.
-If the frontend requests trust, trust the notebook to display its saved HTML.
-Clearing all outputs removes the video players, but keeps the attached figures;
-reopen the distributed copy or rerun the reference cells after setup to restore them.
-The builder regenerates reference displays without executing training cells.
+Teaching examples are inside the Markdown: attached images and eight short,
+silent looping excerpts. No example is a Python display cell or saved output.
+Clearing every code output preserves the lesson illustrations. Student activity
+cells generate their own videos, plots and live game interface.
 Charts are bounded to 720 pixels; larger robot/course illustrations to 800.
-Section 9’s launch cell embeds the live game beneath it. Click inside to use
-W/S, A/D and Space, or use its buttons. On remote VS Code sessions, forward
-port 8765 if needed; no browser plugin is required.
+Section 9 embeds the live game after execution. Use W/S, A/D and Space or its
+buttons; forward port 8765 if needed in remote VS Code. No plugin is required.
 
 The actor receives proprioception and commands; the critic may use additional
 simulator information during training. The actor controls ten leg joints.
