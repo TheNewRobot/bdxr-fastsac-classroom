@@ -5,7 +5,6 @@ import io
 import json
 import math
 import os
-from pathlib import Path
 
 os.environ.setdefault("MUJOCO_GL", "egl")
 import imageio.v2 as imageio
@@ -17,7 +16,12 @@ from bdxr_classroom.evaluation.command_evaluate import load_agent, set_command
 from bdxr_classroom.game.course import CourseConfig
 from bdxr_classroom.game.course_progress import CourseProgress
 from bdxr_classroom.simulation.environment import make_env
-from bdxr_classroom.experiments import create_experiment, write_manifest, resolve_experiment_path
+from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
+from bdxr_classroom.experiments import (
+    create_experiment,
+    write_manifest,
+    resolve_experiment_path,
+)
 
 
 @dataclasses.dataclass
@@ -47,17 +51,28 @@ class PostureMonitor:
     collapsed_seconds: float = 0.0
 
     def update(self, dt, upright, base_above_feet):
-        collapsed = upright < .65 or (upright < .85 and base_above_feet < .17)
+        collapsed = upright < 0.65 or (upright < 0.85 and base_above_feet < 0.17)
         self.collapsed_seconds = self.collapsed_seconds + dt if collapsed else 0.0
-        return self.collapsed_seconds >= .5
+        return self.collapsed_seconds >= 0.5
 
 
 class GameSession:
     """One simulation owner; call methods on the thread that creates the session."""
 
-    def __init__(self, walking, hopping=None, course=None, render=True, seed=263,
-                 run_root="experiments", record=True, flat=False, operator="human",
-                 name="desert_droid_game"):
+    def __init__(
+        self,
+        walking,
+        hopping=None,
+        course=None,
+        render=True,
+        seed=263,
+        run_root="experiments",
+        record=True,
+        flat=False,
+        operator="human",
+        name="desert_droid_game",
+        head_config=None,
+    ):
         torch.set_num_threads(2)
         torch.set_float32_matmul_precision("high")
         walking = resolve_experiment_path(walking)
@@ -67,9 +82,13 @@ class GameSession:
         self.walk, self.walk_cfg = load_agent(walking, 1)
         self.hop, self.hop_cfg = load_agent(hopping, 1) if hopping else (None, None)
         if self.walk.dimensions[0] != 47 or self.walk.dimensions[2] != 10:
-            raise ValueError("Walking policy must have the 47-input proprioceptive actor and 10 leg actions")
+            raise ValueError(
+                "Walking policy must have the 47-input proprioceptive actor and 10 leg actions"
+            )
         if self.hop and (self.hop.dimensions[0] != 49 or self.hop.dimensions[2] != 10):
-            raise ValueError("Hopping policy must have the 49-input proprioception/phase actor and 10 leg actions")
+            raise ValueError(
+                "Hopping policy must have the 49-input proprioception/phase actor and 10 leg actions"
+            )
         for cfg in [self.walk_cfg] + ([self.hop_cfg] if self.hop else []):
             if cfg.get("task_version") not in ["v2", "hop"]:
                 raise ValueError("Policy uses incompatible legacy action scales")
@@ -78,10 +97,21 @@ class GameSession:
         self.seed, self.run_root = seed, run_root
         self.operator = operator
         self.name = name
-        self.env = make_env(1, render=render, task_version="hop",
-                            course=None if flat else dataclasses.asdict(self.course), seed=seed)
+        self.env = make_env(
+            1,
+            render=render,
+            task_version="hop",
+            course=None if flat else dataclasses.asdict(self.course),
+            seed=seed,
+        )
         self.env.cfg.episode_length_s = 1e9
-        self.foot_ids, _ = self.env.scene["robot"].find_sites(["left_foot", "right_foot"])
+        self.head_config = HeadMotionConfig(**(head_config or {}))
+        self.head = (
+            HeadMotion(self.env, self.head_config) if self.head_config.enabled else None
+        )
+        self.foot_ids, _ = self.env.scene["robot"].find_sites(
+            ["left_foot", "right_foot"]
+        )
         self.render_enabled, self.record = render, record
         self.video_part = 0
         self.writer, self.log = None, None
@@ -97,12 +127,18 @@ class GameSession:
             self.writer.close()
             self.writer = None
         self.output = create_experiment(self.name, self.run_root)
-        config = {"name": self.name, "seed": self.seed,
-                  "hardware": torch.cuda.get_device_name(0), "walking": self.walking_path,
-                  "hopping": self.hopping_path, "course": dataclasses.asdict(self.course),
-                  "flat_transition_test": self.flat,
-                  "operator": self.operator,
-                  "control": "velocity/mode commands; no navigation or heading correction"}
+        config = {
+            "name": self.name,
+            "seed": self.seed,
+            "hardware": torch.cuda.get_device_name(0),
+            "walking": self.walking_path,
+            "hopping": self.hopping_path,
+            "course": dataclasses.asdict(self.course),
+            "flat_transition_test": self.flat,
+            "operator": self.operator,
+            "control": "velocity/mode commands; no navigation or heading correction",
+            "head_motion": dataclasses.asdict(self.head_config),
+        }
         (self.output / "config/game.json").write_text(json.dumps(config, indent=2))
         write_manifest(self.output, config, self.env.cfg)
         self.log = (self.output / "metrics/gameplay.jsonl").open("w", buffering=1)
@@ -120,6 +156,8 @@ class GameSession:
 
     def reset_robot(self):
         self.env.reset(seed=self.seed + self.score.falls)
+        if self.head:
+            self.head.reset(self.head_config.seed + self.score.falls)
         self.posture = PostureMonitor()
         self.progress = CourseProgress()
         self.stage = "walk"
@@ -144,18 +182,23 @@ class GameSession:
         self.stage_time += dt
         # Only actor-available IMU quantities are used by this mode handover.
         proprio = self.env.observation_manager.compute_group("actor")
-        calm = bool(proprio[0, :3].norm() < 1.0 and -proprio[0, 5] > .9)
+        calm = bool(proprio[0, :3].norm() < 1.0 and -proprio[0, 5] > 0.9)
         if self.stage == "walk" and self.requested_mode == "hop":
             self.stage, self.stage_time = "braking", 0
         if self.stage == "braking" and self.requested_mode == "walk":
             self.stage, self.stage_time = "walk", 0
-        if self.stage == "braking" and self.stage_time >= .65 and calm:
+        if self.stage == "braking" and self.stage_time >= 0.65 and calm:
             self.stage, self.stage_time, self.hop_time = "blend_to_hop", 0, 0
-        if self.stage == "hop" and self.requested_mode == "walk" and self.hop_time % 1.0 < .2 and calm:
+        if (
+            self.stage == "hop"
+            and self.requested_mode == "walk"
+            and self.hop_time % 1.0 < 0.2
+            and calm
+        ):
             self.stage, self.stage_time = "blend_to_walk", 0
-        if self.stage == "blend_to_hop" and self.stage_time >= .3:
+        if self.stage == "blend_to_hop" and self.stage_time >= 0.3:
             self.stage, self.stage_time = "hop", 0
-        if self.stage == "blend_to_walk" and self.stage_time >= .3:
+        if self.stage == "blend_to_walk" and self.stage_time >= 0.3:
             self.stage, self.stage_time = "walk", 0
         transitioning = self.stage in ["braking", "blend_to_hop", "blend_to_walk"]
         target_speed = 0.0 if transitioning else self.requested_speed
@@ -165,9 +208,15 @@ class GameSession:
             if active_cfg.get("command_mode", "fixed") == "fixed":
                 target_speed, target_yaw = active_cfg["speed"], 0
             else:
-                target_speed = float(np.clip(target_speed, active_cfg["speed_min"], active_cfg["speed_max"]))
-                target_yaw = float(np.clip(target_yaw, -active_cfg["yaw_max"], active_cfg["yaw_max"]))
-        self.speed += float(np.clip(target_speed - self.speed, -.6 * dt, .6 * dt))
+                target_speed = float(
+                    np.clip(
+                        target_speed, active_cfg["speed_min"], active_cfg["speed_max"]
+                    )
+                )
+                target_yaw = float(
+                    np.clip(target_yaw, -active_cfg["yaw_max"], active_cfg["yaw_max"])
+                )
+        self.speed += float(np.clip(target_speed - self.speed, -0.6 * dt, 0.6 * dt))
         self.yaw += float(np.clip(target_yaw - self.yaw, -1.2 * dt, 1.2 * dt))
         obs = set_command(self.env, self.speed, self.yaw)["actor"]
         with torch.no_grad():
@@ -177,11 +226,13 @@ class GameSession:
             self.hop_time += dt
             hop_obs = obs.clone()
             angle = self.hop_time * 2 * math.pi
-            hop_obs[:, -2:] = torch.tensor([math.sin(angle), math.cos(angle)], device=obs.device)
+            hop_obs[:, -2:] = torch.tensor(
+                [math.sin(angle), math.cos(angle)], device=obs.device
+            )
             hop_action = self.hop.act(hop_obs, deterministic=True)
             if self.stage == "hop":
                 return hop_action
-            fraction = min(1.0, self.stage_time / .3)
+            fraction = min(1.0, self.stage_time / 0.3)
             if self.stage == "blend_to_walk":
                 fraction = 1 - fraction
             return (1 - fraction) * walk_action + fraction * hop_action
@@ -193,8 +244,14 @@ class GameSession:
             self.video_part += 1
             self.writer = imageio.get_writer(
                 self.output / f"videos/gameplay_{self.video_part:03d}.mp4",
-                fps=25, codec="libx264", quality=7, macro_block_size=16)
+                fps=25,
+                codec="libx264",
+                quality=7,
+                macro_block_size=16,
+            )
         action = self._policy_action()
+        if self.head:
+            self.head.step(self.env.step_dt, self.speed, self.yaw, self.stage)
         _, _, terminated, _, _ = self.env.step(action)
         self.steps += 1
         robot = self.env.scene["robot"].data
@@ -206,25 +263,57 @@ class GameSession:
         # Scoring-only measurements: a collapsed robot should reset even if the
         # training termination allows a larger recovery window. A short grace
         # period and relative foot height avoid classifying normal hops as falls.
-        base_above_feet = position[2] - float(robot.site_pos_w[0, self.foot_ids, 2].min())
+        base_above_feet = position[2] - float(
+            robot.site_pos_w[0, self.foot_ids, 2].min()
+        )
         collapsed = self.posture.update(self.env.step_dt, upright, base_above_feet)
         outside = abs(position[1]) > 3.5 or position[0] < -1.5
-        fall_reason = ("training_termination" if bool(terminated[0]) else
-                       "course_bounds" if outside else "collapsed_posture" if collapsed else None)
+        fall_reason = (
+            "training_termination"
+            if bool(terminated[0])
+            else "course_bounds"
+            if outside
+            else "collapsed_posture"
+            if collapsed
+            else None
+        )
         fell = fall_reason is not None
-        at_finish = (not self.flat and self.progress.complete and
-                     position[0] >= self.course.length - .35 and abs(position[1]) < .65 and
-                     position[2] > self.course.finish_height + .16 and upright > .9 and contact)
+        at_finish = (
+            not self.flat
+            and self.progress.complete
+            and position[0] >= self.course.length - 0.35
+            and abs(position[1]) < 0.65
+            and position[2] > self.course.finish_height + 0.16
+            and upright > 0.9
+            and contact
+        )
         event = self.score.advance(self.env.step_dt, fell, at_finish)
-        row = {"time": self.score.elapsed, "position": position, "upright": upright,
-               "speed_command": self.speed, "yaw_command": self.yaw, "mode": self.stage,
-               "action_change_rms": float((action - self.last_action).square().mean().sqrt()),
-               "event": event, "falls": self.score.falls,
-               "base_above_feet": base_above_feet, "fall_reason": fall_reason,
-               "foot_positions": feet, "course_checkpoints": self.progress.completed,
-               "foot_contacts": (self.env.scene["feet_ground_contact"].data.found[0] > 0).flatten().cpu().tolist(),
-               "body_angular_velocity": robot.root_link_ang_vel_b[0].cpu().tolist(),
-               "hop_phase": self.hop_time % 1.0}
+        row = {
+            "time": self.score.elapsed,
+            "position": position,
+            "upright": upright,
+            "speed_command": self.speed,
+            "yaw_command": self.yaw,
+            "mode": self.stage,
+            "action_change_rms": float(
+                (action - self.last_action).square().mean().sqrt()
+            ),
+            "event": event,
+            "falls": self.score.falls,
+            "base_above_feet": base_above_feet,
+            "fall_reason": fall_reason,
+            "foot_positions": feet,
+            "course_checkpoints": self.progress.completed,
+            "foot_contacts": (self.env.scene["feet_ground_contact"].data.found[0] > 0)
+            .flatten()
+            .cpu()
+            .tolist(),
+            "body_angular_velocity": robot.root_link_ang_vel_b[0].cpu().tolist(),
+            "hop_phase": self.hop_time % 1.0,
+            "head_targets_rad": self.head.position.tolist()
+            if self.head
+            else [0, 0, 0, 0],
+        }
         self.last_action = action.clone()
         self.log.write(json.dumps(row) + "\n")
         if self.render_enabled and self.steps % 2 == 0:
@@ -232,7 +321,9 @@ class GameSession:
             if self.writer:
                 self.writer.append_data(frame)
         if event == "fall":
-            self.message = "Reset after a fall or leaving the course. Time and falls are retained."
+            self.message = (
+                "Reset after a fall or leaving the course. Time and falls are retained."
+            )
             self.reset_robot()
         elif event == "finish":
             self.message = "Finish reached! Your droid earned the beacon."
@@ -243,13 +334,18 @@ class GameSession:
         frame = Image.fromarray(self.env.render())
         draw = ImageDraw.Draw(frame)
         draw.rectangle((0, 0, frame.width, 35), fill="#173f32")
-        draw.text((12, 11), f"DESERT DROID RUN  |  {self.score.elapsed:.1f}s  |  falls {self.score.falls}  |  {self.stage}  |  checkpoints {self.progress.completed}/4", fill="white")
+        draw.text(
+            (12, 11),
+            f"DESERT DROID RUN  |  {self.score.elapsed:.1f}s  |  falls {self.score.falls}  |  {self.stage}  |  checkpoints {self.progress.completed}/4",
+            fill="white",
+        )
         self.last_frame = np.asarray(frame)
         return self.last_frame
 
     def set_camera(self, view):
         """Change the player's view without changing policy observations."""
         import mujoco
+
         if view not in ("follow", "top", "overview"):
             raise ValueError("Unknown camera view")
         if self.env._offline_renderer is None:
@@ -263,7 +359,8 @@ class GameSession:
             camera.type = mujoco.mjtCamera.mjCAMERA_TRACKING
             camera.trackbodyid = self.env.scene["robot"].indexing.root_body_id
             camera.distance, camera.azimuth, camera.elevation = (
-                (3.2, 90, -70) if view == "top" else (2, 140, -18))
+                (3.2, 90, -70) if view == "top" else (2, 140, -18)
+            )
 
     def jpeg(self):
         if self.last_frame is None:
@@ -273,18 +370,28 @@ class GameSession:
         return output.getvalue()
 
     def status(self):
-        return {"time": round(self.score.elapsed, 2), "falls": self.score.falls,
-                "finished": self.score.finished, "mode": self.stage,
-                "course_checkpoints": self.progress.completed,
-                "paused": self.paused, "message": self.message,
-                "experiment": str(self.output), "walking": self.walking_path,
-                "hopping": self.hopping_path, "speed": self.speed, "yaw": self.yaw}
+        return {
+            "time": round(self.score.elapsed, 2),
+            "falls": self.score.falls,
+            "finished": self.score.finished,
+            "mode": self.stage,
+            "course_checkpoints": self.progress.completed,
+            "paused": self.paused,
+            "message": self.message,
+            "experiment": str(self.output),
+            "walking": self.walking_path,
+            "hopping": self.hopping_path,
+            "speed": self.speed,
+            "yaw": self.yaw,
+        }
 
     def save_summary(self):
         if self.writer:
             self.writer.close()
             self.writer = None
-        (self.output / "evaluation/score.json").write_text(json.dumps(self.status(), indent=2))
+        (self.output / "evaluation/score.json").write_text(
+            json.dumps(self.status(), indent=2)
+        )
 
     def close(self):
         self.save_summary()

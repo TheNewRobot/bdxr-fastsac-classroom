@@ -11,32 +11,44 @@ import time
 
 def digest(path):
     from bdxr_classroom.experiments import resolve_experiment_path
+
     with resolve_experiment_path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def history_verdict(records, walking_hash, hopping_hash):
-    matching = [record for record in records
-                if record.get("walking_sha256") == walking_hash
-                and record.get("hopping_sha256") == hopping_hash
-                and record.get("weights_unchanged") is True]
+def history_verdict(records, walking_hash, hopping_hash, head_motion_hash=None):
+    matching = [
+        record
+        for record in records
+        if record.get("walking_sha256") == walking_hash
+        and record.get("hopping_sha256") == hopping_hash
+        and record.get("head_motion_sha256") == head_motion_hash
+        and record.get("weights_unchanged") is True
+    ]
     completed = False
     failure = False
     evaluation_count = 0
     for record in matching:
         valid = {
-            scope: test for scope, test in record.get("tests", {}).items()
+            scope: test
+            for scope, test in record.get("tests", {}).items()
             if test.get("valid_evaluation", record.get("valid_evaluation", True))
             and isinstance(test.get("passed"), bool)
         }
         evaluation_count += bool(valid)
         failure |= any(not test["passed"] for test in valid.values())
-        completed |= all(valid.get(scope, {}).get("passed") is True
-                         for scope in ("flat", "on_step"))
-    return {"passed": completed and not failure, "evaluation_count": evaluation_count,
-            "recorded_failure": failure,
-            "walking_sha256": walking_hash, "hopping_sha256": hopping_hash,
-            "scope": "Repeated flat/on-step handovers; full course traversal remains separate."}
+        completed |= all(
+            valid.get(scope, {}).get("passed") is True for scope in ("flat", "on_step")
+        )
+    return {
+        "passed": completed and not failure,
+        "evaluation_count": evaluation_count,
+        "recorded_failure": failure,
+        "walking_sha256": walking_hash,
+        "hopping_sha256": hopping_hash,
+        "head_motion_sha256": head_motion_hash,
+        "scope": "Repeated flat/on-step handovers; full course traversal remains separate.",
+    }
 
 
 def main():
@@ -44,21 +56,31 @@ def main():
     parser.add_argument("walking", type=Path)
     parser.add_argument("hopping", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--head-motion-config", type=Path)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     history = args.output / "pair_history"
     history.mkdir(exist_ok=True)
     stamp = str(time.time_ns())
     walking_hash, hopping_hash = digest(args.walking), digest(args.hopping)
+    head_hash = digest(args.head_motion_config) if args.head_motion_config else None
     records = [json.loads(path.read_text()) for path in history.glob("*_pair.json")]
-    previous = history_verdict(records, walking_hash, hopping_hash)
+    previous = history_verdict(records, walking_hash, hopping_hash, head_hash)
     if previous["recorded_failure"]:
         (args.output / "pair_selection.json").write_text(json.dumps(previous, indent=2))
-        print("These exact weights have a recorded handover failure; retained in pair_history.")
+        print(
+            "These exact weights have a recorded handover failure; retained in pair_history."
+        )
         raise SystemExit(1)
-    record = {"walking": str(args.walking), "hopping": str(args.hopping),
-              "walking_sha256": walking_hash, "hopping_sha256": hopping_hash,
-              "evaluated_at_ns": int(stamp), "tests": {}}
+    record = {
+        "walking": str(args.walking),
+        "hopping": str(args.hopping),
+        "walking_sha256": walking_hash,
+        "hopping_sha256": hopping_hash,
+        "head_motion_sha256": head_hash,
+        "evaluated_at_ns": int(stamp),
+        "tests": {},
+    }
     validator = Path(__file__).with_name("validate_transitions.py")
     for scope, options in (
         ("flat", []),
@@ -67,26 +89,57 @@ def main():
         report = history / f"{stamp}_{scope}.json"
         log = history / f"{stamp}_{scope}.log"
         with log.open("w") as stream:
+            head_options = (
+                ["--head-motion-config", str(args.head_motion_config.resolve())]
+                if args.head_motion_config
+                else []
+            )
             process = subprocess.run(
-                [sys.executable, str(validator), str(args.walking), str(args.hopping),
-                 "--result-file", str(report), *options],
-                stdout=stream, stderr=subprocess.STDOUT)
+                [
+                    sys.executable,
+                    str(validator),
+                    str(args.walking),
+                    str(args.hopping),
+                    "--result-file",
+                    str(report),
+                    *options,
+                    *head_options,
+                ],
+                stdout=stream,
+                stderr=subprocess.STDOUT,
+            )
         result = json.loads(report.read_text()) if report.exists() else {}
         passed = process.returncode == 0 and result.get("passed") is True
-        valid = isinstance(result.get("passed"), bool) and isinstance(result.get("reports"), list)
-        record["tests"][scope] = {"passed": passed, "valid_evaluation": valid, "report": str(report),
-                                 "log": str(log), "returncode": process.returncode}
-        label = ("Passed" if passed else "Needs work") if valid else "Evaluation error; inspect log"
+        valid = isinstance(result.get("passed"), bool) and isinstance(
+            result.get("reports"), list
+        )
+        record["tests"][scope] = {
+            "passed": passed,
+            "valid_evaluation": valid,
+            "report": str(report),
+            "log": str(log),
+            "returncode": process.returncode,
+        }
+        label = (
+            ("Passed" if passed else "Needs work")
+            if valid
+            else "Evaluation error; inspect log"
+        )
         print(f"{scope}: {label}; {report}", flush=True)
-    record["valid_evaluation"] = all(test["valid_evaluation"] for test in record["tests"].values())
+    record["valid_evaluation"] = all(
+        test["valid_evaluation"] for test in record["tests"].values()
+    )
     record["weights_unchanged"] = (
-        digest(args.walking) == walking_hash and digest(args.hopping) == hopping_hash)
+        digest(args.walking) == walking_hash and digest(args.hopping) == hopping_hash
+    )
     (history / f"{stamp}_pair.json").write_text(json.dumps(record, indent=2))
     records = [json.loads(path.read_text()) for path in history.glob("*_pair.json")]
-    verdict = history_verdict(records, walking_hash, hopping_hash)
+    verdict = history_verdict(records, walking_hash, hopping_hash, head_hash)
     (args.output / "pair_selection.json").write_text(json.dumps(verdict, indent=2))
     print(json.dumps(verdict, indent=2), flush=True)
-    raise SystemExit(0 if verdict["passed"] else (1 if record["valid_evaluation"] else 2))
+    raise SystemExit(
+        0 if verdict["passed"] else (1 if record["valid_evaluation"] else 2)
+    )
 
 
 if __name__ == "__main__":
