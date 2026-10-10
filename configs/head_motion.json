@@ -6,5 +6,6 @@
   "max_velocity": 0.4,
   "max_acceleration": 1.2,
   "response_frequency": 4.0,
-  "seed": 7
+  "seed": 7,
+  "level_gaze_in_render": true
 }

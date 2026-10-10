@@ -37,6 +37,7 @@ def main():
     parser.add_argument("--step-height", type=float, required=True)
     parser.add_argument("--seeds", type=int, nargs="+", default=[282, 283, 284])
     parser.add_argument("--seconds", type=float, default=12)
+    parser.add_argument("--head-motion-config", type=Path)
     args = parser.parse_args()
     if not 0 < args.step_height < 1 or args.seconds <= 0:
         parser.error("Use a positive step height below 1 m and a positive duration")
@@ -63,6 +64,9 @@ def main():
         "cases": [["walk", 0.3], ["walk", 0.45], ["hop", 0.3]],
         "scope": "Injected start, fixed commands, middle step only; not full-course evidence.",
         "crossing_rule": "No falls, final x > 5.3 m, and all samples over the step remain within |y| < .6 m.",
+        "head_motion": json.loads(args.head_motion_config.read_text())
+        if args.head_motion_config
+        else {"enabled": False},
     }
     (out / "config/comparison.json").write_text(json.dumps(manifest, indent=2))
     capture_source(out)
@@ -93,6 +97,11 @@ def main():
                         str(config),
                         "--run-root",
                         str(out / "evaluation/trials"),
+                        *(
+                            ["--head-motion-config", str(args.head_motion_config.resolve())]
+                            if args.head_motion_config
+                            else []
+                        ),
                     ],
                     cwd=ROOT,
                     env=env,
