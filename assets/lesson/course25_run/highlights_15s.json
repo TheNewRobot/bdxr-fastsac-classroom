@@ -1,0 +1,26 @@
+{
+  "source": "assets/lesson/course25_run/rollout.mp4",
+  "source_sha256": "db21ce5ff3ede86f0ab14a9f18b6cf30f48cb951e484d8ca6c4b0580a4c98020",
+  "output": "assets/lesson/course25_run/highlights_15s.mp4",
+  "output_sha256": "a69934e42d8f935edbbd260b88df5c69e59210715c19c3bee820ea9ad0098da6",
+  "duration_seconds": 15,
+  "playback_speed": 1,
+  "editing": "Three excerpts joined with cuts; original simulation timestamps retained. Not a continuous 15-second course completion.",
+  "segments": [
+    {
+      "start_seconds": 2,
+      "end_seconds": 5,
+      "behavior": "walking"
+    },
+    {
+      "start_seconds": 16,
+      "end_seconds": 24,
+      "behavior": "hopping over the middle step"
+    },
+    {
+      "start_seconds": 49.56,
+      "end_seconds": 53.56,
+      "behavior": "reaching the finish"
+    }
+  ]
+}

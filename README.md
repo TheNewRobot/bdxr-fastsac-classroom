@@ -23,7 +23,8 @@ caveats and acceptance checks. Detailed timings accompany the lesson recordings.
 [![Reference and three walking styles](assets/lesson/walking_overview/comparison.png)](assets/lesson/walking_overview/comparison.mp4)
 
 [Compare the reference and three walking styles](assets/lesson/walking_overview/comparison.mp4).
-[Watch the new course run](assets/lesson/course25_run/rollout.mp4) or
+[Watch the 15-second highlights](assets/lesson/course25_run/highlights_15s.mp4),
+[watch the full course run](assets/lesson/course25_run/rollout.mp4), or
 [compare the hopping motions](assets/lesson/course_hops/comparison.mp4).
 
 The displayed head bounce and idle looks are cosmetic; leg motion and physical head
