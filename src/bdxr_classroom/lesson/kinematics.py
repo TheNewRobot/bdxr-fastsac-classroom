@@ -225,16 +225,29 @@ def save_annotated_pose(env, destination):
     camera = mujoco.MjvCamera()
     camera.type = mujoco.mjtCamera.mjCAMERA_FREE
     camera.lookat[:] = np.mean(anchors, axis=0) + np.array([0, 0, 0.075])
-    camera.distance, camera.azimuth, camera.elevation = 0.90, 115, -10
+    camera.distance, camera.azimuth, camera.elevation = 0.90, 255, -10
     width, height = 600, 660
     colors = ["#006c67", "#2355b9", "#a13e8e", "#cf6517", "#b0303e"]
     original = model.geom_rgba.copy()
     original_height = model.vis.global_.offheight
+    left_root = int(model.jnt_bodyid[ids[0]])
+    left_bodies = set()
+    for body in range(model.nbody):
+        ancestor = body
+        while ancestor:
+            if ancestor == left_root:
+                left_bodies.add(body)
+                break
+            ancestor = int(model.body_parentid[ancestor])
     try:
         model.vis.global_.offheight = max(original_height, height)
         for geom in range(model.ngeom):
             if model.geom_group[geom] == 2:
-                model.geom_rgba[geom, 3] = 0.40
+                selected = int(model.geom_bodyid[geom]) in left_bodies
+                model.geom_rgba[geom, :3] = (
+                    [0.25, 0.72, 0.67] if selected else [0.65, 0.68, 0.69]
+                )
+                model.geom_rgba[geom, 3] = 0.80 if selected else 0.15
         with mujoco.Renderer(model, height=height, width=width) as renderer:
             renderer.update_scene(data, camera=camera)
             frame = Image.fromarray(renderer.render()).convert("RGBA")
@@ -256,12 +269,36 @@ def save_annotated_pose(env, destination):
                 )
 
             points = [project(point) for point in anchors]
+            # Project collars in each actual hinge plane, not screen-aligned circles.
+            collars = []
+            for index, joint in enumerate(ids):
+                axis = data.xaxis[joint]
+                basis = np.eye(3)[np.argmin(np.abs(axis))]
+                u = np.cross(axis, basis)
+                u /= np.linalg.norm(u)
+                v = np.cross(axis, u)
+                radius = 0.011 if index < 3 else 0.016
+                angles = np.linspace(0, 2 * np.pi, 49)
+                center = anchors[index]
+                ring = np.array([
+                    radius * (np.cos(t) * u + np.sin(t) * v) for t in angles
+                ])
+                front = [project(center + offset + axis * 0.006) for offset in ring]
+                back = [project(center + offset - axis * 0.006) for offset in ring]
+                collars.append((front, back))
+            right_hip = next(
+                j for j in range(model.njnt)
+                if model.joint(j).name.endswith("Right_Hip_Yaw")
+            )
+            left_depth = float((anchors[0] - origin) @ forward)
+            right_depth = float((data.xanchor[right_hip] - origin) @ forward)
+            assert left_depth < right_depth, "The annotated leg must face the camera."
     finally:
         model.geom_rgba[:] = original
         model.vis.global_.offheight = original_height
-    # A light wash makes the skeleton readable without erasing the robot outline.
+    # Preserve recognizable links while quieter branches recede.
     frame = Image.alpha_composite(
-        frame, Image.new("RGBA", frame.size, (250, 247, 240, 45))
+        frame, Image.new("RGBA", frame.size, (250, 247, 240, 20))
     )
     draw = ImageDraw.Draw(frame)
     font = ImageFont.truetype("DejaVuSans.ttf", 19)
@@ -270,19 +307,34 @@ def save_annotated_pose(env, destination):
     draw.rounded_rectangle((12, 10, 588, 65), radius=12, fill="#faf7f0")
     draw.text(
         (26, 19),
-        "Left leg • joint centers inside the covers",
+        "Left leg • links and revolute joints",
         font=font,
         fill="#263b3b",
     )
     draw.text(
         (26, 43),
-        "Solid segments show the kinematic chain, not link shapes.",
+        "Highlighted links connect the numbered joint pivots.",
         font=small,
         fill="#516766",
     )
     for a, b in zip(points, points[1:]):
         draw.line([a, b], fill="white", width=7)
         draw.line([a, b], fill="#263b3b", width=3)
+    for (front, back), color in zip(collars, colors):
+        draw.polygon(back, fill="#263b3b", outline="white")
+        for k in (0, 12, 24, 36):
+            draw.line([back[k], front[k]], fill=color, width=4)
+        draw.polygon(front, fill="#faf7f0", outline=color, width=3)
+        # A partial rim and arrowhead communicate depth and hinge rotation.
+        draw.line(front[5:29], fill=color, width=4)
+        tip = np.array(front[28])
+        tangent = tip - np.array(front[25])
+        tangent /= max(np.linalg.norm(tangent), 1e-6)
+        side = np.array([-tangent[1], tangent[0]])
+        draw.polygon(
+            [tuple(tip), tuple(tip - 8 * tangent + 4 * side),
+             tuple(tip - 8 * tangent - 4 * side)], fill=color
+        )
     # Place the three close hip labels separately; endpoints stay at exact centers.
     label_positions = [(40, 130), (40, 205), (380, 265), (40, 390), (380, 490)]
     for index, (name, point, label, color) in enumerate(
@@ -312,7 +364,7 @@ def save_annotated_pose(env, destination):
     draw.rounded_rectangle((12, 612, 588, 651), radius=10, fill="#faf7f0")
     draw.text(
         (26, 622),
-        "Opaque dots = model anchors; covers shown translucent.",
+        "Collars are schematic overlays at measured hinge centers.",
         font=small,
         fill="#263b3b",
     )
@@ -323,7 +375,10 @@ def save_annotated_pose(env, destination):
         json.dumps(
             {
                 "description": "Actual MuJoCo joint anchors projected through the rendered camera; not shell landmarks.",
-                "camera": {"azimuth": 115, "elevation": -10, "distance": 0.90},
+                "camera": {"azimuth": 255, "elevation": -10, "distance": 0.90},
+                "left_hip_depth": left_depth,
+                "right_hip_depth": right_depth,
+                "highlighted_bodies": [model.body(b).name for b in sorted(left_bodies)],
                 "joints": [
                     {
                         "name": name,

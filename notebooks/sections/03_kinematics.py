@@ -9,12 +9,13 @@
 # %% [markdown]
 # ### Instructor example · joints on the actual model
 #
-# | Joint centers through the covers | The same chain in the model |
+# | Left-leg links and joint pivots | The same chain in the model |
 # |:---:|:---:|
 # | ![Left-leg joints on BDX-R](lesson-asset:reference/annotated_robot.png) | ![Articulated kinematic tree](lesson-asset:reference/kinematic_tree.png) |
 #
-# Follow matching colors and numbers. Dots mark the model's internal joint centers;
-# translucent covers make hidden joints visible. Other tree branches are collapsed.
+# The left leg faces the camera and is highlighted. Colored collars mark its
+# measured hinge centers; these are schematic overlays, not motor CAD.
+# Match their numbers to the tree. Other branches are faded or collapsed.
 #
 # ### Your activity · inspect joints, then move one
 #
