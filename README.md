@@ -69,8 +69,9 @@ heading correction. World measurements are used for evaluation and game scoring.
 Edit the teaching cells in `notebooks/sections/`, then rebuild the portable file
 with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classroom
 code and selected recordings; students do not need access to the repository.
-Instructor figures and short animated examples are Markdown attachments, visible
-without executing cells. Student activities generate separate results.
+Instructor figures and short animated examples use public image links directly
+in Markdown, visible without executing cells. Internet access is required for
+these previews; Colab did not display the former Jupyter attachment links. Student activities generate separate results.
 The lesson archive is carried in notebook metadata, keeping setup code readable.
 Students still use one notebook; no separate archive or repository access is needed.
 

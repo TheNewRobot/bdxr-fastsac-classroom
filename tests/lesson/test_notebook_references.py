@@ -1,11 +1,11 @@
 """Teaching examples must live in Markdown and survive clearing all outputs."""
 
-import base64
 import importlib.util
-import io
 from pathlib import Path
 import re
 import unittest
+from urllib.parse import urlparse, parse_qs
+import hashlib
 
 import nbformat
 from PIL import Image
@@ -33,33 +33,41 @@ class NotebookReferences(unittest.TestCase):
         opening = self.notebook.cells[0]
         self.assertEqual(opening.cell_type, "markdown")
         self.assertIn("Meet the droid", opening.source)
-        self.assertIn("attachment:reference-disney_bdx.jpg", opening.source)
-        self.assertIn("attachment:inline-walking.gif", opening.source)
+        self.assertIn("/notebook/reference-disney_bdx.png", opening.source)
+        self.assertIn("/inline/walking.gif", opening.source)
         self.assertIn("D23 / Disney", opening.source)
-        self.assertIn("reference-disney_bdx.jpg", opening.attachments)
-        self.assertIn("inline-walking.gif", opening.attachments)
+        self.assertFalse(opening.get("attachments"))
 
-    def test_all_markdown_media_are_self_contained_and_sized(self):
+    def test_all_markdown_media_have_public_urls_and_keep_their_sizes(self):
         animations = 0
+        images = 0
+        prefix = "/TheNewRobot/bdxr-fastsac-classroom/main/"
         for cell in self.notebook.cells:
             if cell.cell_type != "markdown":
                 continue
             self.assertNotIn("lesson-asset:", cell.source)
-            for name in re.findall(r"\(attachment:([^)]+)\)", cell.source):
-                mime, data = next(iter(cell.attachments[name].items()))
-                self.assertIn(mime, ("image/png", "image/gif"))
-                image = Image.open(io.BytesIO(base64.b64decode(data)))
-                large = name in {
-                    "reference-robot.png",
-                    "reference-annotated_robot.png",
-                    "reference-kinematic_tree.png",
-                    "course_preview.png",
+            self.assertNotIn("attachment:", cell.source)
+            for url in re.findall(r"!\[[^\]]*\]\(([^)]+)\)", cell.source):
+                parsed = urlparse(url)
+                self.assertEqual(parsed.scheme, "https")
+                self.assertEqual(parsed.netloc, "raw.githubusercontent.com")
+                self.assertTrue(parsed.path.startswith(prefix))
+                path = ROOT / parsed.path.removeprefix(prefix)
+                self.assertTrue(path.is_file(), path)
+                expected = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+                self.assertEqual(parse_qs(parsed.query)["v"], [expected])
+                image = Image.open(path)
+                large = path.name in {
+                    "reference-robot.png", "reference-annotated_robot.png",
+                    "reference-kinematic_tree.png", "course_preview.png",
                 }
                 self.assertLessEqual(image.width, 800 if large else 720)
-                if mime == "image/gif":
+                if path.suffix == ".gif":
                     self.assertGreater(image.n_frames, 1)
                     animations += 1
+                images += 1
         self.assertEqual(animations, 8)
+        self.assertEqual(images, 22)
 
     def test_builder_never_executes_code(self):
         spec = importlib.util.spec_from_file_location(
@@ -75,8 +83,8 @@ class NotebookReferences(unittest.TestCase):
         )
         builder.embed_references([activity, reference])
         self.assertEqual(activity.outputs, [])
-        self.assertIn("attachment:reference-robot.png", reference.source)
-        self.assertTrue(reference.attachments)
+        self.assertIn("/notebook/reference-robot.png", reference.source)
+        self.assertFalse(reference.get("attachments"))
 
 
 if __name__ == "__main__":
