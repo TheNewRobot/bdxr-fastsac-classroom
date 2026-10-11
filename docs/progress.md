@@ -18,8 +18,9 @@ Related plots and examples share rows; standalone figures are centered.
 Local checks passed 75 tests, including GPU environment and game contracts.
 All 29 protected checkpoint/configuration hashes match their originals. The nine
 curated MP4s decode successfully. The earlier browser check loaded all 22 attachments locally,
-but did not test Colab's Markdown renderer. Public URL checks are recorded
-separately from that earlier validation. The live
+but did not test Colab's Markdown renderer. After replacing attachments with
+public URLs, an actual Colab browser check loaded all 22 images and confirmed
+the opening animation advances without a connected runtime (revision c6d0ff6). The live
 local game responded to Forward, Stop, pause, and the overview camera.
 
 The local integration copy executed all 37 code cells, including all eight
