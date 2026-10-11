@@ -27,6 +27,8 @@ class HeadMotionConfig:
     max_acceleration: float = 1.20  # radians/second squared.
     response_frequency: float = 4.0  # radians/second; lower means slower blending.
     seed: int = 7
+    display_walk_bob: float = 0.16  # radians; cosmetic neck motion only.
+    display_idle_yaw: float = 0.25  # radians; gentle idle looks.
 
     def __post_init__(self):
         values = (
@@ -38,6 +40,8 @@ class HeadMotionConfig:
             self.max_velocity,
             self.max_acceleration,
             self.response_frequency,
+            self.display_walk_bob,
+            self.display_idle_yaw,
         )
         if not all(math.isfinite(v) and v >= 0 for v in values):
             raise ValueError("Head motion parameters must be finite and nonnegative.")
@@ -78,6 +82,8 @@ class HeadMotion:
         self.position = np.zeros(4)
         self.velocity = np.zeros(4)
         self.last_acceleration = np.zeros(4)
+        self.moving_fraction = 0.0
+        self.idle_fraction = 0.0
 
     def desired(self, speed, yaw, mode):
         if not self.config.enabled or mode != "walk":
@@ -106,6 +112,14 @@ class HeadMotion:
         if not math.isfinite(dt) or dt <= 0:
             raise ValueError("Head motion timestep must be positive and finite.")
         self.time += dt
+        moving = min(1.0, max(abs(speed) / 0.10, abs(yaw) / 0.15))
+        self.moving_fraction += (1 - math.exp(-dt / 0.35)) * (
+            moving - self.moving_fraction
+        )
+        idle = 1 - moving if mode == "walk" else 0.0
+        self.idle_fraction += (1 - math.exp(-dt / 0.35)) * (
+            idle - self.idle_fraction
+        )
         if (
             (not self.config.enabled or mode != "walk")
             and not np.any(self.position)
@@ -155,6 +169,26 @@ class HeadMotion:
             ),
         }
 
+    def display_offsets(self):
+        """Continuous cosmetic gestures; never passed to simulated actuators."""
+        moving = self.moving_fraction
+        bounce = math.sin(2 * math.pi * 1.25 * self.time + self.phase)
+        idle = self.idle_fraction
+        cycle = (self.time + self.phase + math.pi) % self.config.idle_period
+        cycle *= 12 / self.config.idle_period
+        glance = 0.0
+        if 2 < cycle < 5:
+            glance = math.sin(math.pi * (cycle - 2) / 3) ** 2
+        elif 7 < cycle < 10:
+            glance = -math.sin(math.pi * (cycle - 7) / 3) ** 2
+        return {
+            "neck": moving * self.config.display_walk_bob * bounce
+            + idle * 0.025 * math.sin(2 * math.pi * 0.32 * self.time),
+            "yaw": idle * self.config.display_idle_yaw * glance,
+            "roll": idle * 0.025 * math.sin(2 * math.pi * 0.23 * self.time),
+            "nod": 0.018 * moving * bounce,
+        }
+
     def render(self):
         """Level the displayed gaze in the renderer's private state copy.
 
@@ -171,6 +205,18 @@ class HeadMotion:
             raise RuntimeError("Head presentation requires an initialized renderer.")
         renderer.update(self.env.sim.data)
         model, data = renderer._model, renderer._data
+        expression = self.display_offsets()
+        for name, offset in (
+            ("Neck_Pitch", expression["neck"]),
+            ("Head_Yaw", expression["yaw"]),
+            ("Head_Roll", expression["roll"]),
+        ):
+            hinge = model.joint("robot/" + name).id
+            address = model.jnt_qposadr[hinge]
+            data.qpos[address] = np.clip(
+                data.qpos[address] + offset, *model.jnt_range[hinge]
+            )
+        mujoco.mj_forward(model, data)
         joint = model.joint("robot/Head_Pitch").id
         body = model.body("robot/Head_Base_Plate").id
         forward = data.xmat[body].reshape(3, 3)[:, 0]
@@ -179,7 +225,7 @@ class HeadMotion:
         cosine = forward[2] - constant
         sine = np.cross(axis, forward)[2]
         # Retain a restrained nod around the horizon instead of a fixed stare.
-        target_z = -0.4 * self.position[0]
+        target_z = math.sin(expression["nod"])
         correction = 0.0
         for _ in range(5):
             value = (
@@ -206,6 +252,7 @@ class HeadMotion:
                 )
             ),
             "scope": "render-only",
+            "expression_offsets": expression,
         }
         renderer.renderer.update_scene(data, camera=renderer._cam)
         return renderer.render()

@@ -7,5 +7,7 @@
   "max_acceleration": 1.2,
   "response_frequency": 4.0,
   "seed": 7,
-  "level_gaze_in_render": true
+  "level_gaze_in_render": true,
+  "display_walk_bob": 0.16,
+  "display_idle_yaw": 0.25
 }

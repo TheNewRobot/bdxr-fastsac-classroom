@@ -29,6 +29,24 @@ class RobotFixture:
 
 
 class HeadMotionTests(unittest.TestCase):
+    def test_visible_walk_bounce_idle_glances_and_smooth_handover(self):
+        head, _ = self.make_head(enabled=True, level_gaze_in_render=True)
+        moving, idle, poses = [], [], []
+        for index in range(1400):
+            speed = 0.3 if index < 500 else 0
+            mode = "hop" if index >= 1300 else "walk"
+            head.step(0.02, speed, 0, mode)
+            pose = head.display_offsets()
+            poses.append(list(pose.values()))
+            if 100 < index < 500:
+                moving.append(pose)
+            if 650 < index < 1300:
+                idle.append(pose)
+        self.assertGreater(np.ptp([p["neck"] for p in moving]), 0.25)
+        self.assertLess(max(abs(p["yaw"]) for p in moving), 0.001)
+        self.assertGreater(np.ptp([p["yaw"] for p in idle]), 0.35)
+        self.assertLess(np.abs(np.diff(np.array(poses), axis=0)).max(), 0.04)
+
     def test_render_option_preserves_physical_target_sequence(self):
         ordinary, _ = self.make_head(enabled=True)
         visual, _ = self.make_head(enabled=True, level_gaze_in_render=True)
