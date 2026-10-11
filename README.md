@@ -15,8 +15,9 @@ after about 9 minutes on an L40S. Three scratch-trained variations passed too:
 flatter feet, quicker steps, and crouched walking. The hopping curriculum took
 about 23 minutes; the recorded course finished in 53.56 simulated seconds with
 visual steering and no falls. These are selected results from individual
-training seeds, not guaranteed outcomes. **Actual Google Colab execution remains
-untested.** See the short [results guide](docs/results.md) for matched-control
+training seeds, not guaranteed outcomes. The images and animated examples have
+been checked in Colab without a connected runtime. **Full GPU execution in Colab
+remains untested.** See the short [results guide](docs/results.md) for matched-control
 caveats and acceptance checks. Detailed timings accompany the lesson recordings.
 
 [![Reference and three walking styles](assets/lesson/walking_overview/comparison.png)](assets/lesson/walking_overview/comparison.mp4)
@@ -28,14 +29,15 @@ caveats and acceptance checks. Detailed timings accompany the lesson recordings.
 The displayed head bounce and idle looks are cosmetic; leg motion and physical head
 targets are unchanged. A physical neutral-pose correction remains unvalidated.
 
-- [Student notebook](notebooks/BDXR_Walking_101.ipynb)
+- [Open the lesson in Google Colab](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Walking_101.ipynb)
+- [Download the student notebook](notebooks/BDXR_Walking_101.ipynb)
 - [Short instructor notes](docs/instructor_notes.md)
 - [Measured results and their limits](docs/results.md)
 - [Implementation status](docs/progress.md)
 
-Upload the notebook to Colab and select a GPU runtime. It includes lesson source
-and curated recordings, then fetches pinned upstream robot assets. Publishing
-this repository is not required.
+Open the Colab link above, save a copy in Drive, and select a GPU runtime.
+The notebook includes lesson source and curated recordings, then fetches pinned
+upstream robot assets. Teaching previews load directly from this public repository.
 
 ## What the policy sees
 
@@ -77,10 +79,11 @@ to `candidates/`; selection requires review of their results.
 
 Edit the teaching cells in `notebooks/sections/`, then rebuild the portable file
 with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classroom
-code and selected recordings; students do not need access to this private repo.
+code and selected recordings; students do not need to clone the repository.
 Instructor figures and short animated examples use public image links directly
 in Markdown, visible without executing cells. Internet access is required for
-these previews; Colab did not display the former Jupyter attachment links. Student activities generate separate results.
+these previews; Colab did not display the former Jupyter attachment links.
+Student activities generate separate results.
 The lesson archive is carried in notebook metadata, keeping setup code readable.
 Students still use one notebook; no separate archive or repository access is needed.
 
