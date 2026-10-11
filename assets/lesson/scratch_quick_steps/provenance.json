@@ -60,5 +60,5 @@
     "motion.png": "93ad3cefbb08845d5a9078b55f1abacc9b73424d400a94ab463c55a249bf9634",
     "learning_curves.png": "9ec049ed4a7ca3b0a4c54c4f2bbb7f46850ea88a89e43cbdb71231755464732c"
   },
-  "display_scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
+  "display_scope": "Head bounce, idle looks and level gaze are cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
 }

@@ -13,10 +13,12 @@
     "max_acceleration": 1.2,
     "response_frequency": 4.0,
     "seed": 7,
-    "level_gaze_in_render": true
+    "level_gaze_in_render": true,
+    "display_walk_bob": 0.16,
+    "display_idle_yaw": 0.25
   },
-  "video_sha256": "84c1c55544565bddbbb11a79d69cb1a53045074a8fd72f3267e722e31eab9185",
+  "video_sha256": "4f5a3545399b31415aa09e4a4f8f858d4b842131d5541ec68e29133f5c3a3501",
   "encoding": "libx264 CRF28; source resolution, frames, and timing retained",
   "learning_curve_scope": "Unchanged recovery stage of the reference walker; not the new scratch baseline.",
-  "display_scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
+  "display_scope": "Head bounce, idle looks and level gaze are cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
 }

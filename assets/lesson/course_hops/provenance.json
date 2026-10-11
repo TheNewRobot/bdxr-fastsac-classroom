@@ -55,7 +55,7 @@
   },
   "visual_course_finishes": 2,
   "fixed_replay_finish_failed": true,
-  "display_scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
+  "display_scope": "Head bounce, idle looks and level gaze are cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
   "original_comparisons": {
     "normal": "hopping_comparison_side.mp4",
     "half_speed": "hopping_comparison_side_half_speed.mp4"

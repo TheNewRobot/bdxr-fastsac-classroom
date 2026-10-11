@@ -61,5 +61,5 @@
     "learning_curves.png": "baa71e2304867fd4b09d706d6b85d69cf150590f396947109719218055b0e746"
   },
   "plot_scope": "Forward command 0.3 m/s; mean and sample SD across five perturbed starts.",
-  "display_scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
+  "display_scope": "Head bounce, idle looks and level gaze are cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate."
 }
