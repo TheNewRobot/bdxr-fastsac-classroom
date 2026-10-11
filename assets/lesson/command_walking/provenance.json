@@ -1,8 +1,8 @@
 {
   "checkpoint": "experiments/lesson/2026-10-08_045922_707542_unchanged_control/checkpoints/final.pt",
   "checkpoint_sha256": "7ad415c383b61e23dba06d51c4964614a5cdc93baf41d47b315e8a1fa93801a9",
-  "video_source": "experiments/lesson/2026-10-08_045922_707542_unchanged_control/videos/locked/forward.mp4",
-  "evaluation": "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/locked/summary.json",
+  "video_source": "experiments/lesson/2026-10-08_045922_707542_unchanged_control/videos/locked_expression/forward.mp4",
+  "evaluation": "experiments/evaluations/head_motion/2026-10-11_172657_head_expression_gallery/locked_expression/summary.json",
   "command_validation": "experiments/evaluations/head_motion/2026-10-10_050913_846409_head_motion_validation/evaluation/0_restrained/selection_check.json",
   "head_motion": {
     "enabled": true,
@@ -13,9 +13,11 @@
     "max_acceleration": 1.2,
     "response_frequency": 4.0,
     "seed": 7,
-    "level_gaze_in_render": true
+    "level_gaze_in_render": true,
+    "display_walk_bob": 0.16,
+    "display_idle_yaw": 0.25
   },
-  "video_sha256": "84c1c55544565bddbbb11a79d69cb1a53045074a8fd72f3267e722e31eab9185",
+  "video_sha256": "4f5a3545399b31415aa09e4a4f8f858d4b842131d5541ec68e29133f5c3a3501",
   "encoding": "libx264 CRF28; source resolution, frames, and timing retained",
   "learning_curve_scope": "Unchanged recovery stage of the locked reference walker; not the new scratch baseline.",
   "display_refresh": {
@@ -28,12 +30,14 @@
       "max_acceleration": 1.2,
       "response_frequency": 4.0,
       "seed": 7,
-      "level_gaze_in_render": true
+      "level_gaze_in_render": true,
+      "display_walk_bob": 0.16,
+      "display_idle_yaw": 0.25
     },
-    "scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
+    "scope": "Head bounce, idle looks and level gaze are cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
     "evaluations": [
-      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/locked"
+      "experiments/evaluations/head_motion/2026-10-11_172657_head_expression_gallery/locked_expression"
     ],
-    "video_sha256": "84c1c55544565bddbbb11a79d69cb1a53045074a8fd72f3267e722e31eab9185"
+    "video_sha256": "4f5a3545399b31415aa09e4a4f8f858d4b842131d5541ec68e29133f5c3a3501"
   }
 }

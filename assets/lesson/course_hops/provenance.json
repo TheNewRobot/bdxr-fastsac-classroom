@@ -69,27 +69,27 @@
       "max_acceleration": 1.2,
       "response_frequency": 4.0,
       "seed": 7,
-      "level_gaze_in_render": true
+      "level_gaze_in_render": true,
+      "display_walk_bob": 0.16,
+      "display_idle_yaw": 0.25
     },
-    "scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
+    "scope": "Head bounce, idle looks and level gaze are cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
     "evaluations": [
-      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/hop_previous",
-      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/hop_course"
+      "experiments/evaluations/head_motion/2026-10-11_172657_head_expression_gallery/hop_previous_expression",
+      "experiments/evaluations/head_motion/2026-10-11_172657_head_expression_gallery/hop_course_expression"
     ],
-    "video_sha256": "67d9c5de6fd62ce25dc5be71803191b7f9b46cab4e0a87a617d9a1d68a8fa5dd",
-    "half_speed_sha256": "11a295c12995b4bb8893ad7ba328e3286bfca55ddd330fa6968704a88b5571c8",
+    "video_sha256": "27036d67cf99f08d408bc0b28d2bf9753d69f09062aaa3ed61af7e0244ea8da6",
+    "half_speed_sha256": "bcbb27e4308519324b61a01c92ef24148ab99dbab2d0b688b82bddd9d9026c9f",
     "metrics": {
       "hop_previous": {
-        "mean_clear_flight_peak_m": 0.05557285818670477,
-        "mean_clear_flight_duration_s": 0.14171428571428268,
-        "mean_clear_flight_tilt_deg": 6.848437323747632,
-        "mean_clear_landing_peak_force_n": 1338.3558646065849
+        "mean_clear_flight_duration_s": 0.14228571428571127,
+        "mean_clear_flight_peak_m": 0.05595780850521156,
+        "mean_clear_flight_tilt_deg": 6.881907917279284
       },
       "hop_course": {
-        "mean_clear_flight_peak_m": 0.05928430078285081,
         "mean_clear_flight_duration_s": 0.1599999999999966,
-        "mean_clear_flight_tilt_deg": 9.012400811258178,
-        "mean_clear_landing_peak_force_n": 921.734845842634
+        "mean_clear_flight_peak_m": 0.05913730125342097,
+        "mean_clear_flight_tilt_deg": 9.076127858641636
       }
     }
   },

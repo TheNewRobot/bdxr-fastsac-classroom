@@ -8,7 +8,7 @@
 # The middle step is 25 mm high. The selected hopper crossed 3/3 tested starts;
 # the walking controller crossed 0/6 at normal/fast commands. This supports hopping
 # for these controllers and trials, not a claim that every walker must fail.
-# Recorded visually steered runs finished without falls in about 50–53 simulated
+# The refreshed visually steered run finished without falls in 53.56 simulated
 # seconds. Fixed command replays can miss the finish; players need to steer.
 
 # %% [markdown]

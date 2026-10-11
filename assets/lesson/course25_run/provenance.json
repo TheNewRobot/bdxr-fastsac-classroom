@@ -1,9 +1,9 @@
 {
   "finished": true,
   "falls": 0,
-  "simulation_seconds": 53.06,
+  "simulation_seconds": 53.56,
   "checkpoints": 4,
-  "previews_recorded": 15,
+  "previews_recorded": 12,
   "scope": "Full 25 mm middle-step course, commands chosen from rendered previews with pauses. Not autonomous navigation or real-time human gameplay.",
   "operator": "Visual steering; no world-pose feedback controller.",
   "walking_checkpoint": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_191009_408207_scratch_yawbias6_control_seed7/checkpoints/final.pt",
@@ -17,23 +17,25 @@
     "max_acceleration": 1.2,
     "response_frequency": 4.0,
     "seed": 7,
-    "level_gaze_in_render": true
+    "level_gaze_in_render": true,
+    "display_walk_bob": 0.16,
+    "display_idle_yaw": 0.25
   },
-  "display_scope": "Level gaze is a cosmetic render-only adjustment; physical head targets and simulated locomotion remain unchanged.",
-  "experiment": "experiments/evaluations/courses/2026-10-10_194953_427183_manual_course_trial",
-  "video_source": "experiments/evaluations/courses/2026-10-10_194953_427183_manual_course_trial/videos/gameplay_001.mp4",
-  "video_sha256": "a1f35a6ad9d03972fe83920f2b6127bfc8298110ec04371051e672b926be80e3",
-  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.06 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
+  "display_scope": "Level gaze, walking bounce, and idle looks are cosmetic render-only gestures; physical head targets and simulated locomotion remain unchanged.",
+  "experiment": "experiments/evaluations/courses/2026-10-11_174532_399138_manual_course_trial",
+  "video_source": "experiments/evaluations/courses/2026-10-11_174532_399138_manual_course_trial/videos/gameplay_001.mp4",
+  "video_sha256": "db21ce5ff3ede86f0ab14a9f18b6cf30f48cb951e484d8ca6c4b0580a4c98020",
+  "caption": "Full 25 mm challenge: three obstacles, rough ground, raised finish; 53.56 simulated seconds and zero falls. Visual steering with pauses, not autonomous navigation or real-time human play.",
   "previous_run": {
-    "experiment": "experiments/evaluations/courses/2026-10-10_053951_480708_manual_course_trial",
-    "simulation_seconds": 53.14,
+    "experiment": "experiments/evaluations/courses/2026-10-10_194953_427183_manual_course_trial",
+    "simulation_seconds": 53.06,
     "wandb": {
-      "url": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/fw159fnm",
-      "id": "fw159fnm"
+      "url": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/2qher8b5",
+      "id": "2qher8b5"
     }
   },
   "wandb": {
-    "url": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/2qher8b5",
-    "id": "2qher8b5"
+    "url": "https://wandb.ai/afloresa/bdxr-fastsac-classroom/runs/83cxhy8h",
+    "id": "83cxhy8h"
   }
 }

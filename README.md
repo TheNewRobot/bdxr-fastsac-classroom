@@ -13,7 +13,7 @@ load their policies into the final interactive course.
 **Measured locally:** the scratch walking baseline passed 50 command trials
 after about 9 minutes on an L40S. Three scratch-trained variations passed too:
 flatter feet, quicker steps, and crouched walking. The hopping curriculum took
-about 23 minutes; the recorded course finished in 53.06 simulated seconds with
+about 23 minutes; the recorded course finished in 53.56 simulated seconds with
 visual steering and no falls. These are selected results from individual
 training seeds, not guaranteed outcomes. **Actual Google Colab execution remains
 untested.** See the short [results guide](docs/results.md) for matched-control
@@ -25,7 +25,7 @@ caveats and acceptance checks. Detailed timings accompany the lesson recordings.
 [Watch the new course run](assets/lesson/course25_run/rollout.mp4) or
 [compare the hopping motions](assets/lesson/course_hops/comparison.mp4).
 
-The displayed head gaze is cosmetic; simulated leg motion and physical head
+The displayed head bounce and idle looks are cosmetic; leg motion and physical head
 targets are unchanged. A physical neutral-pose correction remains unvalidated.
 
 - [Student notebook](notebooks/BDXR_Walking_101.ipynb)
@@ -80,6 +80,8 @@ with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classro
 code and selected recordings; students do not need access to this private repo.
 Instructor figures and short animated examples are Markdown attachments, visible
 without executing cells. Student activities generate separate results.
+The lesson archive is carried in notebook metadata, keeping setup code readable.
+Students still use one notebook; no separate archive or repository access is needed.
 
 ## Local use
 

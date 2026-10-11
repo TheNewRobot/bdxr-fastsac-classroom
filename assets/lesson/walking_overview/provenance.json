@@ -36,15 +36,17 @@
       "max_acceleration": 1.2,
       "response_frequency": 4.0,
       "seed": 7,
-      "level_gaze_in_render": true
+      "level_gaze_in_render": true,
+      "display_walk_bob": 0.16,
+      "display_idle_yaw": 0.25
     },
-    "scope": "Gaze is cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
+    "scope": "Head bounce, idle looks and level gaze are cosmetic, applied only to the CPU rendering state. Simulated leg trajectories and physical head targets are not edited. Original training/selection evidence remains separate.",
     "evaluations": [
-      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/locked_side",
-      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/level_feet",
-      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/quick_steps",
-      "experiments/evaluations/head_motion/2026-10-10_194647_level_gaze_gallery/crouched"
+      "experiments/evaluations/head_motion/2026-10-11_172657_head_expression_gallery/locked_side_expression",
+      "experiments/evaluations/head_motion/2026-10-11_172657_head_expression_gallery/level_feet_expression",
+      "experiments/evaluations/head_motion/2026-10-11_172657_head_expression_gallery/quick_steps_expression",
+      "experiments/evaluations/head_motion/2026-10-11_172657_head_expression_gallery/crouched_expression"
     ],
-    "video_sha256": "b9ba132e5ead99e1dcd21954f48786cc0cf4d6b71836b9d559942728776525bf"
+    "video_sha256": "6a374453082b2ac4392ea5c64e8fb62c44679252feb5cb669903a7af396572f6"
   }
 }

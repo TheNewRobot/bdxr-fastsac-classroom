@@ -9,9 +9,11 @@ Teaching figures and eight silent example animations live in Markdown attachment
 All code cells ship without outputs. The hopping explanation groups the existing
 eight stages into four phases; it does not change their configuration. Joint
 annotations use model anchors, independently checked against rendered markers.
+The visible left leg is highlighted; schematic collars show its hinge axes.
+All five projected centers agree with rendered markers to within 1 pixel.
 Related plots and examples share rows; standalone figures are centered.
 
-Local checks passed 70 tests, including GPU environment and game contracts.
+Local checks passed 75 tests, including GPU environment and game contracts.
 All 29 protected checkpoint/configuration hashes match their originals. The nine
 curated MP4s decode successfully. Browser inspection loaded all 22 Markdown images
 with outputs cleared and confirmed that the opening animation advances. The live
@@ -27,12 +29,20 @@ match the repository byte for byte.
 Refreshed recordings include five forward starts for eight policies/control
 recordings, plus a second camera view of the locked walker: 45 trials without
 falls. On the isolated 25 mm step, walking crossed 0/6 trials and hopping 3/3.
-The new visually steered course finished in 53.06 simulated seconds with all four
-checkpoints and no falls. A fixed replay missed the finish; that failure remains
-separate from the successful visually steered recording.
+The new visually steered course finished in 53.56 simulated seconds with all four
+checkpoints and no falls. Two fixed replays missed the route; an earlier manual
+attempt fell after passing the finish. These remain separate from the successful
+visually steered recording.
 
-**The level head gaze is cosmetic.** It changes only the renderer's CPU state;
-physical head targets and leg control are retained. Tested physical pose offsets
+The single-file archive now lives in notebook metadata, removing encoded data
+from displayed code. Loading a renamed local notebook passed; the Colab bridge
+was checked with a simulated frontend response, not a real Colab session.
+
+**The level head gaze and visible gestures are cosmetic.** They change only
+the renderer's CPU state; physical head targets and leg control are retained. Moving commands add a gentle
+neck bounce; idle commands blend into small glances and fidgets. A render check
+measured more than 1 cm of vertical head travel while gaze remained within
+1.1 degrees of horizontal. Tested physical pose offsets
 reduced locomotion quality and were rejected. Direct checks found no change to
 simulation state or actor observations during rendering. A validated physical
 neutral-pose correction remains unfinished.

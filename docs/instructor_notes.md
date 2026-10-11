@@ -57,7 +57,10 @@ and environment code stays in the lesson; package installation and repetitive
 subprocess handling are collapsed or delegated to the lesson helpers. If that
 process is restarted, rerun environment creation before later simulator cells.
 
-The refreshed media levels the head only in the renderer's private state.
-Physical head targets and the learned leg controller are unchanged. Physical
-neutral-pose offsets reduced locomotion quality in testing and were not adopted;
-these images are not evidence of a validated physical head-control correction.
+The presentation adds a level-faced neck bounce while moving and gentle idle
+looks. These gestures affect only the renderer; physical targets and the learned
+controller are unchanged.
+
+Distribute the complete notebook. Its lesson archive lives in metadata, outside
+the displayed Python cells. Local setup reads the saved notebook; Colab reads
+the open notebook through its frontend bridge. No companion archive is required.
