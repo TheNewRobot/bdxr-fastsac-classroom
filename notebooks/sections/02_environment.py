@@ -33,6 +33,7 @@
 # %% [hidden]
 # @title Unpack the lesson files
 import base64
+import hashlib
 import io
 import json
 import os
@@ -43,14 +44,59 @@ import time
 import zipfile
 from IPython.display import display, HTML, Image, Video
 
+BUNDLE_SHA256 = "__BUNDLE_SHA256__"
+
+
+def read_lesson_archive():
+    """Read this notebook's attached lesson files without displaying their bytes."""
+    try:
+        from google.colab import _message
+    except ImportError:
+        # VS Code/Jupyter: find the saved notebook beside the working directory.
+        roots = [Path.cwd(), Path.cwd().parent]
+        paths = [Path(os.environ.get("JPY_SESSION_NAME", ""))]
+        for root in roots:
+            paths.extend(root.glob("*.ipynb"))
+            paths.extend((root / "notebooks").glob("*.ipynb"))
+        def saved_notebooks():
+            for path in dict.fromkeys(paths):
+                if path.is_file() and path.suffix == ".ipynb":
+                    try:
+                        yield json.loads(path.read_text())
+                    except (OSError, ValueError):
+                        continue
+
+        documents = saved_notebooks()
+    else:
+        # Colab keeps the open notebook in the browser, separate from its runtime.
+        reply = _message.blocking_request("get_ipynb", timeout_sec=120)
+        documents = [(reply or {}).get("ipynb", {})]
+    for document in documents:
+        bundle = document.get("metadata", {}).get("bdxr_lesson", {})
+        if bundle.get("sha256") == BUNDLE_SHA256:
+            archive = base64.b64decode(bundle["archive"], validate=True)
+            if hashlib.sha256(archive).hexdigest() != BUNDLE_SHA256:
+                raise RuntimeError("The notebook's lesson archive is damaged.")
+            return archive
+    raise RuntimeError(
+        "Cannot read this notebook's attached lesson files. "
+        "Locally, run from the saved notebook's folder. In Colab, reopen "
+        "the original notebook; its metadata must be retained."
+    )
+
+
 WORK = (
     Path("/content/bdxr_classroom")
     if Path("/content").exists()
     else Path.cwd() / "bdxr_classroom_lab"
 )
 WORK.mkdir(parents=True, exist_ok=True)
-SOURCE_BUNDLE = "__SOURCE_BUNDLE__"
-with zipfile.ZipFile(io.BytesIO(base64.b64decode(SOURCE_BUNDLE))) as archive:
+with zipfile.ZipFile(io.BytesIO(read_lesson_archive())) as archive:
+    if any(
+        not (WORK / name).resolve().is_relative_to(WORK.resolve())
+        for name in archive.namelist()
+    ):
+        raise RuntimeError("The lesson archive contains an invalid file path.")
     archive.extractall(WORK)
 sys.path.insert(0, str(WORK / "src"))
 sys.path.insert(0, str(WORK))

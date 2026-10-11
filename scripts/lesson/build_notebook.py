@@ -2,12 +2,13 @@
 
 Sections use # %% for Python cells and # %% [markdown] for commented Markdown.
 Use Markdown lesson-asset: links for self-contained image attachments.
-Only the bootstrap cell receives an embedded archive; authored lesson code stays
-readable in notebooks/sections/. No remote/private-repository access is needed.
+The archive lives in notebook metadata, never in displayed Python source.
+No remote/private-repository access is needed.
 """
 
 import argparse
 import base64
+import hashlib
 import io
 from pathlib import Path
 import re
@@ -168,10 +169,11 @@ def main():
     cells = merged
     embed_references(cells)
     encoded = source_bundle()
+    digest = hashlib.sha256(base64.b64decode(encoded)).hexdigest()
     replacements = 0
     for cell in cells:
-        if "__SOURCE_BUNDLE__" in cell.source:
-            cell.source = cell.source.replace("__SOURCE_BUNDLE__", encoded)
+        if "__BUNDLE_SHA256__" in cell.source:
+            cell.source = cell.source.replace("__BUNDLE_SHA256__", digest)
             replacements += 1
     assert replacements == 1, "Exactly one isolated bootstrap archive is required."
     notebook = nbformat.v4.new_notebook(
@@ -185,6 +187,7 @@ def main():
             "language_info": {"name": "python"},
             "accelerator": "GPU",
             "colab": {"name": "BDXR_Walking_101.ipynb"},
+            "bdxr_lesson": {"version": 1, "sha256": digest, "archive": encoded},
         },
     )
     if args.output.exists():
