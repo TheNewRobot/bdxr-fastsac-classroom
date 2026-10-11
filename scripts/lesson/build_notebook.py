@@ -1,9 +1,9 @@
 """Build the portable notebook from readable, chapter-sized source files.
 
 Sections use # %% for Python cells and # %% [markdown] for commented Markdown.
-Use Markdown lesson-asset: links for self-contained image attachments.
+Use Markdown lesson-asset: links for public, Colab-compatible images.
 The archive lives in notebook metadata, never in displayed Python source.
-No remote/private-repository access is needed.
+Public image access is needed; no private-repository access is required.
 """
 
 import argparse
@@ -21,69 +21,57 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def embed_references(cells):
-    """Embed teaching images and animated previews in Markdown attachments only.
+    """Place public images directly in Markdown, compatible with Colab.
 
-    No cell is executed and no code output is populated. Animated GIF previews
-    use native Markdown image syntax, so clearing outputs cannot remove them.
-    Student-generated MP4 players remain outputs of their activity cells.
+    Jupyter attachment: references are not portable across notebook frontends.
+    Public PNG/GIF URLs require no execution and preserve the teaching layout.
+    Sized copies keep the same dimensions as the former attachments.
     """
     asset_root = (ROOT / "assets/lesson").resolve()
+    preview_root = asset_root / "notebook"
+    preview_root.mkdir(exist_ok=True)
+    public_root = (
+        "https://raw.githubusercontent.com/TheNewRobot/"
+        "bdxr-fastsac-classroom/main/assets/lesson/"
+    )
     for cell in cells:
-        if cell.cell_type == "markdown":
-            attachments = {}
+        if cell.cell_type != "markdown":
+            continue
 
-            def attach(match):
-                relative = match.group(1)
-                path = (asset_root / relative).resolve()
-                if not path.is_relative_to(asset_root):
-                    raise ValueError(f"Reference escapes lesson assets: {relative}")
-                mime = {
-                    ".svg": "image/svg+xml",
-                    ".png": "image/png",
-                    ".jpg": "image/jpeg",
-                    ".gif": "image/gif",
-                }[path.suffix]
-                name = relative.replace("/", "-")
-                raw = path.read_bytes()
-                if path.suffix in {".png", ".jpg"}:
-                    # Smaller charts keep the explanation in view. Robot portraits
-                    # retain more space; originals remain in the lesson archive.
-                    width = (
-                        800
-                        if path.name
-                        in {
-                            "robot.png",
-                            "annotated_robot.png",
-                            "course_preview.png",
-                            "kinematic_tree.png",
-                        }
-                        else 720
+        def reference(match):
+            relative = match.group(1)
+            path = (asset_root / relative).resolve()
+            if not path.is_relative_to(asset_root):
+                raise ValueError(f"Reference escapes lesson assets: {relative}")
+            if path.suffix in {".png", ".jpg"}:
+                width = 800 if path.name in {
+                    "robot.png", "annotated_robot.png", "course_preview.png",
+                    "kinematic_tree.png",
+                } else 720
+                if path.suffix == ".jpg":
+                    width = 480
+                image = Image.open(path)
+                image.thumbnail((width, 900), Image.Resampling.LANCZOS)
+                if path.suffix == ".jpg":
+                    canvas = Image.new("RGB", (480, 320), "#faf7f0")
+                    canvas.paste(
+                        image, ((480 - image.width) // 2, (320 - image.height) // 2)
                     )
-                    if path.suffix == ".jpg":
-                        width = 480
-                    image = Image.open(io.BytesIO(raw))
-                    image.thumbnail((width, 900), Image.Resampling.LANCZOS)
-                    if path.suffix == ".jpg":
-                        canvas = Image.new("RGB", (480, 320), "#faf7f0")
-                        canvas.paste(
-                            image, ((480 - image.width) // 2, (320 - image.height) // 2)
-                        )
-                        image = canvas
-                    buffer = io.BytesIO()
-                    image.save(buffer, format="PNG")
-                    mime = "image/png"
-                    raw = buffer.getvalue()
-                data = base64.b64encode(raw).decode()
-                attachments[name] = {mime: data}
-                return f"(attachment:{name})"
+                    image = canvas
+                name = relative.replace("/", "-").rsplit(".", 1)[0] + ".png"
+                path = preview_root / name
+                image.save(path, format="PNG")
+                relative = path.relative_to(asset_root).as_posix()
+            # Content version avoids stale image caches after a media refresh.
+            version = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+            return f"({public_root}{relative}?v={version})"
 
-            cell.source = re.sub(r"\(lesson-asset:([^)]+)\)", attach, cell.source)
-            if attachments:
-                cell.attachments = attachments
+        cell.source = re.sub(r"\(lesson-asset:([^)]+)\)", reference, cell.source)
+        cell.pop("attachments", None)
 
 
 def source_bundle():
-    # GIF previews already live in Markdown attachments; bundle the original MP4s
+    # GIF previews load from public URLs; bundle the original MP4s
     # for student use without duplicating the preview bytes.
     archive_buffer = io.BytesIO()
     files = set()
@@ -100,6 +88,7 @@ def source_bundle():
             p
             for p in ROOT.glob(pattern)
             if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".gif"
+            and not p.is_relative_to(ROOT / "assets/lesson/notebook")
         )
     with zipfile.ZipFile(archive_buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(files):

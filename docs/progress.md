@@ -5,7 +5,9 @@ matched scratch-training experiments, hopping, and the interactive course.
 The actor receives proprioception and commands; the critic may receive privileged
 training observations. Selected policy weights and training settings are unchanged.
 
-Teaching figures and eight silent example animations live in Markdown attachments.
+Teaching figures and eight silent example animations use public PNG/GIF URLs
+directly in Markdown. The former Jupyter attachments rendered locally but
+appeared broken in Colab; local rendering did not establish Colab compatibility.
 All code cells ship without outputs. The hopping explanation groups the existing
 eight stages into four phases; it does not change their configuration. Joint
 annotations use model anchors, independently checked against rendered markers.
@@ -15,8 +17,9 @@ Related plots and examples share rows; standalone figures are centered.
 
 Local checks passed 75 tests, including GPU environment and game contracts.
 All 29 protected checkpoint/configuration hashes match their originals. The nine
-curated MP4s decode successfully. Browser inspection loaded all 22 Markdown images
-with outputs cleared and confirmed that the opening animation advances. The live
+curated MP4s decode successfully. The earlier browser check loaded all 22 attachments locally,
+but did not test Colab's Markdown renderer. Public URL checks are recorded
+separately from that earlier validation. The live
 local game responded to Forward, Stop, pause, and the overview camera.
 
 The local integration copy executed all 37 code cells, including all eight
