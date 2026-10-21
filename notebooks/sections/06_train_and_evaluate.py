@@ -61,7 +61,11 @@ print("Actual timing:", read_json(BASELINE / "metrics/timing.json"))
 # These checks can take several minutes; progress identifies each command.
 
 # %%
-from bdxr_classroom.lesson.assessment import evaluate_walking, selected_walking
+from bdxr_classroom.lesson.assessment import (
+    check_recent_walking,
+    evaluate_walking,
+    selected_walking,
+)
 from bdxr_classroom.lesson.presentation import command_table
 
 BASELINE_SUMMARY, BASELINE_CHECK = evaluate_walking(lab, BASELINE)
@@ -70,12 +74,19 @@ print("Passed:", BASELINE_CHECK["passed"])
 print("Failures:", BASELINE_CHECK["failures"])
 
 # %% [markdown]
-# If the first checkpoint misses the checks, allow one additional training stage
+# A later update can make a policy worse. If the final checkpoint fails, check
+# up to two recent saved snapshots using the **same full command suite**. This
+# adds evaluation time, not training. Each result stays in its own folder.
+#
+# If none passes, allow one additional training stage
 # with the **same behavior settings**. This fine-tunes saved networks using fresh
 # replay; it is not an exact replay-buffer resume. Preserve and inspect both runs.
 # A recovered policy has its own folder and video; it does not replace the first attempt.
 
 # %%
+BASELINE_SUMMARY, BASELINE_CHECK = check_recent_walking(
+    lab, BASELINE, BASELINE_SUMMARY, BASELINE_CHECK
+)
 if not BASELINE_CHECK["passed"]:
     recovery = {**LEARNING_CONFIG, "steps": 3000, "minutes": 10}
     BASELINE = lab.train(
@@ -85,12 +96,16 @@ if not BASELINE_CHECK["passed"]:
         parent=BASELINE / "checkpoints/final.pt",
     )
     BASELINE_SUMMARY, BASELINE_CHECK = evaluate_walking(lab, BASELINE)
+    BASELINE_SUMMARY, BASELINE_CHECK = check_recent_walking(
+        lab, BASELINE, BASELINE_SUMMARY, BASELINE_CHECK
+    )
     command_table(BASELINE_SUMMARY)
+SELECTED_WALK_CHECKPOINT = selected_walking([BASELINE_CHECK])
 if not BASELINE_CHECK["passed"]:
     raise RuntimeError(
-        "Inspect the failed walking checks before starting style experiments."
+        "No checked snapshot passed. Keep the reports and inspect the failed "
+        "commands before trying another seed or a longer training budget."
     )
-SELECTED_WALK_CHECKPOINT = selected_walking([BASELINE_CHECK])
 print("Selected walking checkpoint:", SELECTED_WALK_CHECKPOINT)
 print("Passed command checks:", BASELINE_CHECK["passed"])
 
@@ -98,9 +113,11 @@ print("Passed command checks:", BASELINE_CHECK["passed"])
 from IPython.display import display, Image, Video
 
 # Keep the robot video separate from the smaller diagnostic chart.
-print("Selected-policy evaluation:", BASELINE / "evaluation/final_commands")
-display(Video(str(BASELINE / "videos/final_commands/forward.mp4"), embed=True, width=640))
-display(Image(filename=str(BASELINE / "evaluation/final_commands/forward.png"), width=720))
+selected_evaluation = Path(BASELINE_CHECK["evaluation_directory"])
+selected_video = BASELINE / "videos" / selected_evaluation.name / "forward.mp4"
+print("Selected-policy evaluation:", selected_evaluation)
+display(Video(str(selected_video), embed=True, width=640))
+display(Image(filename=str(selected_evaluation / "forward.png"), width=720))
 
 # %% [markdown]
 # **Interpret:** can you point to evidence for straight walking, beyond the video?

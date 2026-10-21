@@ -21,6 +21,11 @@ spec = importlib.util.spec_from_file_location(
 )
 bootstrap = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bootstrap)
+builder_spec = importlib.util.spec_from_file_location(
+    "lesson_builder", ROOT / "scripts/lesson/build_notebook.py"
+)
+builder = importlib.util.module_from_spec(builder_spec)
+builder_spec.loader.exec_module(builder)
 
 
 def payload(extra=None):
@@ -74,11 +79,10 @@ class NotebookBundleTests(unittest.TestCase):
                 self.assertNotIn("SOURCE_BUNDLE", cell.source)
                 self.assertNotIn("files.upload", cell.source)
         release = notebook.metadata.bdxr_lesson
-        path = (
-            ROOT / "artifacts/lesson_releases" / release.tag / "BDXR_lesson_files.zip"
-        )
-        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), release.sha256)
-        with zipfile.ZipFile(path) as archive:
+        # A fresh clone has no ignored artifacts directory. Rebuild in memory.
+        content = builder.source_bundle()
+        self.assertEqual(hashlib.sha256(content).hexdigest(), release.sha256)
+        with zipfile.ZipFile(io.BytesIO(content)) as archive:
             self.assertIsNone(archive.testzip())
             for name in archive.namelist():
                 self.assertEqual(archive.read(name), (ROOT / name).read_bytes(), name)
