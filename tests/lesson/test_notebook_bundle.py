@@ -51,7 +51,13 @@ def server(responses):
                 return
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(body)
+            try:
+                if callable(body):
+                    body(self.wfile)
+                else:
+                    self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                pass  # Timeout tests deliberately disconnect the client.
 
         def log_message(self, *_):
             pass
@@ -140,4 +146,20 @@ class NotebookBundleTests(unittest.TestCase):
                     url, "0" * 64, directory, timeout=0.05, attempts=1
                 )
             self.assertLess(time.monotonic() - started, 1)
+            self.assertFalse((Path(directory) / ".lesson_release.json").exists())
+
+    def test_trickling_body_cannot_extend_the_download_deadline(self):
+        def trickle(stream):
+            for _ in range(60):
+                stream.write(b"x")
+                stream.flush()
+                time.sleep(0.02)
+
+        with tempfile.TemporaryDirectory() as directory, server([trickle]) as (url, _):
+            started = time.monotonic()
+            with self.assertRaisesRegex(RuntimeError, "Could not download"):
+                bootstrap.install_lesson(
+                    url, "0" * 64, directory, timeout=0.12, attempts=1
+                )
+            self.assertLess(time.monotonic() - started, 0.6)
             self.assertFalse((Path(directory) / ".lesson_release.json").exists())

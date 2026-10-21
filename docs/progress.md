@@ -19,7 +19,9 @@ on the missing import; the earlier video showed the first training attempt.
 This evidence does not establish identical results across GPUs or seeds.
 
 Setup now downloads a versioned public release, verifies its checksum, and reports
-progress with bounded retries. It no longer queries the Colab notebook bridge.
+progress with bounded retries. A trickling response cannot keep a buffered read
+open indefinitely; a regression test checks this timeout case. Setup no longer
+queries the Colab notebook bridge.
 Incomplete setup can be rerun; fonts come from the installed Matplotlib package.
 Recordings report their checkpoint path, step and digest. Evaluations report case
 progress, retain prior results, and keep the existing acceptance thresholds.
@@ -27,7 +29,7 @@ Checks save trajectory measurements without rendering unused videos. The selecte
 video is a separate rollout of the assessed weights, verified by checksum before
 recording. Backups include runtime versions and diagnostic logs.
 
-All 89 local tests passed, including GPU environment, checkpoint identity,
+All 90 local tests passed, including GPU environment, checkpoint identity,
 interrupted setup, download failures, and game reset/finish contracts. The right-knee
 slider was checked against actual right-foot model coordinates and exercised in a
 browser. Its camera shows the moving leg and highlights the hinge. Static left-leg
