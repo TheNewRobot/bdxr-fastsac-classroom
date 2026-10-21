@@ -89,6 +89,19 @@ class Lesson:
         run = Path(pointer.read_text().strip())
         if run not in self.runs:
             self.runs.append(run)
+        timing = json.loads((run / "metrics/timing.json").read_text())
+        requested = settings.get("steps")
+        print(
+            f"Training result: {timing['step']:,} steps in "
+            f"{timing['session_training_seconds']:.0f}s.",
+            flush=True,
+        )
+        if requested is not None and timing["step"] < requested:
+            print(
+                f"Stopped before the requested {requested:,} steps. "
+                "Check the time limit before comparing this run with the example.",
+                flush=True,
+            )
         return run
 
     def record(self, run, checkpoint="final", speed=None):
