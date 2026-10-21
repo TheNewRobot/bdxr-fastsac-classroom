@@ -4,6 +4,7 @@
 # Pause the game before exporting. The backup includes your training stages,
 # configurations, checkpoints, curves, and recorded gameplay. Including replay
 # makes the file larger but preserves collected experience for continuation.
+# Setup logs, package versions, and the lesson release are included for troubleshooting.
 
 # %% [markdown]
 # ### What your evidence should contain
@@ -22,6 +23,8 @@
 # examples remain in the lesson; they are not evidence that your training passed.
 
 # %%
+from IPython.display import display, Video
+
 recordings = pause_and_recordings(lab, GAME_PORT)
 for video in recordings:
     display(Video(str(video), embed=True, width=720))

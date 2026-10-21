@@ -2,17 +2,17 @@
 
 Sections use # %% for Python cells and # %% [markdown] for commented Markdown.
 Use Markdown lesson-asset: links for public, Colab-compatible images.
-The archive lives in notebook metadata, never in displayed Python source.
+The archive is a versioned release download, never transferred through the browser.
 Public image access is needed; no private-repository access is required.
 """
 
 import argparse
-import base64
 import hashlib
 import io
-from pathlib import Path
+import json
 import re
 import zipfile
+from pathlib import Path
 
 import nbformat
 from PIL import Image
@@ -44,10 +44,17 @@ def embed_references(cells):
             if not path.is_relative_to(asset_root):
                 raise ValueError(f"Reference escapes lesson assets: {relative}")
             if path.suffix in {".png", ".jpg"}:
-                width = 800 if path.name in {
-                    "robot.png", "annotated_robot.png", "course_preview.png",
-                    "kinematic_tree.png",
-                } else 720
+                width = (
+                    800
+                    if path.name
+                    in {
+                        "robot.png",
+                        "annotated_robot.png",
+                        "course_preview.png",
+                        "kinematic_tree.png",
+                    }
+                    else 720
+                )
                 if path.suffix == ".jpg":
                     width = 480
                 image = Image.open(path)
@@ -87,7 +94,9 @@ def source_bundle():
         files.update(
             p
             for p in ROOT.glob(pattern)
-            if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".gif"
+            if p.is_file()
+            and "__pycache__" not in p.parts
+            and p.suffix != ".gif"
             and not p.is_relative_to(ROOT / "assets/lesson/notebook")
         )
     with zipfile.ZipFile(archive_buffer, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -99,7 +108,7 @@ def source_bundle():
             info.create_system = 3
             info.external_attr = 0o100644 << 16
             archive.writestr(info, path.read_bytes())
-    return base64.b64encode(archive_buffer.getvalue()).decode()
+    return archive_buffer.getvalue()
 
 
 def section_cells(path):
@@ -136,6 +145,9 @@ def main():
     parser.add_argument(
         "--output", type=Path, default=ROOT / "notebooks/BDXR_Walking_101.ipynb"
     )
+    parser.add_argument(
+        "--bundle-dir", type=Path, default=ROOT / "artifacts/lesson_releases"
+    )
     args = parser.parse_args()
     cells = [
         cell
@@ -157,12 +169,26 @@ def main():
             merged.append(cell)
     cells = merged
     embed_references(cells)
-    encoded = source_bundle()
-    digest = hashlib.sha256(base64.b64decode(encoded)).hexdigest()
+    payload = source_bundle()
+    digest = hashlib.sha256(payload).hexdigest()
+    release_tag = f"lesson-{digest[:12]}"
+    bundle_url = (
+        "https://github.com/TheNewRobot/bdxr-fastsac-classroom/releases/"
+        f"download/{release_tag}/BDXR_lesson_files.zip"
+    )
+    bundle_dir = args.bundle_dir / release_tag
+    bundle_dir.mkdir(parents=True, exist_ok=True)
+    (bundle_dir / "BDXR_lesson_files.zip").write_bytes(payload)
+    (bundle_dir / "SHA256SUMS").write_text(f"{digest}  BDXR_lesson_files.zip\n")
+    release = {"version": 2, "sha256": digest, "url": bundle_url, "tag": release_tag}
+    (bundle_dir / "release.json").write_text(json.dumps(release, indent=2) + "\n")
+    bootstrap = (ROOT / "scripts/setup/lesson_download.py").read_text().strip()
     replacements = 0
     for cell in cells:
         if "__BUNDLE_SHA256__" in cell.source:
             cell.source = cell.source.replace("__BUNDLE_SHA256__", digest)
+            cell.source = cell.source.replace("__BUNDLE_URL__", bundle_url)
+            cell.source = cell.source.replace("__BOOTSTRAP_SOURCE__", bootstrap)
             replacements += 1
     assert replacements == 1, "Exactly one isolated bootstrap archive is required."
     notebook = nbformat.v4.new_notebook(
@@ -176,7 +202,7 @@ def main():
             "language_info": {"name": "python"},
             "accelerator": "GPU",
             "colab": {"name": "BDXR_Walking_101.ipynb"},
-            "bdxr_lesson": {"version": 1, "sha256": digest, "archive": encoded},
+            "bdxr_lesson": release,
         },
     )
     if args.output.exists():
@@ -190,6 +216,7 @@ def main():
     print(
         f"Wrote {args.output}: {len(cells)} cells, {args.output.stat().st_size:,} bytes"
     )
+    print(f"Release archive: {bundle_dir}")
 
 
 if __name__ == "__main__":

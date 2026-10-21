@@ -14,22 +14,22 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw
 
-from bdxr_classroom.simulation.environment import make_env
+from bdxr_classroom.evaluation.motion_metrics import count_hops
+from bdxr_classroom.evaluation.plots import plot_command_motion
 from bdxr_classroom.experiments import (
-    experiment_root,
     capture_source,
+    experiment_root,
     jsonable,
     resolve_experiment_path,
 )
 from bdxr_classroom.learning.fastsac import FastSAC
-from bdxr_classroom.evaluation.motion_metrics import count_hops
-from bdxr_classroom.evaluation.plots import plot_command_motion
+from bdxr_classroom.simulation.behaviors import foot_spacing, imu_turn_rate, sole_tilt
+from bdxr_classroom.simulation.environment import make_env
+from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
 from bdxr_classroom.simulation.training_terrain import (
     ground_height,
     sampled_sole_clearance,
 )
-from bdxr_classroom.simulation.behaviors import imu_turn_rate, sole_tilt, foot_spacing
-from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
 
 
 def wrap(angle):
@@ -368,6 +368,7 @@ def main():
     if not args.no_video:
         video_dir.mkdir(parents=True, exist_ok=True)
     digest = checkpoint_hash(checkpoint)
+    print(f"Checkpoint: {checkpoint} (sha256 {digest[:12]})", flush=True)
     agent, cfg = load_agent(checkpoint, args.episodes)
     if checkpoint_hash(checkpoint) != digest:
         raise RuntimeError(
@@ -458,7 +459,12 @@ def main():
         )
     )
     try:
-        for case in args.cases:
+        for index, case in enumerate(args.cases, start=1):
+            print(
+                f"Progress: case {index}/{len(args.cases)} — {case}; "
+                f"{args.episodes} parallel starts × {args.seconds:g}s",
+                flush=True,
+            )
             reports, rows = run_case(
                 env,
                 agent,
@@ -479,7 +485,7 @@ def main():
                 else "yaw_rate",
             )
             print(
-                f"{case}: falls={sum(r['fell'] for r in reports)}, "
+                f"Result: {case}: falls={sum(r['fell'] for r in reports)}, "
                 f"speedMAE={np.mean([r['speed_mae'] for r in reports]):.3f}, "
                 f"yawMAE={np.mean([r['yaw_mae'] for r in reports]):.3f}, "
                 f"cross-track={np.mean([r['max_cross_track_m'] for r in reports]):.3f}m",

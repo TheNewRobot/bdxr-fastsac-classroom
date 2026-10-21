@@ -1,0 +1,40 @@
+"""A notebook must not label another checkpoint's recording as this result."""
+
+import hashlib
+import json
+import os
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+from bdxr_classroom.lesson.runtime import Lesson
+
+
+class RecordingIdentityTests(unittest.TestCase):
+    def test_rejects_a_recording_with_another_checkpoint_digest(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work = Path(directory)
+            run = work / "experiments/run"
+            (run / "checkpoints").mkdir(parents=True)
+            weights = run / "checkpoints/final.pt"
+            weights.write_bytes(b"test saved weights")
+            output = run / "evaluation/eval_final"
+            output.mkdir(parents=True)
+            video = run / "video.mp4"
+            video.write_bytes(b"video fixture")
+            report = {
+                "checkpoint_sha256": "wrong",
+                "video_path": str(video),
+                "training_step": 10000,
+            }
+            (output / "evaluation.json").write_text(json.dumps(report))
+            lab = Lesson(work, "unused", dict(os.environ))
+            with patch.object(lab, "run"):
+                with self.assertRaisesRegex(RuntimeError, "identity mismatch"):
+                    lab.record(run)
+                report["checkpoint_sha256"] = hashlib.sha256(
+                    weights.read_bytes()
+                ).hexdigest()
+                (output / "evaluation.json").write_text(json.dumps(report))
+                self.assertEqual(lab.record(run), video)

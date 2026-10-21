@@ -1,80 +1,139 @@
-"""The single-file lesson carries data in metadata, not in Python source."""
+"""The notebook downloads a verified release without a browser-message dependency."""
 
-import ast
-import base64
+import contextlib
 import hashlib
+import importlib.util
 import io
 import json
-import os
-from pathlib import Path
 import tempfile
-import types
+import threading
+import time
 import unittest
-from unittest.mock import patch
 import zipfile
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import nbformat
 
 ROOT = Path(__file__).resolve().parents[2]
+spec = importlib.util.spec_from_file_location(
+    "lesson_download", ROOT / "scripts/setup/lesson_download.py"
+)
+bootstrap = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(bootstrap)
+
+
+def payload(extra=None):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("scripts/setup/setup.py", "# setup fixture\n")
+        archive.writestr("configs/example.json", "{}")
+        for name, data in (extra or {}).items():
+            archive.writestr(name, data)
+    return buffer.getvalue()
+
+
+@contextlib.contextmanager
+def server(responses):
+    class Handler(BaseHTTPRequestHandler):
+        calls = 0
+
+        def do_GET(self):
+            body = responses[min(type(self).calls, len(responses) - 1)]
+            type(self).calls += 1
+            if body is None:
+                time.sleep(0.4)
+                return
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *_):
+            pass
+
+    service = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=service.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{service.server_port}/lesson.zip", Handler
+    finally:
+        service.shutdown()
+        service.server_close()
+        thread.join(timeout=2)
 
 
 class NotebookBundleTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.notebook = nbformat.read(ROOT / "notebooks/BDXR_Walking_101.ipynb", 4)
-
-    def loader(self):
-        source = next(
-            c.source for c in self.notebook.cells
-            if c.cell_type == "code" and c.source.startswith("# @title Unpack")
-        )
-        function = next(
-            n for n in ast.parse(source).body
-            if isinstance(n, ast.FunctionDef) and n.name == "read_lesson_archive"
-        )
-        namespace = dict(
-            Path=Path, os=os, json=json, base64=base64, hashlib=hashlib,
-            BUNDLE_SHA256=self.notebook.metadata.bdxr_lesson.sha256,
-        )
-        exec(compile(ast.Module(body=[function], type_ignores=[]), "<loader>", "exec"),
-             namespace)
-        return namespace["read_lesson_archive"]
-
-    def test_no_encoded_payload_in_code_and_bundle_matches_repo(self):
-        for cell in self.notebook.cells:
+    def test_release_notebook_has_no_browser_transfer_or_encoded_payload(self):
+        notebook = nbformat.read(ROOT / "notebooks/BDXR_Walking_101.ipynb", 4)
+        self.assertEqual(notebook.metadata.bdxr_lesson.version, 2)
+        self.assertNotIn("archive", notebook.metadata.bdxr_lesson)
+        for cell in notebook.cells:
             if cell.cell_type == "code":
                 self.assertLess(max(map(len, cell.source.splitlines()), default=0), 160)
-                self.assertNotIn("SOURCE_BUNDLE =", cell.source)
-        payload = base64.b64decode(self.notebook.metadata.bdxr_lesson.archive)
-        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+                self.assertNotIn("blocking_request", cell.source)
+                self.assertNotIn("SOURCE_BUNDLE", cell.source)
+                self.assertNotIn("files.upload", cell.source)
+        release = notebook.metadata.bdxr_lesson
+        path = (
+            ROOT / "artifacts/lesson_releases" / release.tag / "BDXR_lesson_files.zip"
+        )
+        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), release.sha256)
+        with zipfile.ZipFile(path) as archive:
             self.assertIsNone(archive.testzip())
             for name in archive.namelist():
                 self.assertEqual(archive.read(name), (ROOT / name).read_bytes(), name)
 
-    def test_local_renamed_notebook_without_extra_files(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "my_class.ipynb"
-            nbformat.write(self.notebook, path)
-            with patch("pathlib.Path.cwd", return_value=Path(directory)), patch.dict(
-                "sys.modules", {"google.colab": None}
-            ), patch.dict(os.environ, {"JPY_SESSION_NAME": ""}):
-                payload = self.loader()()
-        self.assertEqual(
-            hashlib.sha256(payload).hexdigest(),
-            self.notebook.metadata.bdxr_lesson.sha256,
-        )
+    def test_download_retries_corruption_and_preserves_student_results_on_rerun(self):
+        content = payload()
+        digest = hashlib.sha256(content).hexdigest()
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            server([b"broken", content]) as (url, handler),
+        ):
+            work = Path(directory) / "lesson"
+            bootstrap.install_lesson(url, digest, work, timeout=2)
+            self.assertEqual(handler.calls, 2)
+            student = work / "experiments/my_result.txt"
+            student.parent.mkdir()
+            student.write_text("keep")
+            bootstrap.install_lesson(url, digest, work, timeout=2)
+            self.assertEqual(handler.calls, 2)
+            self.assertEqual(student.read_text(), "keep")
+            # An interrupted extraction is repaired without deleting student work.
+            (work / "scripts/setup/setup.py").unlink()
+            bootstrap.install_lesson(url, digest, work, timeout=2)
+            self.assertTrue((work / "scripts/setup/setup.py").is_file())
+            self.assertEqual(student.read_text(), "keep")
 
-    def test_colab_frontend_reply_and_integrity_failure(self):
-        document = json.loads(nbformat.writes(self.notebook))
-        bridge = types.SimpleNamespace(
-            blocking_request=lambda request, timeout_sec: {"ipynb": document}
-        )
-        module = types.ModuleType("google.colab")
-        module._message = bridge
-        with patch.dict("sys.modules", {"google.colab": module}):
-            self.assertTrue(self.loader()())
-            document["metadata"]["bdxr_lesson"]["archive"] = base64.b64encode(
-                b"damaged archive"
-            ).decode()
-            with self.assertRaisesRegex(RuntimeError, "damaged"):
-                self.loader()()
+    def test_corrupt_and_unsafe_archives_never_mark_installation_ready(self):
+        for content, digest, message in [
+            (b"broken", "0" * 64, "Could not download"),
+            (payload({"../escape.py": "bad"}), None, "invalid"),
+        ]:
+            digest = digest or hashlib.sha256(content).hexdigest()
+            with (
+                tempfile.TemporaryDirectory() as directory,
+                server([content]) as (url, _),
+            ):
+                work = Path(directory) / "lesson"
+                with self.assertRaisesRegex(RuntimeError, message):
+                    bootstrap.install_lesson(url, digest, work, attempts=1)
+                self.assertFalse((work / ".lesson_release.json").exists())
+                self.assertFalse((Path(directory) / "escape.py").exists())
+
+    def test_different_release_never_overwrites_existing_experiment_folder(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work = Path(directory)
+            (work / ".lesson_release.json").write_text(json.dumps({"sha256": "old"}))
+            with self.assertRaisesRegex(RuntimeError, "different lesson release"):
+                bootstrap.install_lesson("https://unused.invalid", "new", work)
+
+    def test_unresponsive_server_fails_promptly_without_a_ready_marker(self):
+        with tempfile.TemporaryDirectory() as directory, server([None]) as (url, _):
+            started = time.monotonic()
+            with self.assertRaisesRegex(RuntimeError, "Could not download"):
+                bootstrap.install_lesson(
+                    url, "0" * 64, directory, timeout=0.05, attempts=1
+                )
+            self.assertLess(time.monotonic() - started, 1)
+            self.assertFalse((Path(directory) / ".lesson_release.json").exists())

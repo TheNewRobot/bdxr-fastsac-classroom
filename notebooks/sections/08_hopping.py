@@ -45,6 +45,8 @@ from bdxr_classroom.lesson.hopping import load_curriculum, train_stage, validate
 CURRICULUM = load_curriculum(WORK)
 
 # %%
+from IPython.display import display, Video
+
 TRAIN_HOPPING = False  # @param {type:"boolean"}
 HOP_STAGES = []
 SELECTED_HOP_CHECKPOINT = None
@@ -65,6 +67,8 @@ if TRAIN_HOPPING:
 # not silently erase it. Passing these checks does not establish full-course skill.
 
 # %%
+from IPython.display import display, Image
+
 if HOP_STAGES:
     SELECTED_HOP_CHECKPOINT = validate_pair(
         lab, HOP_STAGES[-1], SELECTED_WALK_CHECKPOINT
