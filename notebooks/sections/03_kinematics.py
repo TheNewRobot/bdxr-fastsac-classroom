@@ -53,10 +53,11 @@ media_pair(
 # %% [markdown]
 # ### Joint angles determine foot position
 #
-# Let $\mathbf q_L$ contain the five left-leg joint angles. Forward kinematics
+# For the slider, we view the **right leg** from its visible side. Let
+# $\mathbf q_R$ contain its five joint angles. Forward kinematics
 # computes the foot position relative to the torso:
 #
-# $$\mathbf p_{\mathrm{foot}} = f(\mathbf q_L), \qquad
+# $$\mathbf p_{\mathrm{foot}} = f(\mathbf q_R), \qquad
 # {}^{B}T_F = {}^{B}T_1(q_1)\,{}^{1}T_2(q_2)\cdots{}^{5}T_F.$$
 #
 # Each transform contributes a joint rotation and a fixed link offset. The local
@@ -71,7 +72,7 @@ media_pair(
 # |:---:|
 # | ![Measured knee-sweep foot path](lesson-asset:reference/knee_path.png) |
 #
-# **Instructor example:** measured positions from −20° to +40° of left-knee motion,
+# **Instructor example:** measured positions from −40° to +20° of right-knee motion,
 # with the root and all other joints fixed. The curve is geometry, not a stable gait.
 # Run the next cells to generate your own interactive view and change the angle range.
 
@@ -80,8 +81,8 @@ media_pair(
 from bdxr_classroom.lesson.kinematics import sweep_joint
 
 # Angles are in degrees here for readability; the model uses radians internally.
-angles = range(-20, 41, 5)
-foot_positions = sweep_joint(env, "Left_Knee", angles, "figures/knee_sweep.html")
+angles = range(-40, 21, 5)
+foot_positions = sweep_joint(env, "Right_Knee", angles, "figures/knee_sweep.html")
 print("Generated", len(foot_positions), "forward-kinematics configurations.")
 
 # %%
@@ -95,5 +96,5 @@ interactive_html(WORK / "figures/knee_sweep.html", height=610)
 # demonstration that every pose is balanced. It traces one joint's motion,
 # not the robot's full reachable workspace.
 #
-# Try a smaller angle interval or another left-leg joint within its listed limits.
+# Try a smaller angle interval or another right-leg joint within its listed limits.
 # Compare the geometric effect before changing any training reward.

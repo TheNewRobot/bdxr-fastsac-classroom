@@ -17,6 +17,15 @@ from PIL import Image
 COLORS = {"Left": "#25847a", "Right": "#d78535", "Head": "#6376ad", "Neck": "#6376ad"}
 
 
+def lesson_font(size, bold=False):
+    """Use Matplotlib's bundled font, independent of Colab's system fonts."""
+    from matplotlib import get_data_path
+    from PIL import ImageFont
+
+    name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
+    return ImageFont.truetype(str(Path(get_data_path()) / "fonts/ttf" / name), size)
+
+
 def model_state(env):
     model = env.sim.mj_model
     data = mujoco.MjData(model)
@@ -127,16 +136,27 @@ def sweep_joint(env, joint_name, angles_deg, destination):
     """Write a self-contained slider with genuine rendered FK configurations.
 
     The other joint coordinates and floating root stay fixed. The graph reports
-    left-foot position in the torso frame, never an asserted safe workspace.
+    selected-leg foot position in the torso frame, never an asserted safe workspace.
     """
     model, data = model_state(env)
     row = next(row for row in joint_inventory(env) if row["name"] == joint_name)
+    side = joint_name.split("_", 1)[0]
+    if side not in {"Left", "Right"}:
+        raise ValueError(
+            "Choose a left- or right-leg joint for this foot-position study."
+        )
     angles = np.asarray(angles_deg, dtype=float)
     low, high = row["limits_deg"]
-    if not np.all(np.isfinite(angles)) or angles.min() < low or angles.max() > high:
+    if (
+        not angles.size
+        or not np.all(np.isfinite(angles))
+        or angles.min() < low
+        or angles.max() > high
+    ):
         raise ValueError(f"Requested angles exceed {joint_name}'s model limits.")
+    site_name = side.lower() + "_foot"
     site_id = next(
-        i for i in range(model.nsite) if model.site(i).name.endswith("left_foot")
+        i for i in range(model.nsite) if model.site(i).name.endswith(site_name)
     )
     root_joint = next(
         i for i in range(model.njnt) if model.jnt_type[i] == mujoco.mjtJoint.mjJNT_FREE
@@ -145,14 +165,52 @@ def sweep_joint(env, joint_name, angles_deg, destination):
     camera = mujoco.MjvCamera()
     camera.type = mujoco.mjtCamera.mjCAMERA_FREE
     camera.lookat[:] = data.xpos[root_body] + np.array([0, 0, 0.04])
-    camera.distance, camera.azimuth, camera.elevation = 1.20, 65, -12
-    frames, positions = [], []
+    camera.distance = 1.10
+    camera.azimuth = 65 if side == "Right" else 245
+    camera.elevation = -12
+    joint_id = model.joint("robot/" + joint_name).id
+    hip_id = model.joint("robot/" + side + "_Hip_Yaw").id
+    other = "Left" if side == "Right" else "Right"
+    other_hip = model.joint("robot/" + other + "_Hip_Yaw").id
+    frames, positions, projected_joints = [], [], []
+    from PIL import ImageDraw
+
     with mujoco.Renderer(model, height=480, width=640) as renderer:
         for angle in angles:
             data.qpos[row["qpos_address"]] = np.deg2rad(angle)
             mujoco.mj_forward(model, data)
             renderer.update_scene(data, camera=camera)
             image = Image.fromarray(renderer.render())
+            eye = renderer.scene.camera
+            origin = (eye[0].pos + eye[1].pos) / 2
+            forward = eye[0].forward / np.linalg.norm(eye[0].forward)
+            up = eye[0].up / np.linalg.norm(eye[0].up)
+            right = np.cross(forward, up)
+            near_depth = float((data.xanchor[hip_id] - origin) @ forward)
+            far_depth = float((data.xanchor[other_hip] - origin) @ forward)
+            if near_depth >= far_depth:
+                raise RuntimeError("The moving leg must be on the camera-facing side.")
+            delta = data.xanchor[joint_id] - origin
+            scale = (
+                float(eye[0].frustum_near)
+                * 480
+                / (
+                    float(eye[0].frustum_top - eye[0].frustum_bottom)
+                    * float(delta @ forward)
+                )
+            )
+            x, y = 320 + float(delta @ right) * scale, 240 - float(delta @ up) * scale
+            projected_joints.append([x, y])
+            draw = ImageDraw.Draw(image)
+            draw.ellipse((x - 10, y - 10, x + 10, y + 10), outline="white", width=5)
+            draw.ellipse((x - 9, y - 9, x + 9, y + 9), outline="#d78535", width=3)
+            draw.rounded_rectangle((12, 12, 365, 43), radius=7, fill="#faf7f0")
+            draw.text(
+                (23, 18),
+                f"{joint_name}  |  {angle:+.0f}°  |  visible leg",
+                font=lesson_font(16),
+                fill="#263b3b",
+            )
             buffer = io.BytesIO()
             image.save(buffer, format="JPEG", quality=83)
             frames.append(base64.b64encode(buffer.getvalue()).decode())
@@ -164,13 +222,14 @@ def sweep_joint(env, joint_name, angles_deg, destination):
         {"angles": angles.tolist(), "frames": frames, "positions": positions}
     )
     title = html.escape(joint_name)
+    initial = int(np.argmin(np.abs(angles)))
     document = f'''<!doctype html><meta charset="utf-8"><style>
 body{{font-family:system-ui;margin:0;background:#faf7f0;color:#263b3b;padding:20px}}
 main{{display:flex;gap:24px;flex-wrap:wrap}}img{{width:min(100%,640px);border-radius:12px}}
 input{{width:100%}}aside{{flex:1;min-width:220px}}h2{{margin-top:0}}pre{{font-size:16px}}
 </style><h2>{title}: forward kinematics</h2><main><img id="pose" alt="Actual MuJoCo joint configuration"><aside>
-<p>Move one joint. The root and other joints stay fixed.</p><input id="angle" aria-label="Joint angle" type="range" min="0" max="{len(angles) - 1}" value="0" step="1"><p id="value"></p>
-<h3>Left foot in torso frame</h3><pre id="position"></pre>
+<p>Move the visible {side.lower()}-leg joint marked by the orange ring. The root and other joints stay fixed.</p><input id="angle" aria-label="{title} angle" type="range" min="0" max="{len(angles) - 1}" value="{initial}" step="1"><p id="value"></p>
+<h3>{side} foot in torso frame</h3><pre id="position"></pre>
 <p>These are geometric configurations, not a balance test or the full reachable workspace.</p>
 <svg id="trace" viewBox="0 0 280 210" style="width:100%;max-width:350px"></svg></aside></main>
 <script>const data={payload};const slider=document.getElementById('angle');
@@ -189,8 +248,12 @@ slider.oninput=update;update();</script>'''
         json.dumps(
             {
                 "joint": joint_name,
+                "foot_site": site_name,
                 "angles_deg": angles.tolist(),
                 "foot_positions_torso_m": positions,
+                "projected_joint_pixels": projected_joints,
+                "camera": {"azimuth": camera.azimuth, "elevation": camera.elevation},
+                "visible_leg_verified": True,
             },
             indent=2,
         )
@@ -204,7 +267,7 @@ def save_annotated_pose(env, destination):
     Markers are joint anchors, not guesses at points on the outer shell. The
     annotation records projected centers and camera settings for verification.
     """
-    from PIL import ImageDraw, ImageFont
+    from PIL import ImageDraw
 
     model, data = model_state(env)
     names = [
@@ -280,14 +343,15 @@ def save_annotated_pose(env, destination):
                 radius = 0.011 if index < 3 else 0.016
                 angles = np.linspace(0, 2 * np.pi, 49)
                 center = anchors[index]
-                ring = np.array([
-                    radius * (np.cos(t) * u + np.sin(t) * v) for t in angles
-                ])
+                ring = np.array(
+                    [radius * (np.cos(t) * u + np.sin(t) * v) for t in angles]
+                )
                 front = [project(center + offset + axis * 0.006) for offset in ring]
                 back = [project(center + offset - axis * 0.006) for offset in ring]
                 collars.append((front, back))
             right_hip = next(
-                j for j in range(model.njnt)
+                j
+                for j in range(model.njnt)
                 if model.joint(j).name.endswith("Right_Hip_Yaw")
             )
             left_depth = float((anchors[0] - origin) @ forward)
@@ -301,9 +365,9 @@ def save_annotated_pose(env, destination):
         frame, Image.new("RGBA", frame.size, (250, 247, 240, 20))
     )
     draw = ImageDraw.Draw(frame)
-    font = ImageFont.truetype("DejaVuSans.ttf", 19)
-    small = ImageFont.truetype("DejaVuSans.ttf", 15)
-    bold = ImageFont.truetype("DejaVuSans-Bold.ttf", 17)
+    font = lesson_font(19)
+    small = lesson_font(15)
+    bold = lesson_font(17, bold=True)
     draw.rounded_rectangle((12, 10, 588, 65), radius=12, fill="#faf7f0")
     draw.text(
         (26, 19),
@@ -332,8 +396,12 @@ def save_annotated_pose(env, destination):
         tangent /= max(np.linalg.norm(tangent), 1e-6)
         side = np.array([-tangent[1], tangent[0]])
         draw.polygon(
-            [tuple(tip), tuple(tip - 8 * tangent + 4 * side),
-             tuple(tip - 8 * tangent - 4 * side)], fill=color
+            [
+                tuple(tip),
+                tuple(tip - 8 * tangent + 4 * side),
+                tuple(tip - 8 * tangent - 4 * side),
+            ],
+            fill=color,
         )
     # Place the three close hip labels separately; endpoints stay at exact centers.
     label_positions = [(40, 130), (40, 205), (380, 265), (40, 390), (380, 490)]
