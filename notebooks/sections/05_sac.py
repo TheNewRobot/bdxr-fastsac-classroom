@@ -39,10 +39,12 @@
 #
 # Keep these settings for the first run. Inspect the network and store one
 # transition before launching training. A single untrained action is not walking.
+# A matching seed does not guarantee identical GPU training. Use the command
+# checks below to judge your result, rather than expecting the same video.
 
 # %%
 LEARNING_CONFIG = {
-    "seed": 7,  # Reproduce the recorded baseline's training seed.
+    "seed": 7,  # Same initialization seed as the recorded baseline.
     "num_envs": 512,  # Independent simulations collecting experience.
     "batch_size": 2048,  # Replay samples per learning update.
     "buffer_size": 512,  # Replay slots per parallel robot.
