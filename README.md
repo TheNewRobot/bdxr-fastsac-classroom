@@ -37,8 +37,8 @@ targets are unchanged. A physical neutral-pose correction remains unvalidated.
 - [Implementation status](docs/progress.md)
 
 Open the Colab link above, save a copy in Drive, and select a GPU runtime.
-The notebook includes lesson source and curated recordings, then fetches pinned
-upstream robot assets. Teaching previews load directly from this public repository.
+Setup downloads a versioned lesson release with an integrity check, then fetches
+pinned upstream robot assets. Downloads and long operations report progress. Teaching previews load directly from this public repository.
 
 ## What the policy sees
 
@@ -85,8 +85,10 @@ Instructor figures and short animated examples use public image links directly
 in Markdown, visible without executing cells. Internet access is required for
 these previews; Colab did not display the former Jupyter attachment links.
 Student activities generate separate results.
-The lesson archive is carried in notebook metadata, keeping setup code readable.
-Students still use one notebook; no separate archive or repository access is needed.
+The notebook downloads its versioned archive from a public GitHub release; it does
+not read notebook metadata through the Colab frontend. Students need no manual ZIP
+upload. Rebuilding writes release files under ignored `artifacts/lesson_releases/`;
+publish the matching ZIP and checksum before sharing the rebuilt notebook.
 
 ## Local use
 

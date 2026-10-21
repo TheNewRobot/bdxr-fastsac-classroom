@@ -12,7 +12,7 @@
 Prepare training beforehand for a short presentation. Installation, training,
 video generation and gameplay are separate from presentation time.
 
-Teaching examples are inside the Markdown: attached images and eight short,
+Teaching examples are inside the Markdown: public images and eight short,
 silent looping excerpts. No example is a Python display cell or saved output.
 Clearing every code output preserves the lesson illustrations. Student activity
 cells generate their own videos, plots and live game interface.
@@ -34,7 +34,9 @@ Train the style and its control from scratch with the same seed and step budget.
 The recorded choices are flatter feet, quicker steps, and crouched walking.
 Recheck backward motion, stops and turns after a style change.
 An unchanged continuation can also get worse: more updates do not guarantee
-better control. Use the acceptance table to decide which policies to keep,
+better control. For the baseline, the lesson checks up to two earlier saved
+snapshots before spending more training time; each needs the same full command
+suite. This adds evaluation time and keeps the original failed reports. Use the acceptance table to decide which policies to keep,
 and discuss failed experiments instead of hiding them.
 
 Hopping phase is a command. Foot clearance is not body jump height, and a
@@ -61,6 +63,8 @@ The presentation adds a level-faced neck bounce while moving and gentle idle
 looks. These gestures affect only the renderer; physical targets and the learned
 controller are unchanged.
 
-Distribute the complete notebook. Its lesson archive lives in metadata, outside
-the displayed Python cells. Local setup reads the saved notebook; Colab reads
-the open notebook through its frontend bridge. No companion archive is required.
+Distribute the notebook with its matching public lesson release. Setup downloads
+and checks that archive directly, with progress and bounded retries. It does not
+require access to the open notebook or a manual ZIP upload. Rerunning setup repairs
+incomplete extraction while keeping student results. The final backup includes
+runtime information and logs for diagnosing problems.

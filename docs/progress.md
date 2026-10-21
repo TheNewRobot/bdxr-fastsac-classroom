@@ -1,57 +1,63 @@
 # Implementation and testing scope
 
-The lesson covers the actual robot's kinematics, environment settings, FastSAC,
-matched scratch-training experiments, hopping, and the interactive course.
-The actor receives proprioception and commands; the critic may receive privileged
-training observations. Selected policy weights and training settings are unchanged.
+The lesson covers robot kinematics, explicit environment settings, FastSAC,
+matched scratch-training experiments, hopping, and an interactive course.
+The actor receives proprioception and commands; the critic may use privileged
+training observations. Approved policy weights and acceptance thresholds are retained.
 
-Teaching figures and eight silent example animations use public PNG/GIF URLs
-directly in Markdown. The former Jupyter attachments rendered locally but
-appeared broken in Colab; local rendering did not establish Colab compatibility.
-All code cells ship without outputs. The hopping explanation groups the existing
-eight stages into four phases; it does not change their configuration. Joint
-annotations use model anchors, independently checked against rendered markers.
-The visible left leg is highlighted; schematic collars show its hinge axes.
-All five projected centers agree with rendered markers to within 1 pixel.
-Related plots and examples share rows; standalone figures are centered.
+## Colab reliability audit · October 2026
 
-Local checks passed 75 tests, including GPU environment and game contracts.
-All 29 protected checkpoint/configuration hashes match their originals. The nine
-curated MP4s decode successfully. The earlier browser check loaded all 22 attachments locally,
-but did not test Colab's Markdown renderer. After replacing attachments with
-public URLs, an actual Colab browser check loaded all 22 images and confirmed
-the opening animation advances without a connected runtime (revision c6d0ff6). The live
-local game responded to Forward, Stop, pause, and the overview camera.
+The submitted L4 notebook required a manual ZIP-upload workaround after setup
+hung. Its saved output also contains a missing `Video` import. The original
+hanging cell's traceback and the manually uploaded ZIP were not supplied.
+The notebook's embedded source matches the previously published lesson.
 
-The local integration copy executed all 37 code cells, including all eight
-hopping stages at 60-step test budgets. Its backup contains eleven resumable
-runs with no duplicate entries. This checks workflow and export, not learned
-policy quality; the test copy retains failed short-run verdicts. Dependencies
-were reused. Final media were checked separately, and the 119 bundled files
-match the repository byte for byte.
+The L4 baseline completed all 10,000 steps in 689.7 seconds. It had no falls in
+50 command trials but failed the forward/fast drift checks. A 3,000-step recovery
+(~189 seconds) passed the full suite. Displaying that selected result then failed
+on the missing import; the earlier video showed the first training attempt.
+This evidence does not establish identical results across GPUs or seeds.
 
-Refreshed recordings include five forward starts for eight policies/control
-recordings, plus a second camera view of the locked walker: 45 trials without
-falls. On the isolated 25 mm step, walking crossed 0/6 trials and hopping 3/3.
-The new visually steered course finished in 53.56 simulated seconds with all four
-checkpoints and no falls. Two fixed replays missed the route; an earlier manual
-attempt fell after passing the finish. These remain separate from the successful
-visually steered recording.
+Setup now downloads a versioned public release, verifies its checksum, and reports
+progress with bounded retries. It no longer queries the Colab notebook bridge.
+Incomplete setup can be rerun; fonts come from the installed Matplotlib package.
+Recordings report their checkpoint path, step and digest. Evaluations report case
+progress, retain prior results, and keep the existing acceptance thresholds.
+Backups include runtime versions and diagnostic logs.
 
-The single-file archive now lives in notebook metadata, removing encoded data
-from displayed code. Loading a renamed local notebook passed; the Colab bridge
-was checked with a simulated frontend response, not a real Colab session.
+All 86 local tests passed, including GPU environment, checkpoint identity,
+interrupted setup, download failures, and game reset/finish contracts. The right-knee
+slider was checked against actual right-foot model coordinates and exercised in a
+browser. Its camera shows the moving leg and highlights the hinge. Static left-leg
+illustrations remain separate and labeled.
 
-**The level head gaze and visible gestures are cosmetic.** They change only
-the renderer's CPU state; physical head targets and leg control are retained. Moving commands add a gentle
-neck bounce; idle commands blend into small glances and fidgets. A render check
-measured more than 1 cm of vertical head travel while gaze remained within
-1.1 degrees of horizontal. Tested physical pose offsets
-reduced locomotion quality and were rejected. Direct checks found no change to
-simulation state or actor observations during rendering. A validated physical
-neutral-pose correction remains unfinished.
+A fresh local environment installed successfully, including repair of an interrupted
+Git checkout. Existing package caches were available. A local integration copy ran
+all 37 code cells and eight optional hopping stages at 60-step test budgets; its
+backup contained eleven resumable runs. This establishes workflow execution, not
+learned policy quality. Additional full-budget reproduction checks are in progress.
 
-Raw checks, failed trials, and execution artifacts stay in ignored folders.
-Curated recordings retain their source and W&B provenance beside the media.
-**Actual Google Colab execution remains untested.** Reported training timings
-come from the local L40S and exclude setup/evaluation unless stated otherwise.
+**The revised workflow has not run in an authenticated Colab GPU runtime.** The
+submitted L4 output is evidence about the prior workflow. New GPU tests use a local
+L40S; concurrent jobs and cached installation affect measured wall-clock times.
+
+## Teaching media and earlier results
+
+Figures and eight silent animations use public PNG/GIF URLs inside Markdown.
+All code cells ship without outputs. A previous public Colab browser check loaded
+all 22 images and confirmed the opening animation advances without a runtime.
+Local rendering alone did not establish compatibility with Colab's renderer.
+
+The selected course recording finished in 53.56 simulated seconds with visual
+steering and no falls. On the isolated 25 mm step, walking crossed 0/6 trials and
+hopping 3/3. Fixed command replays sometimes missed the route; these are separate
+from the successful steered recording. See the results guide for selection limits.
+
+The visible level gaze, neck bounce and idle glances are renderer gestures;
+existing physical head targets are retained. Tests verify rendering leaves simulator
+state and actor observations unchanged. The approved walker passed 50 command
+trials with physical head motion enabled, with render-only gestures, and with
+both disabled. This does not imply every newly trained policy passes.
+
+Raw checks, failures, checkpoints and execution artifacts remain gitignored.
+Curated lesson media retain their source and W&B provenance beside the recordings.
