@@ -85,8 +85,12 @@ print("Variation passes:", VARIATION_CHECK["passed"])
 
 # %%
 # Same commanded speed makes the visual comparison meaningful.
-control_video = lab.record(CONTROL, speed=0.30)
-variation_video = lab.record(VARIATION, speed=0.30)
+control_video = lab.record(
+    CONTROL, speed=0.30, expected_sha256=CONTROL_CHECK["checkpoint_sha256"]
+)
+variation_video = lab.record(
+    VARIATION, speed=0.30, expected_sha256=VARIATION_CHECK["checkpoint_sha256"]
+)
 media_pair(
     [
         (

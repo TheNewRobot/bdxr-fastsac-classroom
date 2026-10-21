@@ -12,6 +12,21 @@ from bdxr_classroom.lesson.runtime import Lesson
 
 
 class RecordingIdentityTests(unittest.TestCase):
+    def test_rejects_weights_changed_after_assessment_before_inference(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work = Path(directory)
+            run = work / "experiments/run"
+            (run / "checkpoints").mkdir(parents=True)
+            weights = run / "checkpoints/final.pt"
+            weights.write_bytes(b"assessed weights")
+            assessed_digest = hashlib.sha256(weights.read_bytes()).hexdigest()
+            weights.write_bytes(b"replacement weights")
+            lab = Lesson(work, "unused", dict(os.environ))
+            with patch.object(lab, "run") as inference:
+                with self.assertRaisesRegex(RuntimeError, "changed since assessment"):
+                    lab.record(run, expected_sha256=assessed_digest)
+                inference.assert_not_called()
+
     def test_rejects_a_recording_with_another_checkpoint_digest(self):
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)
