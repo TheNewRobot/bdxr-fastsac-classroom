@@ -25,6 +25,7 @@ def evaluate_walking(lab, run, episodes=5, seconds=15, checkpoint="final"):
         episodes,
         "--seconds",
         seconds,
+        "--no-video",
         *lab.presentation_arguments(),
     )
     folder = run / "evaluation" / f"{checkpoint}_commands"
@@ -60,7 +61,7 @@ def check_recent_walking(lab, run, summary, verdict, limit=2):
 
     The final checkpoint has already been evaluated. Its step is also saved in
     timing.json, so the duplicate step_NNNNNN.pt snapshot is not evaluated again.
-    Every attempted snapshot keeps a separate report and its own recordings.
+    Every attempted snapshot keeps a separate report and trajectory measurements.
     """
     if verdict["passed"]:
         return summary, verdict

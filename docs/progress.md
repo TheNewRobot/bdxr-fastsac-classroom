@@ -23,19 +23,33 @@ progress with bounded retries. It no longer queries the Colab notebook bridge.
 Incomplete setup can be rerun; fonts come from the installed Matplotlib package.
 Recordings report their checkpoint path, step and digest. Evaluations report case
 progress, retain prior results, and keep the existing acceptance thresholds.
-Backups include runtime versions and diagnostic logs.
+Checks save trajectory measurements without rendering unused videos. The selected
+video is a separate rollout of the assessed weights, verified by checksum before
+recording. Backups include runtime versions and diagnostic logs.
 
-All 86 local tests passed, including GPU environment, checkpoint identity,
+All 89 local tests passed, including GPU environment, checkpoint identity,
 interrupted setup, download failures, and game reset/finish contracts. The right-knee
 slider was checked against actual right-foot model coordinates and exercised in a
 browser. Its camera shows the moving leg and highlights the hinge. Static left-leg
 illustrations remain separate and labeled.
 
-A fresh local environment installed successfully, including repair of an interrupted
-Git checkout. Existing package caches were available. A local integration copy ran
-all 37 code cells and eight optional hopping stages at 60-step test budgets; its
-backup contained eleven resumable runs. This establishes workflow execution, not
-learned policy quality. Additional full-budget reproduction checks are in progress.
+A fresh local environment installed from the public release, using existing package
+caches. Interrupted Git checkout recovery was tested separately. The bootstrap
+release ran all 37 code cells and eight optional hopping stages at 60-step budgets;
+its backup contained eleven resumable runs and setup diagnostics. A metadata-free
+copy of the revised notebook also downloaded successfully and preserved results on
+rerun. Short integration runs establish workflow execution, not learned policy quality.
+
+One fresh seed-7 run reached its 9,000-step checkpoint in 579 seconds; that snapshot
+passed all 50 command trials twice, including recording through the notebook helper.
+Its final 10,000-step weights and a 3,000-step recovery failed drift limits. The
+notebook now checks up to two earlier snapshots before additional training, retaining
+all reports and displaying the exact selected checkpoint. A second seed-7 run,
+its recovery, and a separate optimizer/replay continuation missed drift limits.
+The default level-feet experiment produced flatter stepping but also failed drift
+limits; it is not a qualified replacement. Further candidate checks are in progress.
+A shared-GPU seed-8 run stopped at 7,399 steps after 901.4 seconds and failed motion
+checks. It is not a full 10,000-step replication or a Colab timing.
 
 **The revised workflow has not run in an authenticated Colab GPU runtime.** The
 submitted L4 output is evidence about the prior workflow. New GPU tests use a local
@@ -44,8 +58,8 @@ L40S; concurrent jobs and cached installation affect measured wall-clock times.
 ## Teaching media and earlier results
 
 Figures and eight silent animations use public PNG/GIF URLs inside Markdown.
-All code cells ship without outputs. A previous public Colab browser check loaded
-all 22 images and confirmed the opening animation advances without a runtime.
+All code cells ship without outputs. The updated public notebook loaded
+all 22 images in Colab and its opening animation advanced without a runtime.
 Local rendering alone did not establish compatibility with Colab's renderer.
 
 The selected course recording finished in 53.56 simulated seconds with visual

@@ -104,13 +104,15 @@ class Lesson:
             )
         return run
 
-    def record(self, run, checkpoint="final", speed=None):
+    def record(self, run, checkpoint="final", speed=None, expected_sha256=None):
         """Record actual checkpoint inference and return the generated MP4 path."""
         from bdxr_classroom.evaluation.walking_checks import checkpoint_digest
 
         run = Path(run)
         weights = run / "checkpoints" / f"{checkpoint}.pt"
         digest = checkpoint_digest(weights)
+        if expected_sha256 is not None and digest != expected_sha256:
+            raise RuntimeError("Checkpoint changed since assessment; rerun its checks.")
         suffix = "" if speed is None else f"_speed_{speed:g}"
         output = run / "evaluation" / f"eval_{checkpoint}{suffix}"
         options = [] if speed is None else ["--speed", speed]

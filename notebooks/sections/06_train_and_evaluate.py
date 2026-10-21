@@ -59,6 +59,8 @@ print("Actual timing:", read_json(BASELINE / "metrics/timing.json"))
 # when the command requests a turn. World position is measured for evaluation;
 # it is not an actor input.
 # These checks can take several minutes; progress identifies each command.
+# Measurements are saved without rendering unused videos. We record the selected
+# policy below.
 
 # %%
 from bdxr_classroom.lesson.assessment import (
@@ -114,11 +116,19 @@ from IPython.display import display, Image, Video
 
 # Keep the robot video separate from the smaller diagnostic chart.
 selected_evaluation = Path(BASELINE_CHECK["evaluation_directory"])
-selected_video = BASELINE / "videos" / selected_evaluation.name / "forward.mp4"
+selected_video = lab.record(
+    BASELINE,
+    checkpoint=Path(BASELINE_CHECK["checkpoint"]).stem,
+    speed=0.30,
+    expected_sha256=BASELINE_CHECK["checkpoint_sha256"],
+)
 print("Selected-policy evaluation:", selected_evaluation)
 display(Video(str(selected_video), embed=True, width=640))
 display(Image(filename=str(selected_evaluation / "forward.png"), width=720))
 
 # %% [markdown]
+# The video is one new rollout of the checked weights; the plot covers the
+# independent command-test starts.
+#
 # **Interpret:** can you point to evidence for straight walking, beyond the video?
 # If reward rises while the controller still falls, is training finished?
