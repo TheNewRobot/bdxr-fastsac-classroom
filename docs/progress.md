@@ -51,6 +51,12 @@ limits; it is not a qualified replacement. Further candidate checks are in progr
 A shared-GPU seed-8 run stopped at 7,399 steps after 901.4 seconds and failed motion
 checks. It is not a full 10,000-step replication or a Colab timing.
 
+Two local simulator probes used identical seeded initial states and fixed actions,
+without learner updates. First-step differences were about 3e-8 metres in root
+position and 2e-7 in actor observations; later reset timing diverged. This demonstrates
+local environment nondeterminism, not the precise cause of the submitted L4 drift.
+Matching a seed therefore does not establish identical training trajectories.
+
 **The revised workflow has not run in an authenticated Colab GPU runtime.** The
 submitted L4 output is evidence about the prior workflow. New GPU tests use a local
 L40S; concurrent jobs and cached installation affect measured wall-clock times.
