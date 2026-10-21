@@ -1,15 +1,31 @@
 """Protect complete, deduplicated, atomic backups including replay."""
 
-from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
 import zipfile
+from pathlib import Path
+from unittest.mock import patch
 
 from bdxr_classroom.lesson.exports import export_results
 
 
 class NotebookExports(unittest.TestCase):
+    def test_setup_evidence_is_included_without_environment_credentials(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary)
+            (work / "runtime_info.json").write_text('{"gpu":"test"}')
+            (work / ".lesson_release.json").write_text('{"sha256":"test"}')
+            (work / ".env").write_text("PRIVATE=not-for-export")
+            logs = work / "artifacts/logs"
+            logs.mkdir(parents=True)
+            (logs / "failure.log").write_text("diagnostic")
+            backup = export_results(work, [])
+            with zipfile.ZipFile(backup) as archive:
+                self.assertIn("runtime_info.json", archive.namelist())
+                self.assertIn(".lesson_release.json", archive.namelist())
+                self.assertIn("artifacts/logs/failure.log", archive.namelist())
+                self.assertNotIn(".env", archive.namelist())
+
     def test_all_training_stages_and_replay_survive_export(self):
         with tempfile.TemporaryDirectory() as temporary:
             work = Path(temporary)

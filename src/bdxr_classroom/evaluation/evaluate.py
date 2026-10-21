@@ -1,6 +1,7 @@
 """Evaluate every episode, stream an MP4, and export real motion measurements."""
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -15,11 +16,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from bdxr_classroom.simulation.environment import make_env
-from bdxr_classroom.learning.fastsac import FastSAC
 from bdxr_classroom.experiments import experiment_root, resolve_experiment_path
-from bdxr_classroom.simulation.training_terrain import sampled_sole_clearance
+from bdxr_classroom.learning.fastsac import FastSAC
+from bdxr_classroom.simulation.environment import make_env
 from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
+from bdxr_classroom.simulation.training_terrain import sampled_sole_clearance
 
 
 def main():
@@ -46,14 +47,23 @@ def main():
     torch.set_num_threads(2)
     torch.set_float32_matmul_precision("high")
     path = resolve_experiment_path(args.checkpoint)
+    with path.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
     state = torch.load(path, map_location="cpu", weights_only=False)
+    print(
+        f"Checkpoint: {path} (sha256 {digest[:12]}, training step {state['step']})",
+        flush=True,
+    )
     cfg = dict(state["config"])
     cfg.update(num_envs=1, buffer_size=1, compile=False)
     speed = cfg["speed"] if args.speed is None else args.speed
     root = experiment_root(path)
     out = Path(args.output or str(root / "evaluation" / f"eval_{path.stem}"))
-    out.mkdir(parents=True, exist_ok=True)
     video_dir = root / "videos" / out.name
+    from bdxr_classroom.evaluation.command_evaluate import preserve_previous_evaluation
+
+    preserve_previous_evaluation(out, video_dir)
+    out.mkdir(parents=True, exist_ok=True)
     if not args.no_video:
         video_dir.mkdir(parents=True, exist_ok=True)
     env = make_env(
@@ -86,6 +96,13 @@ def main():
         lateral_bias_weight=cfg.get("lateral_bias_weight", 0),
         reward_scale=cfg.get("reward_scale", 1),
         initial_jitter=args.initial_jitter,
+        command_mode="fixed",
+        yaw_tracking=cfg.get("yaw_tracking", "full"),
+        yaw_std=cfg.get("yaw_std", 0.2),
+        yaw_weight=cfg.get("yaw_weight", 4),
+        speed_min=cfg.get("speed_min", -0.25),
+        speed_max=cfg.get("speed_max", 0.5),
+        yaw_max=cfg.get("yaw_max", 0.6),
     )
     env.cfg.episode_length_s = args.seconds
     foot_ids, _ = env.scene["robot"].find_sites(["left_foot", "right_foot"])
@@ -95,6 +112,11 @@ def main():
         agent.actor_norm.load_state_dict(state["actor_norm"])
     else:
         agent.load(path, replay=False)
+    with path.open("rb") as stream:
+        if hashlib.file_digest(stream, "sha256").hexdigest() != digest:
+            raise RuntimeError(
+                "Checkpoint changed while loading; use stable saved weights."
+            )
     episode_reports, samples = [], []
     writer = None
     if not args.no_video:
@@ -107,6 +129,11 @@ def main():
         )
     try:
         for episode in range(args.episodes):
+            print(
+                f"Progress: recording trial {episode + 1}/{args.episodes}; "
+                f"command {speed:g} m/s, zero yaw",
+                flush=True,
+            )
             obs, _ = env.reset(seed=1000 + episode)
             head = (
                 HeadMotion(env, head_config)
@@ -243,9 +270,18 @@ def main():
         env.close()
     report = {
         "checkpoint": str(path),
+        "checkpoint_sha256": digest,
+        "checkpoint_config": state["config"],
         "training_step": state["step"],
         "video_path": str(video_dir / "rollout.mp4") if not args.no_video else None,
         "target_speed": speed,
+        "evaluation_overrides": {
+            "command_mode": "fixed",
+            "speed": speed,
+            "yaw": 0,
+            "initial_jitter": args.initial_jitter,
+            "seconds": args.seconds,
+        },
         "head_motion": vars(head_config),
         "episodes": episode_reports,
         "foot_height_measurement": (

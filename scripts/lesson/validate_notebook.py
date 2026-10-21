@@ -30,7 +30,13 @@ def replace_assignment(source, name, expression):
 
 
 def test_copy(
-    notebook, work, reuse_env=None, full=False, game_port=18765, include_hopping=False
+    notebook,
+    work,
+    reuse_env=None,
+    full=False,
+    game_port=18765,
+    include_hopping=False,
+    bundle_url=None,
 ):
     """Modify only runtime location/budgets in the executed validation copy."""
     if not full:
@@ -46,6 +52,8 @@ def test_copy(
         source = cell.source
         if source.startswith("# @title Unpack the lesson files"):
             source = replace_assignment(source, "WORK", f"Path({str(work)!r})")
+            if bundle_url:
+                source = replace_assignment(source, "BUNDLE_URL", repr(bundle_url))
         if reuse_env and source.startswith("# @title Install pinned dependencies"):
             existing = Path(reuse_env).resolve()
             source = f"""# Local validation: reuse pinned dependencies; installation is not tested.
@@ -121,6 +129,10 @@ def main():
         default=ROOT / "artifacts/notebook_refactor_executed.ipynb",
     )
     parser.add_argument("--reuse-env", type=Path)
+    parser.add_argument(
+        "--bundle-url",
+        help="Explicit prepublication test URL; hash verification is still required.",
+    )
     args = parser.parse_args()
     path = ROOT / "notebooks/BDXR_Walking_101.ipynb"
     notebook = nbformat.read(path, as_version=4)
@@ -130,6 +142,7 @@ def main():
         "colab_tested": False,
         "work": args.work,
         "dependency_installation_tested": args.reuse_env is None,
+        "bundle_url_override": args.bundle_url,
         "optional_hopping_enabled": args.full or args.include_hopping,
         "scope": "Local notebook execution; short integration unless full_training is true.",
     }
@@ -140,6 +153,7 @@ def main():
         args.full,
         args.game_port,
         args.include_hopping,
+        args.bundle_url,
     )
     notebook.metadata.kernelspec.name = args.kernel
     client = NotebookClient(

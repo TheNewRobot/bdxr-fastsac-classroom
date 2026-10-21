@@ -1,7 +1,7 @@
 """Atomic downloadable backups of training and gameplay evidence."""
 
-from pathlib import Path
 import zipfile
+from pathlib import Path
 
 
 def export_results(work, runs, include_replay=True):
@@ -33,6 +33,21 @@ def export_results(work, runs, include_replay=True):
         if not any(parent in folder_set for parent in folder.parents)
     ]
     with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as archive:
+        # Include enough setup evidence to diagnose a different Colab runtime.
+        for name in (
+            ".lesson_release.json",
+            "runtime_info.json",
+            "setup.log",
+            "environment_settings.json",
+            "learning_settings.json",
+        ):
+            file = work / name
+            if file.is_file():
+                archive.write(file, file.relative_to(work))
+        logs = work / "artifacts/logs"
+        if logs.exists():
+            for file in logs.glob("*.log"):
+                archive.write(file, file.relative_to(work))
         for folder in folders:
             print("Saving", folder.name, flush=True)
             for file in folder.rglob("*"):

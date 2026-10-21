@@ -5,9 +5,10 @@ remain explicit dictionaries in the lesson; they map directly to CLI arguments.
 """
 
 import json
-import subprocess
 import time
 from pathlib import Path
+
+from .process import run_logged
 
 
 def command_arguments(settings):
@@ -42,36 +43,30 @@ class Lesson:
         log_directory.mkdir(parents=True, exist_ok=True)
         log_path = log_directory / f"{time.time_ns()}_{module.rsplit('.', 1)[-1]}.log"
         command = [self.python, "-u", "-m", module, *map(str, arguments)]
-        with log_path.open("w", buffering=1) as log:
-            process = subprocess.Popen(
-                command,
-                cwd=self.work,
-                env=self.environment,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-            )
-            try:
-                for line in process.stdout:
-                    log.write(line)
-                    if (
-                        line.startswith(
-                            ("step=", "Experiment:", "forward:", "sequence:")
-                        )
-                        or "View run" in line
-                    ):
-                        print(line.rstrip())
-                returncode = process.wait()
-            except KeyboardInterrupt:
-                process.terminate()
-                process.wait()
-                raise
-        if returncode:
-            raise RuntimeError(
-                f"Command failed; full log: {log_path}\n{log_path.read_text()[-6000:]}"
-            )
-        return log_path
+        budget = 1800
+        if "--minutes" in command:
+            budget = float(command[command.index("--minutes") + 1]) * 60 + 600
+        return run_logged(
+            command,
+            cwd=self.work,
+            env=self.environment,
+            log_path=log_path,
+            timeout=budget,
+            label=module.rsplit(".", 1)[-1].replace("_", " ").capitalize(),
+            show=lambda line: (
+                line.startswith(
+                    (
+                        "step=",
+                        "Experiment:",
+                        "Progress:",
+                        "Checkpoint:",
+                        "Result:",
+                        "Preserved previous evaluation:",
+                    )
+                )
+                or "View run" in line
+            ),
+        )
 
     def train(self, name, environment, learning, parent=None):
         """Train from scratch unless an explicit parent requests fine-tuning.
@@ -98,13 +93,17 @@ class Lesson:
 
     def record(self, run, checkpoint="final", speed=None):
         """Record actual checkpoint inference and return the generated MP4 path."""
+        from bdxr_classroom.evaluation.walking_checks import checkpoint_digest
+
         run = Path(run)
+        weights = run / "checkpoints" / f"{checkpoint}.pt"
+        digest = checkpoint_digest(weights)
         suffix = "" if speed is None else f"_speed_{speed:g}"
         output = run / "evaluation" / f"eval_{checkpoint}{suffix}"
         options = [] if speed is None else ["--speed", speed]
         self.run(
             "bdxr_classroom.evaluation.evaluate",
-            run / "checkpoints" / f"{checkpoint}.pt",
+            weights,
             "--episodes",
             1,
             "--output",
@@ -112,7 +111,23 @@ class Lesson:
             *options,
             *self.presentation_arguments(),
         )
-        return Path(json.loads((output / "evaluation.json").read_text())["video_path"])
+        report = json.loads((output / "evaluation.json").read_text())
+        if (
+            report.get("checkpoint_sha256") != digest
+            or checkpoint_digest(weights) != digest
+        ):
+            raise RuntimeError(
+                "Video/checkpoint identity mismatch; record stable saved weights."
+            )
+        video = Path(report["video_path"])
+        if not video.is_file():
+            raise RuntimeError(f"Recording did not produce its video: {video}")
+        print(
+            f"Result: video from {weights} (step {report['training_step']}, "
+            f"sha256 {digest[:12]})",
+            flush=True,
+        )
+        return video
 
     def learning_curve(self, run):
         self.run("bdxr_classroom.evaluation.plots", run)

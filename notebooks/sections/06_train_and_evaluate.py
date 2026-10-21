@@ -34,14 +34,16 @@ media_pair(
     [
         ("Before learning", before, "Initial randomly initialized actor."),
         (
-            "After learning",
+            "After the first training attempt",
             after,
-            "Your saved final checkpoint—not an instructor recording.",
+            "This attempt still needs the command checks below.",
         ),
     ]
 )
 
 # %%
+from IPython.display import display, Image
+
 display(Image(filename=str(lab.learning_curve(BASELINE)), width=720))
 print("Actual timing:", read_json(BASELINE / "metrics/timing.json"))
 
@@ -56,6 +58,7 @@ print("Actual timing:", read_json(BASELINE / "metrics/timing.json"))
 # drift, complete 15-second trials, and zero falls. Curved paths are expected
 # when the command requests a turn. World position is measured for evaluation;
 # it is not an actor input.
+# These checks can take several minutes; progress identifies each command.
 
 # %%
 from bdxr_classroom.lesson.assessment import evaluate_walking, selected_walking
@@ -70,6 +73,7 @@ print("Failures:", BASELINE_CHECK["failures"])
 # If the first checkpoint misses the checks, allow one additional training stage
 # with the **same behavior settings**. This fine-tunes saved networks using fresh
 # replay; it is not an exact replay-buffer resume. Preserve and inspect both runs.
+# A recovered policy has its own folder and video; it does not replace the first attempt.
 
 # %%
 if not BASELINE_CHECK["passed"]:
@@ -87,9 +91,14 @@ if not BASELINE_CHECK["passed"]:
         "Inspect the failed walking checks before starting style experiments."
     )
 SELECTED_WALK_CHECKPOINT = selected_walking([BASELINE_CHECK])
+print("Selected walking checkpoint:", SELECTED_WALK_CHECKPOINT)
+print("Passed command checks:", BASELINE_CHECK["passed"])
 
 # %%
+from IPython.display import display, Image, Video
+
 # Keep the robot video separate from the smaller diagnostic chart.
+print("Selected-policy evaluation:", BASELINE / "evaluation/final_commands")
 display(Video(str(BASELINE / "videos/final_commands/forward.mp4"), embed=True, width=640))
 display(Image(filename=str(BASELINE / "evaluation/final_commands/forward.png"), width=720))
 

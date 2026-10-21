@@ -1,11 +1,12 @@
 """Teaching examples must live in Markdown and survive clearing all outputs."""
 
+import ast
+import hashlib
 import importlib.util
-from pathlib import Path
 import re
 import unittest
-from urllib.parse import urlparse, parse_qs
-import hashlib
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import nbformat
 from PIL import Image
@@ -28,6 +29,29 @@ class NotebookReferences(unittest.TestCase):
                 self.assertNotIn("instructor_reference", cell.metadata)
                 self.assertNotIn("reference_comparison(", cell.source)
                 self.assertNotIn("recorded_details(", cell.source)
+
+    def test_media_activities_import_their_display_helpers(self):
+        for cell in self.notebook.cells:
+            if cell.cell_type != "code" or cell.source.startswith("%%"):
+                continue
+            tree = ast.parse(cell.source)
+            used = {
+                node.id
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Name)
+                and isinstance(node.ctx, ast.Load)
+                and node.id in {"Video", "Image"}
+            }
+            imports = {
+                alias.name
+                for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom) and node.module == "IPython.display"
+                for alias in node.names
+            }
+            self.assertTrue(
+                used <= imports,
+                f"Missing display imports in {cell.id}: {used - imports}",
+            )
 
     def test_opening_photo_and_walking_example_belong_to_the_intro_text(self):
         opening = self.notebook.cells[0]
@@ -58,8 +82,10 @@ class NotebookReferences(unittest.TestCase):
                 self.assertEqual(parse_qs(parsed.query)["v"], [expected])
                 image = Image.open(path)
                 large = path.name in {
-                    "reference-robot.png", "reference-annotated_robot.png",
-                    "reference-kinematic_tree.png", "course_preview.png",
+                    "reference-robot.png",
+                    "reference-annotated_robot.png",
+                    "reference-kinematic_tree.png",
+                    "course_preview.png",
                 }
                 self.assertLessEqual(image.width, 800 if large else 720)
                 if path.suffix == ".gif":
