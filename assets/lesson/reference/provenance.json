@@ -26,9 +26,9 @@
       "description": "Lateral drift from the original validated seed-7 forward trials."
     },
     "knee_path.png": {
-      "source": "/tmp/bdxr-lesson-release-check/figures/knee_sweep.json",
-      "source_sha256": "0e584ec0af85e8ceff6ae5e51359273f79bbde62acfc64f6783697e0fef1a25a",
-      "description": "Plot of measured forward-kinematics positions; root and other joints fixed."
+      "source": "artifacts/colab_reliability_20261021/kinematics/right_knee.json",
+      "source_sha256": "c97b17a2dbf724485cc3b5b8ad5b3c8ec64c34a0cb9de265f9ce996f5ba265e5",
+      "description": "Right-knee FK from -40 to +20 degrees; measured right-foot positions in torso frame. Root and other joints held fixed. Camera-facing right leg verified."
     },
     "kinematic_tree.png": {
       "source": "artifacts/final_round/kinematics/kinematic_tree.png",
