@@ -52,9 +52,20 @@ def install_lesson(url, sha256, work, timeout=120, attempts=2):
                 with urllib.request.urlopen(
                     request, timeout=min(20, timeout)
                 ) as response:
+                    # HTTP read() may wait to fill the buffer while a slow server
+                    # keeps the socket alive. read1() returns available bytes so
+                    # the overall deadline is checked during a trickling response.
+                    read_chunk = getattr(response, "read1", response.read)
                     with archive.open("wb") as target:
                         received, reported = 0, -1
-                        while chunk := response.read(256 * 1024):
+                        while True:
+                            chunk = read_chunk(256 * 1024)
+                            if time.monotonic() - start > timeout:
+                                raise TimeoutError(
+                                    "Lesson download exceeded its time limit."
+                                )
+                            if not chunk:
+                                break
                             target.write(chunk)
                             digest.update(chunk)
                             received += len(chunk)
@@ -62,10 +73,6 @@ def install_lesson(url, sha256, work, timeout=120, attempts=2):
                             if megabytes != reported:
                                 print(f"  Received {megabytes} MB", flush=True)
                                 reported = megabytes
-                            if time.monotonic() - start > timeout:
-                                raise TimeoutError(
-                                    "Lesson download exceeded its time limit."
-                                )
                 if digest.hexdigest() != sha256:
                     raise ValueError(
                         "Lesson download failed its SHA-256 integrity check."
