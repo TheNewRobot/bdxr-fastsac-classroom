@@ -3,6 +3,8 @@
 #
 # Select **Runtime → Change runtime type → GPU**. Installation may take several
 # minutes; it is separate from training time.
+# Check the GPU name printed below. If the time limit stops training early,
+# the saved step count will be lower than the requested count.
 #
 # An environment combines the robot, ground, actuators, observations, reward,
 # and rules for ending an episode. We first inspect **one** robot. Training will
