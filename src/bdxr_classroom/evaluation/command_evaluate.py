@@ -330,6 +330,9 @@ def main():
         ],
     )
     parser.add_argument("--episodes", type=int, default=5)
+    parser.add_argument(
+        "--seed", type=int, default=1000, help="Seed for perturbed evaluation starts."
+    )
     parser.add_argument("--seconds", type=float, default=15)
     parser.add_argument("--output")
     parser.add_argument("--no-video", action="store_true")
@@ -443,7 +446,8 @@ def main():
             "straight_fast",
             "straight_back",
         ],
-        "sampling": f"{args.episodes} parallel independently perturbed starts per case; shared RNG seed 1000",
+        "sampling": f"{args.episodes} parallel independently perturbed starts per case; shared RNG seed {args.seed}",
+        "evaluation_seed": args.seed,
         "controller": "Direct velocity commands only. No heading or path feedback; world measurements are evaluation-only.",
     }
     (output / "config.json").write_text(
@@ -471,6 +475,7 @@ def main():
                 case,
                 args.seconds,
                 video=video_dir / f"{case}.mp4" if not args.no_video else None,
+                seed=args.seed,
                 head_config=head_config,
             )
             result["cases"][case] = reports

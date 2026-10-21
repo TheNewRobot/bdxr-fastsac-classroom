@@ -42,6 +42,8 @@ rerun. Short integration runs establish workflow execution, not learned policy q
 
 One fresh seed-7 run reached its 9,000-step checkpoint in 579 seconds; that snapshot
 passed all 50 command trials twice, including recording through the notebook helper.
+It also passed all 50 trials from additional seed-2000 starting states. The evaluator
+now accepts an explicit `--seed`; its classroom default remains 1000.
 Its final 10,000-step weights and a 3,000-step recovery failed drift limits. The
 notebook now checks up to two earlier snapshots before additional training, retaining
 all reports and displaying the exact selected checkpoint. A second seed-7 run,
