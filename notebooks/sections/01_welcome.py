@@ -12,7 +12,8 @@
 # → SAC → your walking policy → one controlled experiment → optional hopping → play.
 #
 # Examples are part of this text: images and short, silent looping clips. Run the exercises
-# to create your own results. Timings are from a local L40S; Colab remains untested.
+# to create your own results. Timings are from a local L40S. Images were checked
+# in Colab; this revision's full GPU workflow has not been tested there.
 
 # %% [markdown]
 # ## 1 · Meet the droid
