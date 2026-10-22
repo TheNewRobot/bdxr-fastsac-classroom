@@ -1,5 +1,5 @@
 # %% [markdown]
-# ## 3 · Follow one leg through the kinematic tree
+# ## 2 · Explore the robot’s kinematics
 #
 # The floating base describes the body's position and orientation; it is not a
 # motor. Each leg branches through **hip yaw → hip roll → hip pitch → knee → ankle**.
@@ -19,25 +19,14 @@
 #
 # ### Your activity · inspect joints, then move one
 #
-# Run the inspection to print joint axes and limits and regenerate these figures.
+# Run the inspection to read the actual joint axes and limits.
 # Then use the knee slider below to compare your prediction with forward kinematics.
 
 # %%
 %%robot
-from bdxr_classroom.lesson.kinematics import (
-    print_joint_table,
-    save_tree,
-    save_annotated_pose,
-)
+from bdxr_classroom.lesson.kinematics import print_joint_table
 
 print_joint_table(env)
-save_tree(env, "figures/kinematic_tree.svg")
-save_annotated_pose(env, "figures/annotated_robot.png")
-
-# %%
-from bdxr_classroom.lesson.presentation import joint_figures
-
-joint_figures(WORK / "figures")
 
 # %% [markdown]
 # ### Joint angles determine foot position
@@ -49,6 +38,11 @@ joint_figures(WORK / "figures")
 # $$\mathbf p_{\mathrm{foot}} = f(\mathbf q_R), \qquad
 # {}^{B}T_F = {}^{B}T_1(q_1)\,{}^{1}T_2(q_2)\cdots{}^{5}T_F.$$
 #
+# Joint limits restrict which angles a motor can reach. The joint axis tells us
+# which direction it rotates about; the link geometry sets the distance to the
+# next joint. A hinge angle alone is therefore insufficient to locate the foot.
+# The torso frame provides a common origin for comparing foot positions.
+#
 # Each transform contributes a joint rotation and a fixed link offset. The local
 # rotation axes and limits are listed above. Mirrored legs can use opposite axis
 # signs—do not assume that equal left/right angles produce identical motion.
@@ -57,13 +51,8 @@ joint_figures(WORK / "figures")
 # the knee turns? Is the path a straight line?
 
 # %% [markdown]
-# | One-joint forward kinematics |
-# |:---:|
-# | ![Measured knee-sweep foot path](lesson-asset:reference/knee_path.png) |
-#
-# **Instructor example:** measured positions from −40° to +20° of right-knee motion,
-# with the root and all other joints fixed. The curve is geometry, not a stable gait.
-# Run the next cells to generate your own interactive view and change the angle range.
+# The slider below moves the right knee with the root and other joints fixed.
+# Predict its foot path, then generate the interactive view to check your answer.
 
 # %%
 %%robot

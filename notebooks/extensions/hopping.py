@@ -1,5 +1,8 @@
 # %% [markdown]
-# ## 8 · Optional extension: learn to hop
+# # Optional after-class extension: learn to hop
+#
+# Select a GPU runtime and run the setup cells before enabling training.
+# This extension is separate from the completed walking lesson.
 #
 # A hop lifts **both feet** before a controlled landing. This recorded hopper
 # reached about 5.9 cm bilateral clearance and 0.16 s of clear flight; its feet
@@ -39,38 +42,53 @@
 # Enable the toggle below to generate your own policies and videos. Leaving it
 # off does not train or download an instructor checkpoint.
 
-# %%
-from bdxr_classroom.lesson.hopping import load_curriculum, train_stage, validate_pair
+# %% [setup]
 
+# %%
+import json
+import os
+from pathlib import Path
+from bdxr_classroom.lesson.runtime import Lesson
+from bdxr_classroom.lesson.hopping import load_curriculum, train_stage
+
+lab = Lesson(WORK, PYTHON, runtime_env)
 CURRICULUM = load_curriculum(WORK)
+LEARNING_CONFIG = {
+    "seed": 7, "num_envs": 512, "batch_size": 2048, "buffer_size": 512,
+    "actor_hidden": 256, "critic_hidden": 384, "gamma": 0.97,
+    "updates": 4, "compile": True, "wandb_mode": "disabled",
+}
 
 # %%
-from IPython.display import display, Video
-
 TRAIN_HOPPING = False  # @param {type:"boolean"}
 HOP_STAGES = []
-SELECTED_HOP_CHECKPOINT = None
 if TRAIN_HOPPING:
     previous = None
     for stage in CURRICULUM:
         print("Training stage:", stage["name"])
         previous = train_stage(lab, stage, LEARNING_CONFIG, previous)
         HOP_STAGES.append(previous)
-        display(Video(str(lab.record(previous)), embed=True, width=640))
 
 # %% [markdown]
-# ### Select evidence, not just the latest checkpoint
-#
-# Earlier stages and saved checkpoints can outperform the final weights. Check
-# the last three stages, newest first, then test walking/hopping handovers on flat ground
-# and a step. Every recorded failure stays in the history; a later success does
-# not silently erase it. Passing these checks does not establish full-course skill.
+# Choose a stage to inspect after training. Later stages are not automatically
+# better. Look for both feet leaving the ground and a controlled landing;
+# height of a foot marker alone is not proof of obstacle clearance.
+# These recordings are observations, not certification of a hopping controller.
 
 # %%
-from bdxr_classroom.lesson.hopping import select_hopper
+from IPython.display import display, Video
 
-SELECTED_HOP_CHECKPOINT = select_hopper(lab, HOP_STAGES, SELECTED_WALK_CHECKPOINT)
+STAGE_TO_WATCH = 6  # @param {type:"integer"}
+if HOP_STAGES:
+    if not 1 <= STAGE_TO_WATCH <= len(HOP_STAGES):
+        raise ValueError("Choose a stage number between 1 and 8.")
+    chosen = HOP_STAGES[STAGE_TO_WATCH - 1]
+    display(Video(str(lab.record(chosen)), embed=True, width=640))
+else:
+    print("Enable hopping training above to produce your own policies.")
 
-# %% [markdown]
-# **Discuss:** why might two good policies still fail when switching between them?
-# Consider command speed, phase, and abrupt changes in joint targets.
+# %%
+from bdxr_classroom.lesson.exports import export_results
+
+if HOP_STAGES:
+    print("Saved:", export_results(WORK, lab.runs, include_replay=True))

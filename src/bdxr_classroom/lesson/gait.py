@@ -7,11 +7,28 @@ from statistics import mean
 from .presentation import table
 
 
-def compare_gaits(lab, control, variation):
+def compare_gaits(lab, control, variation, assessments=None):
+    """Compare saved trajectories; never launch another simulation assessment."""
     rows = []
     budgets = []
-    for label, run in [("Control", Path(control)), ("Variation", Path(variation))]:
-        folder = run / "evaluation/final_commands"
+    for index, (label, run) in enumerate(
+        [("Baseline", Path(control)), ("Variation", Path(variation))]
+    ):
+        folder = (
+            Path(assessments[index]["evaluation_directory"])
+            if assessments is not None
+            else run / "evaluation/final_commands"
+        )
+        if assessments is not None:
+            from bdxr_classroom.evaluation.walking_checks import checkpoint_digest
+
+            expected = assessments[index]["checkpoint_sha256"]
+            report = json.loads((folder / "summary.json").read_text())
+            if (
+                checkpoint_digest(run / "checkpoints/final.pt") != expected
+                or report.get("checkpoint_sha256") != expected
+            ):
+                raise RuntimeError("Gait measurements do not match this policy.")
         lab.run("scripts.media.measure_gait", folder)
         trials = json.loads((folder / "gait_measurements.json").read_text())["forward"][
             "trials"
