@@ -52,6 +52,12 @@
 #
 # Predict a measurable change. Train a matched control and variant, then compare
 # your videos, measurements, and command checks.
+#
+# For **level feet**, both runs use yaw-bias weight **10** to discourage drift
+# (the recorded example used 6). Only the sole-level reward differs between them.
+# This matched recipe took about **13–17 minutes per run** on a shared L40S.
+# Allow up to 25 minutes per run to finish the same 10,000 steps; the original
+# walking baseline and other style presets retain their settings.
 
 # %%
 EXPERIMENT = "level_feet"  # @param ["level_feet", "quick_steps", "crouched"]
@@ -61,18 +67,23 @@ CHANGES = {
     "quick_steps": {"air_time_min": 0.06, "air_time_max": 0.16, "air_time_weight": 4.0},
     "crouched": {"walking_height": 0.23},
 }
-VARIANT_ENV = {**ENV_CONFIG, **CHANGES[EXPERIMENT]}
+PAIR_ENV = dict(ENV_CONFIG)
+if EXPERIMENT == "level_feet":
+    PAIR_ENV["yaw_bias_weight"] = 10.0
+VARIANT_ENV = {**PAIR_ENV, **CHANGES[EXPERIMENT]}
 PAIR_LEARNING = {
     **LEARNING_CONFIG,
     "seed": 8 if EXPERIMENT == "crouched" else 7,
     "steps": 9000 if EXPERIMENT == "crouched" else 10000,
+    "minutes": 25 if EXPERIMENT == "level_feet" else LEARNING_CONFIG["minutes"],
 }
 print("Prediction:", PREDICTION)
+print("Shared yaw-bias weight:", PAIR_ENV["yaw_bias_weight"])
 print("Only changed behavior setting:", CHANGES[EXPERIMENT])
 
 # %%
 # Neither call has a parent checkpoint: both start from scratch.
-CONTROL = lab.train("scratch_control", ENV_CONFIG, PAIR_LEARNING)
+CONTROL = lab.train("scratch_control", PAIR_ENV, PAIR_LEARNING)
 VARIATION = lab.train(EXPERIMENT, VARIANT_ENV, PAIR_LEARNING)
 
 # %%
