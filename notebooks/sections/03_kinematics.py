@@ -35,20 +35,9 @@ save_tree(env, "figures/kinematic_tree.svg")
 save_annotated_pose(env, "figures/annotated_robot.png")
 
 # %%
-media_pair(
-    [
-        (
-            "Follow the actual left-leg joints",
-            WORK / "figures/annotated_robot.png",
-            "Inspect the hip, knee, and ankle on one leg.",
-        ),
-        (
-            "Actual articulated joint tree",
-            WORK / "figures/kinematic_tree.svg",
-            "Left and right legs have five actuated joints each. The head/neck has four.",
-        ),
-    ]
-)
+from bdxr_classroom.lesson.presentation import joint_figures
+
+joint_figures(WORK / "figures")
 
 # %% [markdown]
 # ### Joint angles determine foot position
@@ -86,9 +75,9 @@ foot_positions = sweep_joint(env, "Right_Knee", angles, "figures/knee_sweep.html
 print("Generated", len(foot_positions), "forward-kinematics configurations.")
 
 # %%
-from bdxr_classroom.lesson.presentation import interactive_html
+from bdxr_classroom.lesson.presentation import joint_explorer
 
-interactive_html(WORK / "figures/knee_sweep.html", height=610)
+explorer = joint_explorer(WORK / "figures/knee_sweep.html")
 
 # %% [markdown]
 # The slider changes one joint with the root and other joints fixed. The foot

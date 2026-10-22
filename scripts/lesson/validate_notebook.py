@@ -58,6 +58,8 @@ def test_copy(
         if reuse_env and source.startswith("# @title Install pinned dependencies"):
             existing = Path(reuse_env).resolve()
             source = f"""# Local validation: reuse pinned dependencies; installation is not tested.
+import os, json
+from bdxr_classroom.lesson.presentation import read_json
 existing = Path({str(existing)!r})
 assert (existing / ".venv/bin/python").is_file()
 assert read_json(existing / "configs/upstream_revisions.json") == read_json(WORK / "configs/upstream_revisions.json")
@@ -118,8 +120,8 @@ print("Reused pinned environment; GPU:", gpu)
                     '        stage = {**stage, "learning": {**stage["learning"], "steps": 60}}\n',
                 )
                 source = source.replace(
-                    "lab, candidate, SELECTED_WALK_CHECKPOINT",
-                    "lab, candidate, SELECTED_WALK_CHECKPOINT, episodes=1, seconds=2",
+                    "select_hopper(lab, HOP_STAGES, SELECTED_WALK_CHECKPOINT)",
+                    "select_hopper(lab, HOP_STAGES, SELECTED_WALK_CHECKPOINT, episodes=1, seconds=2)",
                 )
         else:
             source = source.replace("USE_WANDB = False", "USE_WANDB = True")

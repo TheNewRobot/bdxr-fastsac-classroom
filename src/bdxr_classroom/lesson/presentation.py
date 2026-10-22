@@ -8,11 +8,12 @@ from statistics import mean
 
 STYLE = """
 <style>
-.bdx-grid {display:flex;flex-wrap:wrap;gap:18px;margin:12px 0 24px}
+.bdx-grid {display:flex;flex-wrap:wrap;gap:16px;margin:12px auto 20px;max-width:1000px}
 .bdx-card {flex:1 1 300px;max-width:760px;background:#faf7f0;border:1px solid #d8d1c2;
  border-radius:14px;padding:16px;color:#263b3b;font-family:system-ui,sans-serif}
 .bdx-card h4 {margin:0 0 10px;font-size:18px}.bdx-card p {line-height:1.5;margin-bottom:0}
 .bdx-card img,.bdx-card video {width:100%;border-radius:8px}
+.bdx-card img {max-height:420px;object-fit:contain}
 .bdx-table {border-collapse:collapse;margin:14px 0;font-family:system-ui,sans-serif}
 .bdx-table th,.bdx-table td {padding:9px 14px;border-bottom:1px solid #d8d1c2;text-align:left}
 .bdx-table th {background:#e8efeb}.bdx-note {color:#516766;font-size:13px}
@@ -63,7 +64,9 @@ def media_pair(items, video_height=None):
             )
             media = f'<img src="data:{mime};base64,{data}" alt="{html.escape(title, quote=True)}">'
         cards.append(
-            f'<article class="bdx-card"{card_style}><h4>{html.escape(title)}</h4>{media}<p>{html.escape(caption)}</p></article>'
+            f'<article class="bdx-card"{card_style}><h4>{html.escape(title)}</h4>{media}'
+            + (f"<p>{html.escape(caption)}</p>" if caption else "")
+            + "</article>"
         )
     display(HTML(STYLE + '<div class="bdx-grid">' + "".join(cards) + "</div>"))
 
@@ -176,3 +179,76 @@ def recorded_details(
                 + "</details>"
             )
         )
+
+
+def joint_figures(folder):
+    """Show the student's joint inspection without repeating the lesson text."""
+    folder = Path(folder)
+    media_pair(
+        [
+            ("Joint pivots", folder / "annotated_robot.png", ""),
+            ("Kinematic tree", folder / "kinematic_tree.svg", ""),
+        ]
+    )
+
+
+def joint_explorer(path):
+    """Display precomputed poses with standard notebook widget controls."""
+    import ipywidgets as widgets
+    from IPython.display import display
+
+    path = Path(path)
+    # Read older sweep exports as well as the new frame sidecar.
+    sidecar = path.with_suffix(".frames.json")
+    if sidecar.exists():
+        data = read_json(sidecar)
+    else:
+        source = path.read_text().split("const data=", 1)[1]
+        data, _ = json.JSONDecoder().raw_decode(source)
+    angles, positions = data["angles"], data["positions"]
+    initial = min(range(len(angles)), key=lambda i: abs(angles[i]))
+    image = widgets.Image(
+        format="jpeg", layout=widgets.Layout(width="420px", max_width="100%")
+    )
+    slider = widgets.SelectionSlider(
+        options=[(f"{angle:g}°", i) for i, angle in enumerate(angles)],
+        value=initial,
+        description="Angle",
+        continuous_update=False,
+        layout=widgets.Layout(width="300px", max_width="100%"),
+    )
+    coordinates = widgets.HTML()
+    trace = widgets.HTML()
+    xs, zs = [p[0] for p in positions], [p[2] for p in positions]
+
+    def point(p):
+        x = 25 + (p[0] - min(xs)) / (max(xs) - min(xs) or 1) * 220
+        z = 150 - (p[2] - min(zs)) / (max(zs) - min(zs) or 1) * 125
+        return x, z
+
+    points = " ".join(f"{x:.2f},{z:.2f}" for x, z in map(point, positions))
+
+    def update(change=None):
+        index = slider.value
+        image.value = base64.b64decode(data["frames"][index])
+        coordinates.value = "<b>Foot in torso frame</b><br>" + " · ".join(
+            f"{axis}: {value:.3f} m" for axis, value in zip("xyz", positions[index])
+        )
+        x, z = point(positions[index])
+        trace.value = (
+            '<svg viewBox="0 0 280 190" width="280" aria-label="Foot x–z path">'
+            f'<polyline points="{points}" fill="none" stroke="#25847a" stroke-width="3"/>'
+            f'<circle cx="{x}" cy="{z}" r="6" fill="#d78535"/>'
+            '<text x="80" y="183" font-size="13">Foot x–z path (m)</text></svg>'
+        )
+
+    update()
+    slider.observe(update, names="value")
+    panel = widgets.Box(
+        [image, widgets.VBox([slider, coordinates, trace])],
+        layout=widgets.Layout(
+            display="flex", flex_flow="row wrap", gap="16px", max_width="900px"
+        ),
+    )
+    display(panel)
+    return panel

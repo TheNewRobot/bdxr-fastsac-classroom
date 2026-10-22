@@ -34,74 +34,45 @@
 
 # %% [hidden]
 # @title Unpack the lesson files
-import json
-import os
-from pathlib import Path
+import hashlib
+import runpy
 import subprocess
 import sys
-import time
-from IPython.display import display, HTML, Image, Video
+import tempfile
+from pathlib import Path
 
-# The release is pinned so saved notebook copies keep using the same lesson code.
+# Download a small helper and verify it before running any downloaded code.
 BUNDLE_URL = "__BUNDLE_URL__"
 BUNDLE_SHA256 = "__BUNDLE_SHA256__"
+BOOTSTRAP_SHA256 = "__BOOTSTRAP_SHA256__"
 WORK = (
-    Path("/content/bdxr_classroom")
-    if Path("/content").exists()
+    Path("/content/bdxr_classroom") if Path("/content").exists()
     else Path.cwd() / "bdxr_classroom_lab"
 ) / BUNDLE_SHA256[:12]
-
-__BOOTSTRAP_SOURCE__
-
-install_lesson(BUNDLE_URL, BUNDLE_SHA256, WORK)
-sys.path.insert(0, str(WORK / "src"))
-sys.path.insert(0, str(WORK))
-from bdxr_classroom.lesson.presentation import media_pair, read_json
+helper = Path(tempfile.mkdtemp(prefix="bdxr_setup_")) / "lesson_download.py"
+fetch = "from urllib.request import urlretrieve; import sys; urlretrieve(*sys.argv[1:])"
+subprocess.run(
+    [sys.executable, "-c", fetch, BUNDLE_URL.rsplit("/", 1)[0] + "/lesson_download.py", str(helper)],
+    check=True, timeout=60,
+)
+if hashlib.sha256(helper.read_bytes()).hexdigest() != BOOTSTRAP_SHA256:
+    raise RuntimeError("Setup helper verification failed. Rerun this cell.")
+runpy.run_path(str(helper))["prepare_lesson"](BUNDLE_URL, BUNDLE_SHA256, WORK)
 
 # %% [hidden]
 # @title Install pinned dependencies
-if "WORK" not in globals() or not (WORK / "scripts/setup/setup.py").is_file():
-    raise RuntimeError(
-        "Run 'Unpack the lesson files' successfully before installing dependencies. "
-        "The extracted lesson must contain scripts/setup/setup.py."
-    )
+if "WORK" not in globals():
+    raise RuntimeError("Run the unpack cell first.")
 
-from bdxr_classroom.lesson.process import run_logged
+from bdxr_classroom.lesson.setup import install_runtime
 
-setup_start = time.monotonic()
-run_logged(
-    [sys.executable, "-u", "scripts/setup/setup.py"],
-    cwd=WORK,
-    log_path=WORK / "setup.log",
-    timeout=1800,
-    label="Installing pinned dependencies",
-    show=lambda line: line.startswith(("Setup", "GPU:", "MuJoCo:", "Lesson fonts:", "Runtime details")),
-)
-PYTHON = str(WORK / ".venv/bin/python")
-runtime_env = dict(
-    os.environ,
-    PYTHONPATH=str(WORK / "src"),
-    MUJOCO_GL="egl",
-    BDXR_RUNTIME="colab" if Path("/content").exists() else "local_notebook",
-)
-gpu = json.loads(
-    subprocess.check_output(
-        [
-            PYTHON,
-            "-c",
-            "import torch,json; print(json.dumps(dict(name=torch.cuda.get_device_name(0),gib=torch.cuda.get_device_properties(0).total_memory/2**30)))",
-        ],
-        cwd=WORK,
-        env=runtime_env,
-        text=True,
-        timeout=60,
-    )
-)
-print("GPU:", gpu)
-print("Setup time:", round(time.monotonic() - setup_start), "seconds")
+PYTHON, runtime_env = install_runtime(WORK)
 
 # %% [hidden]
 # @title Initialize the notebook's simulator connection
+import json
+import os
+from bdxr_classroom.lesson.presentation import media_pair, read_json
 from bdxr_classroom.lesson.runtime import Lesson
 from bdxr_classroom.lesson.simulator import SimulatorCells
 

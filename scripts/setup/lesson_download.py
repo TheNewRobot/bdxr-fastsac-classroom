@@ -1,4 +1,4 @@
-"""Standard-library bootstrap, included verbatim in the notebook's setup cell.
+"""Verified standard-library bootstrap downloaded by the notebook.
 
 Download one immutable release archive without querying Colab's browser. Files
 are verified and staged before installation; student outputs are never removed.
@@ -7,6 +7,7 @@ are verified and staged before installation; student outputs are never removed.
 import hashlib
 import json
 import shutil
+import sys
 import tempfile
 import time
 import urllib.error
@@ -112,3 +113,12 @@ def install_lesson(url, sha256, work, timeout=120, attempts=2):
         pending.write_text(json.dumps({"sha256": sha256, "url": url, "files": files}))
         pending.replace(marker)
     print(f"Lesson files ready: {work}", flush=True)
+
+
+def prepare_lesson(url, sha256, work):
+    """Install verified lesson files and make their helpers importable."""
+    install_lesson(url, sha256, work)
+    for folder in (Path(work), Path(work) / "src"):
+        if str(folder) not in sys.path:
+            sys.path.insert(0, str(folder))
+    return Path(work)

@@ -129,6 +129,7 @@ if not BASELINE_CHECK["passed"] and drift_only_failure(INITIAL_BASELINE_CHECK):
         lab, BASELINE, BASELINE_SUMMARY, BASELINE_CHECK
     )
     command_table(BASELINE_SUMMARY)
+# %%
 SELECTED_WALK_CHECKPOINT = selected_walking([BASELINE_CHECK])
 if not BASELINE_CHECK["passed"]:
     raise RuntimeError(
