@@ -17,10 +17,15 @@ class NotebookRecoveryTests(unittest.TestCase):
             Path(__file__).resolve().parents[2]
             / "notebooks/sections/06_train_and_evaluate.py"
         )
-        cls.source = next(
+        cls.source = "\n".join(
             cell
             for cell in path.read_text().split("# %%")
-            if cell.lstrip().startswith("# @title Additional recovery only if needed")
+            if cell.lstrip().startswith(
+                (
+                    "# @title Additional recovery only if needed",
+                    "SELECTED_WALK_CHECKPOINT =",
+                )
+            )
         )
 
     def state(self, already_passed=False, recovery_passed=True):

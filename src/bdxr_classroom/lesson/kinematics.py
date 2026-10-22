@@ -227,9 +227,9 @@ def sweep_joint(env, joint_name, angles_deg, destination):
 body{{font-family:system-ui;margin:0;background:#faf7f0;color:#263b3b;padding:20px}}
 main{{display:flex;gap:24px;flex-wrap:wrap}}img{{width:min(100%,640px);border-radius:12px}}
 input{{width:100%}}aside{{flex:1;min-width:220px}}h2{{margin-top:0}}pre{{font-size:16px}}
-</style><h2>{title}: forward kinematics</h2><main><img id="pose" alt="Actual MuJoCo joint configuration"><aside>
-<p>Move the visible {side.lower()}-leg joint marked by the orange ring. The root and other joints stay fixed.</p><input id="angle" aria-label="{title} angle" type="range" min="0" max="{len(angles) - 1}" value="{initial}" step="1"><p id="value"></p>
-<h3>{side} foot in torso frame</h3><pre id="position"></pre>
+</style><h2>{title}: forward kinematics</h2><main><img id="pose" src="data:image/jpeg;base64,{frames[initial]}" alt="Actual MuJoCo joint configuration"><aside>
+<p>Move the visible {side.lower()}-leg joint marked by the orange ring. The root and other joints stay fixed.</p><input id="angle" aria-label="{title} angle" type="range" min="0" max="{len(angles) - 1}" value="{initial}" step="1" disabled><p id="value">{angles[initial]:.1f} degrees</p>
+<h3>{side} foot in torso frame</h3><pre id="position">{html.escape(str(positions[initial]))} m</pre>
 <p>These are geometric configurations, not a balance test or the full reachable workspace.</p>
 <svg id="trace" viewBox="0 0 280 210" style="width:100%;max-width:350px"></svg></aside></main>
 <script>const data={payload};const slider=document.getElementById('angle');
@@ -240,10 +240,11 @@ function update(){{const i=+slider.value;document.getElementById('pose').src='da
 document.getElementById('value').textContent=data.angles[i].toFixed(1)+' degrees';
 document.getElementById('position').textContent=data.positions[i].map((v,j)=>['x','y','z'][j]+': '+v.toFixed(3)+' m').join('\u005cn');
 const q=point(data.positions[i]);document.getElementById('trace').innerHTML='<polyline fill="none" stroke="#25847a" stroke-width="3" points="'+data.positions.map(point).map(p=>p.join(',')).join(' ')+'"/><circle cx="'+q[0]+'" cy="'+q[1]+'" r="6" fill="#d78535"/><text x="90" y="203" font-size="13">Foot x–z path (m)</text>';}}
-slider.oninput=update;update();</script>'''
+slider.disabled=false;slider.oninput=update;update();</script>'''
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(document)
+    destination.with_suffix(".frames.json").write_text(payload)
     destination.with_suffix(".json").write_text(
         json.dumps(
             {

@@ -10,14 +10,8 @@ from unittest.mock import Mock, patch
 
 class HoppingStageSelectionTests(unittest.TestCase):
     def run_selection(self, verdicts):
-        source = (
-            Path(__file__).resolve().parents[2] / "notebooks/sections/08_hopping.py"
-        )
-        cell = next(
-            c
-            for c in source.read_text().split("# %%")
-            if c.lstrip().startswith("from IPython.display import display, Image")
-        )
+        from bdxr_classroom.lesson.hopping import select_hopper
+
         stages = [Path(f"/runs/stage_{i}") for i in range(8)]
         assessor = Mock(side_effect=verdicts)
         lab = SimpleNamespace(
@@ -40,12 +34,14 @@ class HoppingStageSelectionTests(unittest.TestCase):
             },
         )
         with (
+            patch("bdxr_classroom.lesson.hopping.validate_pair", assessor),
+            patch("bdxr_classroom.lesson.presentation.read_json", state["read_json"]),
             patch("IPython.display.Image"),
             patch("IPython.display.Video"),
             patch("IPython.display.display"),
             contextlib.redirect_stdout(io.StringIO()) as output,
         ):
-            exec(compile(cell, str(source), "exec"), state)
+            state["SELECTED_HOP_CHECKPOINT"] = select_hopper(lab, stages, "/walker.pt")
         return state, assessor, output.getvalue()
 
     def test_selects_qualified_earlier_stage_and_its_curve(self):

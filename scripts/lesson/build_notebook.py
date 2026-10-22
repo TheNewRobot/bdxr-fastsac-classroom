@@ -182,13 +182,17 @@ def main():
     (bundle_dir / "SHA256SUMS").write_text(f"{digest}  BDXR_lesson_files.zip\n")
     release = {"version": 2, "sha256": digest, "url": bundle_url, "tag": release_tag}
     (bundle_dir / "release.json").write_text(json.dumps(release, indent=2) + "\n")
-    bootstrap = (ROOT / "scripts/setup/lesson_download.py").read_text().strip()
+    bootstrap = (ROOT / "scripts/setup/lesson_download.py").read_bytes()
+    bootstrap_sha = hashlib.sha256(bootstrap).hexdigest()
+    (bundle_dir / "lesson_download.py").write_bytes(bootstrap)
+    with (bundle_dir / "SHA256SUMS").open("a") as checksums:
+        checksums.write(f"{bootstrap_sha}  lesson_download.py\n")
     replacements = 0
     for cell in cells:
         if "__BUNDLE_SHA256__" in cell.source:
             cell.source = cell.source.replace("__BUNDLE_SHA256__", digest)
             cell.source = cell.source.replace("__BUNDLE_URL__", bundle_url)
-            cell.source = cell.source.replace("__BOOTSTRAP_SOURCE__", bootstrap)
+            cell.source = cell.source.replace("__BOOTSTRAP_SHA256__", bootstrap_sha)
             replacements += 1
     assert replacements == 1, "Exactly one isolated bootstrap archive is required."
     notebook = nbformat.v4.new_notebook(
@@ -208,7 +212,7 @@ def main():
     if args.output.exists():
         previous = nbformat.read(args.output, as_version=4)
         # Retain the user's local kernel selection when regenerating the lesson.
-        for key in ("kernelspec", "vscode"):
+        for key in ("kernelspec", "vscode", "language_info"):
             if key in previous.metadata:
                 notebook.metadata[key] = previous.metadata[key]
     nbformat.validate(notebook)

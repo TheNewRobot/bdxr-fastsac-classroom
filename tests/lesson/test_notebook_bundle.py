@@ -80,6 +80,7 @@ class NotebookBundleTests(unittest.TestCase):
         self.assertNotIn("archive", notebook.metadata.bdxr_lesson)
         for cell in notebook.cells:
             if cell.cell_type == "code":
+                self.assertLessEqual(len(cell.source.splitlines()), 28)
                 self.assertLess(max(map(len, cell.source.splitlines()), default=0), 160)
                 self.assertNotIn("blocking_request", cell.source)
                 self.assertNotIn("SOURCE_BUNDLE", cell.source)
