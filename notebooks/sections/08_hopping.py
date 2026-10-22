@@ -61,8 +61,8 @@ if TRAIN_HOPPING:
 # %% [markdown]
 # ### Select evidence, not just the latest checkpoint
 #
-# Saved earlier checkpoints can outperform the final checkpoint. Screen the exact
-# weights on terrain, then test repeated walking/hopping handovers on flat ground
+# Earlier stages and saved checkpoints can outperform the final weights. Check
+# the last three stages, newest first, then test walking/hopping handovers on flat ground
 # and a step. Every recorded failure stays in the history; a later success does
 # not silently erase it. Passing these checks does not establish full-course skill.
 
@@ -70,11 +70,22 @@ if TRAIN_HOPPING:
 from IPython.display import display, Image
 
 if HOP_STAGES:
-    SELECTED_HOP_CHECKPOINT = validate_pair(
-        lab, HOP_STAGES[-1], SELECTED_WALK_CHECKPOINT
-    )
-    display(Image(filename=str(lab.learning_curve(HOP_STAGES[-1])), width=900))
-    print("Selected hopping checkpoint:", SELECTED_HOP_CHECKPOINT)
+    for candidate in reversed(HOP_STAGES[-3:]):
+        print("Checking hopping stage:", candidate.name)
+        SELECTED_HOP_CHECKPOINT = validate_pair(
+            lab, candidate, SELECTED_WALK_CHECKPOINT
+        )
+        if SELECTED_HOP_CHECKPOINT:
+            break
+    if SELECTED_HOP_CHECKPOINT:
+        selected_run = Path(SELECTED_HOP_CHECKPOINT).parent.parent
+        display(Image(filename=str(lab.learning_curve(selected_run)), width=900))
+        print("Selected hopping checkpoint:", SELECTED_HOP_CHECKPOINT)
+    else:
+        print(
+            "No hopper passed every check. The game can still use your walker. "
+            "Review the failures above before trying another training run."
+        )
 else:
     print(
         "Hopping training skipped. An existing compatible checkpoint can be loaded in the game."
