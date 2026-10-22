@@ -1,0 +1,152 @@
+{
+  "runs": [
+    {
+      "label": "baseline17m",
+      "run": "experiments/candidates/classroom_core_20261022/2026-10-22_220442_691267_walking_baseline17m",
+      "checkpoint_sha256": "2dc1643e53fb3e5e3f0426ea9a6dcca22a03cb4edf69e5524fbac64e18642b8f",
+      "steps": 12000,
+      "training_seconds": 947.3979721330106,
+      "short_check_passed": true,
+      "failures": [],
+      "assessment_seconds": 33.731448199017905,
+      "foot_landings_per_second": 3.703703703703701,
+      "swing_sole_tilt_deg": 8.666321346370554,
+      "sole_clearance_p95_m": 0.031357401485244435,
+      "forward_trials": [
+        {
+          "episode": 0,
+          "fell": false,
+          "duration_s": 10.0,
+          "speed_mae": 0.029639169375101724,
+          "yaw_mae": 0.02127087045601608,
+          "imu_yaw_mae": 0.019205261528622942,
+          "mean_speed": 0.2704196327262455,
+          "max_cross_track_m": 0.01833329349756241,
+          "final_cross_track_m": 0.01833329349756241,
+          "final_progress_m": 2.6785261631011963,
+          "heading_change_deg": 3.527915649716646,
+          "action_change_rms": 0.12895132451835606,
+          "clear_flights": 0,
+          "landed_hops": 0,
+          "peak_simultaneous_foot_clearance": 0.018455825746059418,
+          "swing_height_p95": 0.050374784693121906
+        },
+        {
+          "episode": 1,
+          "fell": false,
+          "duration_s": 10.0,
+          "speed_mae": 0.029423856768343182,
+          "yaw_mae": 0.021433382948598593,
+          "imu_yaw_mae": 0.019040026268663093,
+          "mean_speed": 0.27085446725289025,
+          "max_cross_track_m": 0.0186088178306818,
+          "final_cross_track_m": 0.007630333304405212,
+          "final_progress_m": 2.685194730758667,
+          "heading_change_deg": 3.2334798549757364,
+          "action_change_rms": 0.12903177987370226,
+          "clear_flights": 0,
+          "landed_hops": 0,
+          "peak_simultaneous_foot_clearance": 0.018488802015781403,
+          "swing_height_p95": 0.050453920289874075
+        },
+        {
+          "episode": 2,
+          "fell": false,
+          "duration_s": 10.0,
+          "speed_mae": 0.02896134201023314,
+          "yaw_mae": 0.022324660552516837,
+          "imu_yaw_mae": 0.019622448568051266,
+          "mean_speed": 0.2712187367346552,
+          "max_cross_track_m": 0.015206888318061829,
+          "final_cross_track_m": 0.013067848980426788,
+          "final_progress_m": 2.691581964492798,
+          "heading_change_deg": 3.28359978310529,
+          "action_change_rms": 0.12837731126695873,
+          "clear_flights": 0,
+          "landed_hops": 0,
+          "peak_simultaneous_foot_clearance": 0.01849190890789032,
+          "swing_height_p95": 0.05038410499691963
+        }
+      ]
+    },
+    {
+      "label": "level_feet17m",
+      "run": "experiments/candidates/classroom_core_20261022/2026-10-22_214700_365715_walking_level_feet17m",
+      "checkpoint_sha256": "acd3a73ed3a45f72000441fe81742b6e7c7afbbf3d0f285d03fe8352f78a2a06",
+      "steps": 12000,
+      "training_seconds": 899.1253868029453,
+      "short_check_passed": false,
+      "failures": [
+        "forward: speed_mae exceeds 0.05"
+      ],
+      "assessment_seconds": 31.64818287396338,
+      "foot_landings_per_second": 4.481481481481478,
+      "swing_sole_tilt_deg": 5.601534556280784,
+      "sole_clearance_p95_m": 0.027778449033697444,
+      "forward_trials": [
+        {
+          "episode": 0,
+          "fell": false,
+          "duration_s": 10.0,
+          "speed_mae": 0.05183688716755973,
+          "yaw_mae": 0.0338493529405807,
+          "imu_yaw_mae": 0.03327883476988063,
+          "mean_speed": 0.2481631247533692,
+          "max_cross_track_m": 0.08063903450965881,
+          "final_cross_track_m": -0.08063903450965881,
+          "final_progress_m": 2.4748847484588623,
+          "heading_change_deg": -3.2296959301755495,
+          "action_change_rms": 0.14380730773011843,
+          "clear_flights": 0,
+          "landed_hops": 0,
+          "peak_simultaneous_foot_clearance": 0.017689228057861328,
+          "swing_height_p95": 0.04377751499414444
+        },
+        {
+          "episode": 1,
+          "fell": false,
+          "duration_s": 10.0,
+          "speed_mae": 0.05204051514466604,
+          "yaw_mae": 0.03484100782105088,
+          "imu_yaw_mae": 0.0342888781372191,
+          "mean_speed": 0.24795949677626292,
+          "max_cross_track_m": 0.0961352065205574,
+          "final_cross_track_m": -0.0961352065205574,
+          "final_progress_m": 2.477135419845581,
+          "heading_change_deg": -3.570495049002506,
+          "action_change_rms": 0.14365054368144936,
+          "clear_flights": 0,
+          "landed_hops": 0,
+          "peak_simultaneous_foot_clearance": 0.01770971715450287,
+          "swing_height_p95": 0.04398169256746769
+        },
+        {
+          "episode": 2,
+          "fell": false,
+          "duration_s": 10.0,
+          "speed_mae": 0.05169278535577986,
+          "yaw_mae": 0.033809061069558895,
+          "imu_yaw_mae": 0.03318120214415507,
+          "mean_speed": 0.2483072265651491,
+          "max_cross_track_m": 0.09842877089977264,
+          "final_cross_track_m": -0.09842877089977264,
+          "final_progress_m": 2.471752643585205,
+          "heading_change_deg": -3.8430195968860144,
+          "action_change_rms": 0.14248703682588207,
+          "clear_flights": 0,
+          "landed_hops": 0,
+          "peak_simultaneous_foot_clearance": 0.017705261707305908,
+          "swing_height_p95": 0.043895330652594565
+        }
+      ]
+    }
+  ],
+  "note": "Fresh final baseline and variant: same seed7, 12000 steps, 17-minute cap. No recovery or checkpoint selection.",
+  "changed_reward": {
+    "level_feet_weight": [
+      0.0,
+      0.75
+    ]
+  },
+  "playback_speed": 1.0
+}

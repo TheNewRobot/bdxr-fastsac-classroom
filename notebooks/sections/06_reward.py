@@ -5,9 +5,12 @@
 # weight**, then train a new policy from scratch. Your first run is the unchanged
 # control: keep the seed, commands, and learning budget identical.
 #
-# | Instructor example at equal commands | What changed? |
-# |:---:|:---:|
-# | ![Recorded flatter-foot comparison](lesson-asset:inline/level_feet.gif) | The sole-level reward encourages flatter feet. This is an earlier instructor example, not your new training result. |
+# | Instructor example at equal commands |
+# |:---:|
+# | ![Fresh baseline and flatter-foot comparison, with check outcomes](lesson-asset:classroom_walking/reward_comparison.gif) |
+#
+# Both trained from scratch for 12,000 steps. Swing-foot tilt fell from **8.7° to
+# 5.6°**, but the variant missed the speed target. Your measurements may differ.
 
 # %%
 PREDICTION = "The feet will stay flatter during stepping."  # @param {type:"string"}
