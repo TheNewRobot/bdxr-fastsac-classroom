@@ -12,7 +12,7 @@ A beginner robotics lesson for **163A/263A**, using **BDX-R, FastSAC, and MuJoCo
 
 ## Start the lesson
 
-Open the Colab link, save a copy in Drive, select the required **L4 GPU** runtime, and run the cells in order. Setup downloads the lesson automatically; no manual ZIP upload is needed.
+Open the Colab link, save a copy in Drive, select a **GPU runtime**, and run the cells in order. Setup downloads the lesson automatically; no manual ZIP upload is needed.
 
 ## What you will explore
 
@@ -26,7 +26,7 @@ are two runs in the lesson. Hopping is a [separate after-class extension](notebo
 The actor uses proprioception and movement commands; the critic may use additional simulator observations during training.
 
 **Validation:** local L40S checks include successful and unsuccessful fresh runs.
-**Execution on the required Colab L4 remains unvalidated**;
+**Colab GPU execution and T4 training timing remain unvalidated**;
 this is not yet a classroom reliability guarantee. See the [results](docs/results.md)
 and [current measurements](docs/progress.md).
 

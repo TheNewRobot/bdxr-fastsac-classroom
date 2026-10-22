@@ -29,5 +29,5 @@ No hopping policy is required for the core course.
 
 Allow for two training runs, setup, discussion, rendering, and gameplay. The
 17-minute training limit is per run, not the duration of the whole lesson.
-Require Colab's L4 GPU and retain the 12,000-step target. See the current
+Use a Colab GPU runtime and retain the 12,000-step target. Setup accepts T4 without a model-name restriction; its training time is not yet measured. See the current
 [validation scope](progress.md) before advertising a classroom duration.

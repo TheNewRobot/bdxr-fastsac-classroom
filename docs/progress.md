@@ -9,7 +9,7 @@ search runs in the required lesson.
 ## Fresh training evidence
 
 The classroom recipe keeps 12,000 requested steps, a 17-minute training cap,
-the required Colab L4 GPU, 512 environments, seed 7, and the visible notebook settings.
+a Colab GPU runtime, 512 environments, seed 7, and the visible notebook settings.
 The earlier local trials below used a 15-minute cap. We inspect ordinary
 **final** checkpoints. The actor has 47 proprioceptive/command inputs and ten
 outputs; the critic has 62 inputs. No world-position or heading feedback drives
@@ -86,4 +86,12 @@ to make subsequent reports easier to diagnose.
 The published notebook opened in Colab's anonymous frontend, where all eight
 embedded images and animations loaded. No authenticated GPU runtime was
 available. **Actual Colab GPU execution remains untested.** This evidence does
-not yet justify calling the lesson classroom-ready on its required Colab L4.
+not yet justify calling the lesson classroom-ready on Colab GPUs, including T4.
+
+## T4 setup correction
+
+A reported T4 session was stopped by our L4-only preflight, before installation.
+That artificial model-name restriction has been removed. Setup requires a GPU
+and reports its name; dependency/runtime checks still apply. The 12,000-step
+target and 17-minute cap are unchanged. T4 speed and completed steps within
+that cap have not been measured, so the L40S timings are not T4 promises.
