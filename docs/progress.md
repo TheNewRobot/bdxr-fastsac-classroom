@@ -29,7 +29,7 @@ Checks save trajectory measurements without rendering unused videos. The selecte
 video is a separate rollout of the assessed weights, verified by checksum before
 recording. Backups include runtime versions and diagnostic logs.
 
-All 96 local tests passed, including GPU environment, checkpoint identity,
+All 98 local tests passed, including GPU environment, checkpoint identity,
 interrupted setup, download failures, and game reset/finish contracts. The right-knee
 slider was checked against actual right-foot model coordinates and exercised in a
 browser. Its camera shows the moving leg and highlights the hinge. Static left-leg
@@ -74,6 +74,16 @@ without learner updates. First-step differences were about 3e-8 metres in root
 position and 2e-7 in actor observations; later reset timing diverged. This demonstrates
 local environment nondeterminism, not the precise cause of the submitted L4 drift.
 Matching a seed therefore does not establish identical training trajectories.
+
+A matched seed-7 level-feet recipe uses yaw-bias weight 10 in both fresh runs,
+with sole-level weight 0 versus 0.75. Both 10,000-step final policies passed
+50 command trials and 50 additional seed-2000 starts. Mean swing-foot tilt
+decreased from 9.85° to 4.58°, with similar clearance. Training took 1,017 and
+753 seconds on the shared L40S. The level-feet activity now uses this recipe
+with a 25-minute wall-clock cap to avoid truncating its fixed step budget.
+The original walking baseline and other style presets are unchanged. This
+is one matched training pair, not proof that every new run will qualify:
+a separate control repetition qualified at 8,000 steps but failed at 10,000.
 
 **The revised workflow has not run in an authenticated Colab GPU runtime.** The
 submitted L4 output is evidence about the prior workflow. New GPU tests use a local
