@@ -7,6 +7,7 @@ Public image access is needed; no private-repository access is required.
 """
 
 import argparse
+import copy
 import hashlib
 import io
 import json
@@ -117,11 +118,7 @@ def section_cells(path):
         marker, source = parts[index], parts[index + 1].strip()
         if "[markdown]" in marker:
             source = "\n".join(
-                line[2:]
-                if line.startswith("# ")
-                else line[1:]
-                if line.startswith("#")
-                else line
+                line[2:] if line.startswith("# ") else line.removeprefix("#")
                 for line in source.splitlines()
             )
             cell = nbformat.v4.new_markdown_cell(source)
@@ -217,6 +214,30 @@ def main():
                 notebook.metadata[key] = previous.metadata[key]
     nbformat.validate(notebook)
     nbformat.write(notebook, args.output)
+    # The optional lesson reuses the exact verified setup cells and release.
+    extension_cells = []
+    for cell in section_cells(ROOT / "notebooks/extensions/hopping.py"):
+        if not cell.source:
+            extension_cells.extend(
+                copy.deepcopy(item)
+                for item in cells
+                if item.cell_type == "code"
+                and item.source.startswith(
+                    (
+                        "# @title Unpack the lesson files",
+                        "# @title Install pinned dependencies",
+                    )
+                )
+            )
+        else:
+            extension_cells.append(cell)
+    embed_references(extension_cells)
+    extension = nbformat.v4.new_notebook(
+        cells=extension_cells, metadata=copy.deepcopy(notebook.metadata)
+    )
+    extension.metadata.colab.name = "BDXR_Hopping_Extra.ipynb"
+    nbformat.validate(extension)
+    nbformat.write(extension, args.output.parent / "BDXR_Hopping_Extra.ipynb")
     print(
         f"Wrote {args.output}: {len(cells)} cells, {args.output.stat().st_size:,} bytes"
     )

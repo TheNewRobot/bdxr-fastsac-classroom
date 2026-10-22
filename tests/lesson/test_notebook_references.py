@@ -56,9 +56,9 @@ class NotebookReferences(unittest.TestCase):
     def test_opening_photo_and_walking_example_belong_to_the_intro_text(self):
         opening = self.notebook.cells[0]
         self.assertEqual(opening.cell_type, "markdown")
-        self.assertIn("Meet the droid", opening.source)
+        self.assertIn("Meet the robot and create the environment", opening.source)
         self.assertIn("/notebook/reference-disney_bdx.png", opening.source)
-        self.assertIn("/inline/walking.gif", opening.source)
+        self.assertIn("/classroom_walking/baseline.gif", opening.source)
         self.assertIn("D23 / Disney", opening.source)
         self.assertFalse(opening.get("attachments"))
 
@@ -92,8 +92,8 @@ class NotebookReferences(unittest.TestCase):
                     self.assertGreater(image.n_frames, 1)
                     animations += 1
                 images += 1
-        self.assertEqual(animations, 8)
-        self.assertEqual(images, 22)
+        self.assertEqual(animations, 2)
+        self.assertEqual(images, 8)
 
     def test_builder_never_executes_code(self):
         spec = importlib.util.spec_from_file_location(

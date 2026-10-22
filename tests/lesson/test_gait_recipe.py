@@ -1,4 +1,4 @@
-"""Keep the classroom comparison an actual matched reward experiment."""
+"""The student's first run is the control; only one new reward run is launched."""
 
 import contextlib
 import io
@@ -7,59 +7,38 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
-from scripts.lesson.validate_notebook import replace_assignment
-
 
 class GaitRecipeTests(unittest.TestCase):
-    def run_recipe(self, experiment):
-        path = (
-            Path(__file__).resolve().parents[2]
-            / "notebooks/sections/07_gait_experiment.py"
-        )
+    def run_recipe(self, completed_steps):
+        path = Path(__file__).resolve().parents[2] / "notebooks/sections/06_reward.py"
         cells = path.read_text().split("# %%")
-        settings = next(c for c in cells if c.lstrip().startswith("EXPERIMENT ="))
+        settings = next(c for c in cells if c.lstrip().startswith("PREDICTION ="))
         training = next(
-            c for c in cells if c.lstrip().startswith("# Neither call has a parent")
+            c for c in cells if c.lstrip().startswith("# No parent checkpoint")
         )
-        settings = replace_assignment(settings, "EXPERIMENT", repr(experiment))
+        environment = {"yaw_bias_weight": 10.0, "command_mode": "balanced"}
+        learning = {"seed": 7, "steps": 12000, "minutes": 15}
+        lab = SimpleNamespace(train=Mock(), record=Mock())
         state = {
-            "ENV_CONFIG": {"yaw_bias_weight": 6.0, "command_mode": "balanced"},
-            "LEARNING_CONFIG": {"seed": 7, "steps": 10000, "minutes": 15},
-            "lab": SimpleNamespace(train=Mock()),
+            "ENV_CONFIG": environment,
+            "LEARNING_CONFIG": learning,
+            "lab": lab,
+            "BASELINE": Path("/saved_baseline"),
+            "read_json": lambda _: {"step": completed_steps},
         }
         with contextlib.redirect_stdout(io.StringIO()):
-            # Execute only the checked-in teaching cells, never external input.
-            exec(compile(settings + training, str(path), "exec"), state)  # noqa: S102
-        return state
+            exec(compile(settings + training, str(path), "exec"), state)  # noqa: S102 -- checked-in lesson cells
+        lab.train.assert_called_once_with(
+            "level_feet",
+            {**environment, "level_feet_weight": 0.75},
+            {**learning, "steps": completed_steps},
+        )
+        self.assertNotIn("level_feet_weight", environment)
+        self.assertEqual(learning["steps"], 12000)
+        self.assertNotIn("CONTROL = lab.train", path.read_text())
 
-    def test_level_feet_changes_only_one_reward_between_fresh_runs(self):
-        state = self.run_recipe("level_feet")
-        control, variant = state["lab"].train.call_args_list
-        common = control.args[1]
-        changed = variant.args[1]
-        differences = {
-            key
-            for key in common.keys() | changed.keys()
-            if common.get(key) != changed.get(key)
-        }
-        self.assertEqual(differences, {"level_feet_weight"})
-        self.assertEqual(common["yaw_bias_weight"], 10)
-        self.assertEqual(changed["level_feet_weight"], 0.75)
-        self.assertEqual(control.args[2], variant.args[2])
-        self.assertEqual(control.args[2], {"seed": 7, "steps": 10000, "minutes": 25})
-        self.assertFalse(control.kwargs)
-        self.assertFalse(variant.kwargs)
-        self.assertEqual(state["ENV_CONFIG"]["yaw_bias_weight"], 6)
-        self.assertEqual(state["LEARNING_CONFIG"]["minutes"], 15)
+    def test_one_scalar_change_and_fresh_training(self):
+        self.run_recipe(12000)
 
-    def test_other_styles_keep_the_original_common_settings(self):
-        for name, seed, steps in (("quick_steps", 7, 10000), ("crouched", 8, 9000)):
-            with self.subTest(experiment=name):
-                state = self.run_recipe(name)
-                control, variant = state["lab"].train.call_args_list
-                self.assertEqual(control.args[1], state["ENV_CONFIG"])
-                self.assertEqual(variant.args[1]["yaw_bias_weight"], 6)
-                self.assertEqual(
-                    control.args[2],
-                    {"seed": seed, "steps": steps, "minutes": 15},
-                )
+    def test_time_limited_baseline_gets_matching_variant_steps(self):
+        self.run_recipe(8000)

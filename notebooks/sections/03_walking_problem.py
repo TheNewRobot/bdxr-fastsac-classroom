@@ -1,7 +1,9 @@
 # %% [markdown]
-# ## 4 · What does the policy observe and control?
+# ## 3 · Define the walking problem
 #
-# The policy receives numbers describing the robot and the requested movement.
+# **Objective:** stay upright and follow the requested forward speed and turn rate.
+# Zero turn rate asks for approximately straight walking; commands can also request
+# stopping or reversing. The policy receives the robot state and these commands.
 # It outputs **ten leg-joint position targets**. Motor position controllers
 # generate forces to approach those targets; the policy does not directly place
 # the feet or teleport the robot.
@@ -20,13 +22,31 @@
 # into leg-joint targets using the action scales.
 #
 # The actor observes proprioception and commands. The critic's extra components
-# describe simulated motion and foot contact. Hopping adds two phase components,
-# so its observation lengths are 49 and 64.
+# describe simulated motion and foot contact. These extra inputs are training-only.
 #
 # ### Your activity · verify the interface
 #
 # Print the actual observation terms and action scales below. Use the table to
 # explain why true base linear velocity is not available to the deployed actor.
+
+# | Actor term | Scalars | Where it comes from |
+# |---|---:|---|
+# | Angular velocity | 3 | Gyroscope-like body rotation measurement |
+# | Gravity direction | 3 | Gravity projected into the body frame; an orientation estimate |
+# | Joint positions | 14 | Encoder-like joint measurements relative to the default pose |
+# | Joint velocities | 14 | Joint velocity measurements |
+# | Previous actions | 10 | The controller's own previous leg commands |
+# | Movement command | 3 | Requested forward, sideways, and turning velocities |
+#
+# **47 = 3 + 3 + 14 + 14 + 10 + 3.** The model measures 14 joints, but this
+# locomotion policy commands the ten leg joints. The sideways command is held
+# at zero in this lesson. Commands are instructions, not sensor measurements.
+#
+# The critic adds 15 scalars: true linear velocity (3), two foot heights (2),
+# airtimes (2), contacts (2), and contact-force components (6). Thus its input
+# length is **62**. These simulator-only measurements help learning, but the
+# deployed actor cannot read them. In particular, it does not know world position
+# or heading and cannot secretly correct its path with a navigation controller.
 
 # %%
 %%robot
@@ -34,15 +54,17 @@ print("Actor observation length per robot:", observations["actor"].shape[-1])
 print("Critic observation length per robot:", observations["critic"].shape[-1])
 print("Action vector length per robot:", env.action_manager.total_action_dim)
 print("Parallel robots in this batch:", observations["actor"].shape[0])
-print("Actor terms:", list(env.cfg.observations["actor"].terms))
-print("Critic terms:", list(env.cfg.observations["critic"].terms))
+for group in ("actor", "critic"):
+    terms = env.observation_manager.active_terms[group]
+    shapes = env.observation_manager.group_obs_term_dim[group]
+    print(group, dict(zip(terms, shapes)))
 print("Joint target scales:", env.cfg.actions["joint_pos"].scale)
 
 # %% [markdown]
 # | Quantity | Used by deployed actor? | Purpose |
 # |---|---|---|
-# | Angular velocity and gravity direction | Yes | Sense rotation and tilt |
-# | Joint positions/velocities and previous actions | Yes | Describe posture and recent motion |
+# | Gyroscope angular velocity; estimated gravity direction | Yes | Sense rotation and tilt |
+# | Joint encoders/velocity estimates; previous actions | Yes | Describe posture and recent motion |
 # | Forward-speed and yaw-rate commands | Yes | Specify the requested movement |
 # | True base linear velocity and contact information | No; critic/rewards may use them | Help training and evaluation |
 # | World position, absolute heading, terrain map | No | No hidden navigation controller |
@@ -69,23 +91,20 @@ print("Joint target scales:", env.cfg.actions["joint_pos"].scale)
 # Simulator measurements may score the task without being given to the actor.
 
 # %% [markdown]
-# ### Instructor example · selected baseline reward terms
+# | Reward preference | What it encourages |
+# |---|---|
+# | Speed and turn tracking | Move according to the command |
+# | Upright posture | Keep the torso balanced |
+# | Foot airtime and clearance | Lift and place the feet during stepping |
+# | Small action changes | Avoid abrupt changes in motor targets |
+# | Low sustained yaw/sideways bias | Reduce persistent turning and sideways motion |
 #
-# | Term | Weight | Interpretation |
-# |---|---:|---|
-# | Forward-speed tracking | 8.0 | Follow the requested speed |
-# | Turn-rate tracking | 4.0 | Follow the requested yaw rate |
-# | Upright posture | 2.0 | Keep the body upright |
-# | Foot airtime | 1.5 | Encourage a useful swing interval (0.10–0.60 s) |
-# | Foot clearance cost | −4.0 | Penalize deviation from the 0.06 m target |
-# | Action-change cost | −0.1 | Discourage abrupt target changes |
+# These preferences can compete: excessive smoothness can discourage useful
+# stepping, while chasing speed alone can produce unstable movement. Training
+# finds a compromise rather than executing a hand-written sequence of leg poses.
 #
-# These are selected terms from the actual baseline, not the complete reward.
-# Weights multiply different quantities with different scales; a larger weight
-# alone does not tell us which contribution dominates.
-#
-# **Your activity:** print the full reward configuration below and identify which
-# term you would change to encourage quicker stepping.
+# The next cell prints actual weights and parameters. These terms have different
+# units and scales; the largest weight need not make the largest contribution.
 
 # %%
 %%robot
@@ -108,3 +127,15 @@ print(rewards)
 # A higher return after changing weights does **not** automatically mean a better gait.
 #
 # **Discuss:** why could rewarding only forward speed produce a poor walker?
+
+# %% [markdown]
+# ### When does an episode end?
+#
+# A task termination ends an unsuccessful attempt; a time limit ends a full
+# practice episode. The simulator then resets for another attempt. These endings
+# must be distinguished when learning how much future reward remains.
+
+# %%
+%%robot
+print("Episode time limit:", env.cfg.episode_length_s, "seconds")
+print("Termination rules:", list(env.cfg.terminations))

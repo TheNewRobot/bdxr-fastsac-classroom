@@ -1,8 +1,7 @@
 """Execute the authored notebook with real local training and explicit scope.
 
 By default this is a short integration test, not a policy-quality evaluation.
-The test copy retains failed verdicts and bypasses its classroom stop gate only
-so the later cells and backup can be exercised. --full uses the actual budgets.
+Failed verdicts remain visible. --full uses the actual classroom budgets.
 """
 
 import argparse
@@ -37,14 +36,12 @@ def test_copy(
     game_port=18765,
     include_hopping=False,
     bundle_url=None,
-    exercise_recovery=False,
 ):
     """Modify only runtime location/budgets in the executed validation copy."""
     if not full:
         notebook.cells[0].source = (
             "**LOCAL INTEGRATION TEST:** Short runs do not establish locomotion quality. "
-            "Failed policy checks are retained; the classroom stop gate is bypassed only "
-            "in this test copy. Actual Google Colab is untested.\n\n"
+            "Failed policy checks are retained. Actual Google Colab is untested.\n\n"
             + notebook.cells[0].source
         )
     for cell in notebook.cells:
@@ -72,45 +69,15 @@ gpu = json.loads(subprocess.check_output([PYTHON, "-c", "import torch,json; prin
 print("Reused pinned environment; GPU:", gpu)
 """
         if not full:
-            if source.startswith("LEARNING_CONFIG ="):
+            if "LEARNING_CONFIG =" in source:
                 source += "\nLEARNING_CONFIG.update(num_envs=32, batch_size=256, steps=60, compile=False)\n"
-            if source.startswith("EXPERIMENT ="):
-                source += "\nPAIR_LEARNING.update(steps=60)\n"
-            if exercise_recovery:
-                source = source.replace('"steps": 3000', '"steps": 60')
-                source = source.replace(
-                    "and drift_only_failure(INITIAL_BASELINE_CHECK):",
-                    "and True:  # Exercise routing only; short runs are not eligible policies.",
-                )
-                source = source.replace(
-                    'if not BASELINE_CHECK["passed"]:\n    raise RuntimeError(',
-                    "if False:  # Integration copy only; failed verdict retained.\n"
-                    "    raise RuntimeError(",
-                )
-            else:
-                source = source.replace(
-                    'if not BASELINE_CHECK["passed"] and drift_only_failure(INITIAL_BASELINE_CHECK):',
-                    "if False:  # Integration copy only; skip optional refinement.",
-                )
-                source = source.replace(
-                    'if not BASELINE_CHECK["passed"]:',
-                    "if False:  # Integration copy only; failed verdict retained.",
-                )
             source = source.replace(
-                "evaluate_walking(lab, BASELINE)",
-                "evaluate_walking(lab, BASELINE, episodes=1, seconds=2)",
+                "assess_walking(lab, BASELINE)",
+                "assess_walking(lab, BASELINE, episodes=1, seconds=2)",
             )
             source = source.replace(
-                "evaluate_walking(lab, CONTROL)",
-                "evaluate_walking(lab, CONTROL, episodes=1, seconds=2)",
-            )
-            source = source.replace(
-                "evaluate_walking(lab, VARIATION)",
-                "evaluate_walking(lab, VARIATION, episodes=1, seconds=2)",
-            )
-            source = source.replace(
-                "walking = WALK_CHECKPOINT or SELECTED_WALK_CHECKPOINT",
-                'walking = WALK_CHECKPOINT or str(BASELINE / "checkpoints/final.pt")  # Exploratory smoke policy',
+                "assess_walking(lab, VARIATION)",
+                "assess_walking(lab, VARIATION, episodes=1, seconds=2)",
             )
             if include_hopping:
                 source = source.replace("TRAIN_HOPPING = False", "TRAIN_HOPPING = True")
@@ -118,10 +85,6 @@ print("Reused pinned environment; GPU:", gpu)
                     "for stage in CURRICULUM:\n",
                     "for stage in CURRICULUM:\n"
                     '        stage = {**stage, "learning": {**stage["learning"], "steps": 60}}\n',
-                )
-                source = source.replace(
-                    "select_hopper(lab, HOP_STAGES, SELECTED_WALK_CHECKPOINT)",
-                    "select_hopper(lab, HOP_STAGES, SELECTED_WALK_CHECKPOINT, episodes=1, seconds=2)",
                 )
         else:
             source = source.replace("USE_WANDB = False", "USE_WANDB = True")
@@ -138,11 +101,6 @@ def main():
     parser.add_argument("--game-port", type=int, default=18765)
     parser.add_argument("--full", action="store_true")
     parser.add_argument(
-        "--exercise-recovery",
-        action="store_true",
-        help="Exercise both recovery branches with short integration budgets.",
-    )
-    parser.add_argument(
         "--include-hopping",
         action="store_true",
         help="Exercise all optional curriculum stages with short integration budgets.",
@@ -157,8 +115,11 @@ def main():
         "--bundle-url",
         help="Explicit prepublication test URL; hash verification is still required.",
     )
+    parser.add_argument(
+        "--notebook", type=Path, default=ROOT / "notebooks/BDXR_Walking_101.ipynb"
+    )
     args = parser.parse_args()
-    path = ROOT / "notebooks/BDXR_Walking_101.ipynb"
+    path = args.notebook
     notebook = nbformat.read(path, as_version=4)
     notebook.metadata["validation"] = {
         "source_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
@@ -168,7 +129,6 @@ def main():
         "dependency_installation_tested": args.reuse_env is None,
         "bundle_url_override": args.bundle_url,
         "optional_hopping_enabled": args.full or args.include_hopping,
-        "recovery_branches_exercised": args.exercise_recovery and not args.full,
         "scope": "Local notebook execution; short integration unless full_training is true.",
     }
     test_copy(
@@ -179,7 +139,6 @@ def main():
         args.game_port,
         args.include_hopping,
         args.bundle_url,
-        args.exercise_recovery,
     )
     notebook.metadata.kernelspec.name = args.kernel
     client = NotebookClient(

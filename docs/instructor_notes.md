@@ -1,70 +1,33 @@
-# Short demo class
+# Teaching the walking lesson
 
-| Minutes | Activity |
-| --- | --- |
-| 0–2 | Show the real droid reference beside simulated walking |
-| 2–5 | Follow one leg through its joints and move the knee slider |
-| 5–7 | Inspect the environment, observations, actions, and reward |
-| 7–9 | Explain actor, privileged critic, replay, and one collection step |
-| 9–12 | Compare a scratch-trained reward variation and its control |
-| 12–15 | Show hopping and introduce the interactive course |
+The core has seven sections: environment, kinematics, walking problem, SAC
+training, a brief walking check, one reward experiment, and the walking game.
+Students train two policies from scratch. The first run is the unchanged control;
+the second changes only the sole-level reward weight. Hopping is a separate
+[after-class notebook](../notebooks/BDXR_Hopping_Extra.ipynb).
 
-Prepare training beforehand for a short presentation. Installation, training,
-video generation and gameplay are separate from presentation time.
+Keep the environment and learning configurations visible. Explain sensor
+measurements versus commands, the 47 actor inputs, 62 critic inputs, and ten leg
+actions. Privileged simulator measurements help the critic and rewards; they do
+not enter the deployed actor or a hidden path controller.
 
-Teaching examples are inside the Markdown: public images and eight short,
-silent looping excerpts. No example is a Python display cell or saved output.
-Clearing every code output preserves the lesson illustrations. Student activity
-cells generate their own videos, plots and live game interface.
-Charts are bounded to 720 pixels; larger robot/course illustrations to 800.
-Section 9 embeds the live game after execution. Use W/S, A/D and Space or its
-buttons; forward port 8765 if needed in remote VS Code. No plugin is required.
+Show the student's walking video immediately after training. The short check
+uses three 10-second forward trials and prints its actual wall time. It retains
+the previous numerical tolerances but does not certify turning or terrain skill.
+No recovery training or checkpoint search runs automatically. Discuss balance,
+tracking, and drift separately instead of treating an upright robot as perfect.
 
-The actor receives proprioception and commands; the critic may use additional
-simulator information during training. The actor controls ten leg joints.
+The reward comparison reuses the saved assessment trajectories for gait
+measurements. Its target step count matches the baseline's completed steps;
+check both actual budgets before attributing a change to the reward. A higher
+return after changing reward weights is not itself evidence of a better gait.
 
-Speed is not straightness. A robot can move forward in its own body frame
-while curving across the floor. Trajectory and yaw-rate plots expose this.
-Evaluation position measurements do not become policy inputs.
-Sideways motion can also cause drift without much turning. Simulator velocity
-can score this during training while staying out of the actor's observations.
+End with students steering their own policy through the walking course. W/S and
+A/D control movement; sliders allow finer commands. Falling resets the robot,
+while elapsed simulation time and fall count accumulate. Pause before exporting.
+No hopping policy is required for the core course.
 
-Changing the speed command differs from retraining a reward setting.
-Train the style and its control from scratch with the same seed and step budget.
-The recorded choices are flatter feet, quicker steps, and crouched walking.
-Recheck backward motion, stops and turns after a style change.
-An unchanged continuation can also get worse: more updates do not guarantee
-better control. For the baseline, the lesson checks up to two earlier saved
-snapshots before spending more training time; each needs the same full command
-suite. This adds evaluation time and keeps the original failed reports. Use the acceptance table to decide which policies to keep,
-and discuss failed experiments instead of hiding them.
-
-Hopping phase is a command. Foot clearance is not body jump height, and a
-successful flat-floor hop does not prove obstacle clearance. Mode transitions
-and course traversal require their own tests.
-
-The game is a human-controlled validation task, not a navigation policy.
-The 25 mm middle step has a recorded walking-versus-hopping comparison.
-Replaying fixed commands can miss the finish; players must steer.
-Ask students to explain a failure using the video, commands and measurements.
-
-For a hands-on class, run sections 1–7 and reserve extra time for GPU setup,
-training, evaluation, and rendering. Section 8's eight-stage hopping curriculum
-is optional; its recorded videos are available without retraining. Section 9
-accepts compatible uploaded checkpoints as well as student-trained policies.
-Section 10 exports configurations, metrics, videos, and resumable checkpoints.
-
-The notebook's `%%robot` cells share a pinned simulator process. Readable model
-and environment code stays in the lesson; package installation and repetitive
-subprocess handling are collapsed or delegated to the lesson helpers. If that
-process is restarted, rerun environment creation before later simulator cells.
-
-The presentation adds a level-faced neck bounce while moving and gentle idle
-looks. These gestures affect only the renderer; physical targets and the learned
-controller are unchanged.
-
-Distribute the notebook with its matching public lesson release. Setup downloads
-and checks that archive directly, with progress and bounded retries. It does not
-require access to the open notebook or a manual ZIP upload. Rerunning setup repairs
-incomplete extraction while keeping student results. The final backup includes
-runtime information and logs for diagnosing problems.
+Allow for two training runs, setup, discussion, rendering, and gameplay. The
+15-minute training limit is per run, not the duration of the whole lesson. A
+slower runtime may stop before the requested step count. See the current
+[validation scope](progress.md) before advertising a classroom duration.

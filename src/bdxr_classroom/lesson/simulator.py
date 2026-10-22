@@ -1,13 +1,29 @@
 """A small cell magic for executing visible Python in the pinned simulator."""
 
 import atexit
+import contextlib
 import json
 import queue
 import subprocess
 import threading
 import time
+from pathlib import Path
 
 from .worker import RESPONSE_PREFIX
+
+
+@contextlib.contextmanager
+def setup_log(path):
+    """Save verbose simulator startup tables while keeping lesson output concise."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with path.open("w") as log, contextlib.redirect_stdout(log):
+            yield
+    except Exception:
+        print(f"Simulator setup failed. Full startup log: {path}")
+        raise
+    print(f"Simulator startup details saved to {path}")
 
 
 class SimulatorCells:

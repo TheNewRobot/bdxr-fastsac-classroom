@@ -1,9 +1,9 @@
 # %% [markdown]
-# ## 5 · Configure Soft Actor-Critic
+# ## 4 · Configure SAC and train
 #
 # **SAC** learns from experience saved in a replay buffer. The actor proposes
-# actions; two critics estimate future reward. Training uses the smaller critic
-# estimate to reduce overly optimistic targets. An entropy term encourages
+# actions; two critics estimate future return. Replay samples update the critics
+# and actor. An entropy term encourages
 # exploration rather than choosing the same action every time.
 #
 # $$J(\pi)=\mathbb{E}\left[\sum_t\gamma^t
@@ -21,34 +21,34 @@
 # %% [markdown]
 # ### Separate learning settings from environment settings
 #
+# During training, the actor samples exploratory actions and stores transitions
+# $(o_t,a_t,r_t,o_{t+1})$ in replay. Learning updates reuse these experiences;
+# they do not require a new simulated step for every gradient update. During
+# evaluation, the actor uses its deterministic action, without exploration noise.
+#
+# The actor learns which actions to choose. The critics learn to predict return,
+# and their predictions supply a learning signal for the actor. A reward value
+# describes the current transition; a critic estimate includes expected future
+# rewards. Neither the reward calculation nor the critic is a deployed planner.
+#
 # `num_envs` counts independent robots collecting experience. `batch_size` counts
-# replay samples in a neural-network update. These are different quantities.
+# sampled replay transitions; mirroring adds their reflected partners. These
+# are different quantities.
 # `steps` counts parallel simulation steps: with 512 robots, one step collects
 # 512 transitions. The training curve plots collected transitions.
 
 # %% [markdown]
-# | Learning setting | Recorded baseline | What it changes |
-# |---|---|---|
-# | Parallel robots | 512 | Experience collected each simulation step |
-# | Batch size | 2,048 | Replay samples used per update |
-# | Simulation steps | 10,000 | Up to 5.12 million collected transitions |
-# | Discount | 0.97 | Emphasis on future reward |
-# | Updates per step | 4 | Learning work per collection step |
-#
-# ### Your activity · configure and inspect SAC
-#
-# Keep these settings for the first run. Inspect the network and store one
-# transition before launching training. A single untrained action is not walking.
-# A matching seed does not guarantee identical GPU training. Use the command
-# checks below to judge your result, rather than expecting the same video.
+# Keep the first-run settings below. We inspect one interaction, then train
+# a fresh policy. The seed identifies an experiment; judge the result using its
+# video and measurements rather than expecting identical GPU training.
 
 # %%
 LEARNING_CONFIG = {
-    "seed": 7,  # Same initialization seed as the recorded baseline.
+    "seed": 7,  # Seed for your baseline and matched reward experiment.
     "num_envs": 512,  # Independent simulations collecting experience.
-    "batch_size": 2048,  # Replay samples per learning update.
+    "batch_size": 2048,  # Replay samples before left/right augmentation.
     "buffer_size": 512,  # Replay slots per parallel robot.
-    "steps": 10000,  # Parallel simulation steps.
+    "steps": 12000,  # Parallel simulation steps.
     "minutes": 15,  # Stop earlier if the training-time limit is reached.
     "gamma": 0.97,  # Discount applied to future reward.
     "updates": 4,  # Learning updates per simulation step.
@@ -74,12 +74,9 @@ print("W&B:", LEARNING_CONFIG["wandb_mode"])
 print("Local metrics and checkpoints are saved even when W&B is disabled.")
 
 # %% [markdown]
-# The recorded baseline took about **9 minutes** of training on an L40S GPU.
-# Setup, compilation, evaluation, and video rendering take additional time.
-# A Colab GPU or a different seed may take longer or fail the quality checks.
-#
-# **Predict:** what changes if we double the number of parallel environments but
-# keep the number of simulation steps unchanged?
+# The limit is **15 minutes of training per run**, excluding setup and display.
+# A slower GPU may hit that limit before 12,000 steps. The actual step count is
+# printed and saved; unfinished budgets must not be treated as matching experiments.
 
 # %% [markdown]
 # ### Inspect the network and one interaction
@@ -104,7 +101,8 @@ agent = FastSAC(
     env.action_manager.total_action_dim,
     inspection,
 )
-print(agent.actor)
+print("Actor inputs → hidden width → actions:",
+      agent.dimensions[0], "→", inspection["actor_hidden"], "→", agent.dimensions[2])
 
 # %%
 %%robot
@@ -129,3 +127,28 @@ env.close()
 
 # %%
 simulator.close()
+
+# %% [markdown]
+# ### Train, then watch
+#
+# Training starts from random networks. The helper saves the exact configuration,
+# final weights, resumable state, and real learning metrics in a timestamped folder.
+
+# %%
+BASELINE = lab.train("command_walking_baseline", ENV_CONFIG, LEARNING_CONFIG)
+print("Saved experiment:", BASELINE)
+
+# %%
+from IPython.display import display, Video
+
+baseline_video = lab.record(BASELINE, speed=0.30)
+display(Video(str(baseline_video), embed=True, width=640))
+
+# %%
+from IPython.display import display, Image
+
+display(Image(filename=str(lab.learning_curve(BASELINE)), width=640))
+
+# %% [markdown]
+# Rising return suggests learning, but it does not establish good walking.
+# **Observe:** does the droid stay upright, move forward, and drift sideways?

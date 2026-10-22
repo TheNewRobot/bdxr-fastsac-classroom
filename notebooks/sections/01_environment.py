@@ -1,36 +1,51 @@
 # %% [markdown]
-# ## 2 · Create the environment
+# # Teach a little droid to walk
+# **163A / 263A · Robot kinematics and reinforcement learning**
 #
-# Select **Runtime → Change runtime type → GPU**. Installation may take several
-# minutes; it is separate from training time.
-# Check the GPU name printed below. If the time limit stops training early,
-# the saved step count will be lower than the requested count.
+# Build a simulation, inspect the robot's joints, train a walking controller,
+# then change one reward and see how its gait changes.
 #
-# An environment combines the robot, ground, actuators, observations, reward,
-# and rules for ending an episode. We first inspect **one** robot. Training will
-# use many independent copies of this same task.
+# **Today's questions:** What does the robot observe? What does its action mean?
+# How does a reward influence movement? How do we check whether it learned?
+#
+# **Our route:** environment → kinematics → walking problem → SAC training
+# → a short walking check → one reward experiment → drive your droid.
+#
+# Examples are embedded in the text. Executable cells produce your own results.
+# Local timings are not Colab guarantees; we will print your actual steps and times.
 
 # %% [markdown]
-# ### Instructor example · the environment you will build
+# ## 1 · Meet the robot and create the environment
 #
-# | The model at reset |
-# |:---:|
-# | ![BDX-R at its initial pose](lesson-asset:reference/robot.png) |
+# The real-world demonstration is Disney's BDX droid. Our classroom uses the
+# separately developed **BDX-R open-source model**, simulated with **MuJoCo Warp**
+# through mjlab. We train with **FastSAC**; this is not Disney's controller.
 #
-# This is a render of the actual model at reset, before learning.
+
+# %% [markdown]
+# | Real-world inspiration | Our simulated walker |
+# |:---:|:---:|
+# | ![Disney BDX droid — D23 reference photograph](lesson-asset:reference/disney_bdx.jpg) | ![Recorded instructor walking example](lesson-asset:classroom_walking/baseline.gif) |
 #
-# | Setting | Baseline | Meaning |
-# |---|---|---|
-# | Physics update | 5 ms | Integrate forces and contacts |
-# | Policy update | 20 ms | Choose new joint targets |
-# | Episode limit | 10 s | Reset and try again |
-# | Speed command | −0.25 to +0.50 m/s | Backward through fast forward |
-# | Turn command | −0.60 to +0.60 rad/s | Right and left turns |
+# Head gestures are cosmetic animation; leg motion comes from simulation.
 #
-# ### Your activity · install, configure, and render
+# Photo: [D23 / Disney](https://d23.com/bdx-droids-disneys-perfect-marriage-of-creativity-and-technological-achievement/), not relicensed. Simulation: the open-source BDX-R model with our recorded walking policy.
+
+# %% [markdown]
+# **Before running anything:** which joints do you expect to be most important
+# for moving a foot forward? Which might help keep the body upright?
 #
-# Run the setup and environment cells below. Your own model render will appear
-# beneath the final display cell. Compare its pose with the reference above.
+# Credits: [BDX-R model](https://github.com/BDX-R/BDX-R-MjLab),
+# [FastSAC project](https://younggyo.me/fastsac-humanoid/),
+# [Holosoma](https://github.com/amazon-far/holosoma), and
+# [mjlab](https://github.com/mujocolab/mjlab). Pinned revisions and license notices
+# are included with the lesson files.
+# %% [markdown]
+# ### Install and configure the environment
+#
+# Select **Runtime → Change runtime type → GPU**. Setup is separate from training.
+# An environment defines the robot, ground, actuators, observations, rewards,
+# and episode endings. We first inspect one robot, then train many copies.
 
 # %% [hidden]
 # @title Unpack the lesson files
@@ -86,25 +101,38 @@ lab = Lesson(WORK, PYTHON, runtime_env)
 # %% [markdown]
 # ### Define the walking task
 #
-# These are the validated baseline settings. Positive forward speed asks for
+# These settings define the classroom walking task. Positive forward speed asks for
 # forward motion; negative speed asks for backward motion. Positive yaw rate
 # requests a left turn. Zero yaw requests no rotation, without a compass or
 # an external heading-correction controller.
 #
-# `balanced` samples several command categories during training. The last two
-# settings reward small **sustained** turning error and sideways drift.
+# The yaw- and lateral-bias weights discourage **sustained** turning error
+# and sideways drift. They do not add a heading-correction controller.
+
+# | Environment setting | Meaning |
+# |---|---|
+# | Physics step: 5 ms | Integrate forces and contacts |
+# | Control step: 20 ms | Ask the actor for new joint targets |
+# | Episode length: 10 s | Maximum duration before another practice reset |
+# | Speed range: −0.15 to +0.35 m/s | Reverse through brisk forward walking |
+# | Turn-rate range: ±0.45 rad/s | Right and left turns; zero requests straight motion |
+#
+# `balanced` samples stopping, straight movement, turning, and combined commands.
+# Small reset perturbations expose the learner to more than one starting posture.
+# These define the task; they are separate from SAC's network and replay settings.
 
 # %%
 ENV_CONFIG = {
     "task_version": "v2",  # Ten leg-joint targets; the complete robot remains physical.
     "command_mode": "balanced",  # Practice forward/backward movement, stopping, and turns.
-    "speed_min": -0.25,  # m/s, backward command limit.
-    "speed_max": 0.50,  # m/s, forward command limit.
-    "yaw_max": 0.60,  # rad/s, magnitude of the turning command.
+    "speed_min": -0.15,  # m/s, backward command limit.
+    "speed_max": 0.35,  # m/s, forward command limit.
+    "yaw_max": 0.45,  # rad/s, magnitude of the turning command.
     "yaw_tracking": "imu",  # Estimate turning rate from gyro and gravity direction.
     "yaw_std": 0.20,  # rad/s, width of the turning reward.
-    "yaw_bias_weight": 6.0,  # Weight for reducing sustained turning error.
+    "yaw_bias_weight": 10.0,  # Weight for reducing sustained turning error.
     "lateral_bias_weight": 2.0,  # Weight for reducing sustained sideways drift.
+    "initial_jitter": 0.03,  # Radians: practice small reset perturbations.
 }
 (WORK / "environment_settings.json").write_text(json.dumps(ENV_CONFIG, indent=2))
 
@@ -118,9 +146,11 @@ ENV_CONFIG = {
 import json
 from pathlib import Path
 from bdxr_classroom.simulation.environment import make_env
+from bdxr_classroom.lesson.simulator import setup_log
 
 settings = json.loads(Path("environment_settings.json").read_text())
-env = make_env(num_envs=1, seed=7, render=True, **settings)
+with setup_log("artifacts/logs/environment_setup.log"):
+    env = make_env(num_envs=1, seed=7, render=True, **settings)
 observations, _ = env.reset(seed=7)
 print("Physics timestep:", env.cfg.sim.mujoco.timestep, "seconds")
 print("Policy/control timestep:", env.step_dt, "seconds")
