@@ -61,7 +61,7 @@ runpy.run_path(str(helper))["prepare_lesson"](BUNDLE_URL, BUNDLE_SHA256, WORK)
 
 # %% [hidden]
 # @title Install pinned dependencies
-if "WORK" not in globals():
+if "WORK" not in globals() or not (WORK / "scripts/setup/setup.py").is_file():
     raise RuntimeError("Run the unpack cell first.")
 
 from bdxr_classroom.lesson.setup import install_runtime
