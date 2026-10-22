@@ -49,13 +49,14 @@ LEARNING_CONFIG = {
     "batch_size": 2048,  # Replay samples before left/right augmentation.
     "buffer_size": 512,  # Replay slots per parallel robot.
     "steps": 12000,  # Parallel simulation steps.
-    "minutes": 15,  # Stop earlier if the training-time limit is reached.
+    "minutes": 17,  # Allow 12,000 steps to finish; setup/display time is separate.
     "gamma": 0.97,  # Discount applied to future reward.
     "updates": 4,  # Learning updates per simulation step.
     "actor_hidden": 256,  # Actor hidden-layer width.
     "critic_hidden": 384,  # Critic hidden-layer width.
     "mirror_replay": True,  # Reuse left/right mirrored experience.
     "compile": True,  # Compile the repeated GPU learning operations.
+    "save_every": 3000,  # Keep periodic checkpoints; assess the final weights.
 }
 USE_WANDB = False  # @param {type:"boolean"}
 LEARNING_CONFIG["wandb_mode"] = "online" if USE_WANDB else "disabled"
@@ -74,8 +75,8 @@ print("W&B:", LEARNING_CONFIG["wandb_mode"])
 print("Local metrics and checkpoints are saved even when W&B is disabled.")
 
 # %% [markdown]
-# The limit is **15 minutes of training per run**, excluding setup and display.
-# A slower GPU may hit that limit before 12,000 steps. The actual step count is
+# Use the required **L4 GPU** and allow **up to 17 minutes per training run**,
+# excluding setup and display. The target remains **12,000 steps**. The actual step count is
 # printed and saved; unfinished budgets must not be treated as matching experiments.
 
 # %% [markdown]

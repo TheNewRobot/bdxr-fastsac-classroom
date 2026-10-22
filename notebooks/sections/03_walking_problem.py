@@ -134,8 +134,11 @@ print(rewards)
 # A task termination ends an unsuccessful attempt; a time limit ends a full
 # practice episode. The simulator then resets for another attempt. These endings
 # must be distinguished when learning how much future reward remains.
+# Here, a fall means torso tilt beyond 70° or base height below 0.12 m.
+# Inspect the actual rule parameters below; angles are stored in radians.
 
 # %%
 %%robot
 print("Episode time limit:", env.cfg.episode_length_s, "seconds")
-print("Termination rules:", list(env.cfg.terminations))
+for name, rule in env.cfg.terminations.items():
+    print(name, "timeout:", rule.time_out, "parameters:", rule.params)

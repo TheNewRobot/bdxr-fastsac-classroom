@@ -13,6 +13,26 @@ from pathlib import Path
 from .process import run_logged
 
 
+def require_colab_l4():
+    """Catch an incorrect classroom GPU before spending time on installation."""
+    if not Path("/content").exists():
+        return  # Local development may use other GPUs; report their actual timings.
+    instruction = (
+        "This classroom lesson requires an L4 GPU. Select Runtime → Change "
+        "runtime type → L4, then rerun setup."
+    )
+    try:
+        names = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            text=True,
+            timeout=10,
+        ).splitlines()
+    except (OSError, subprocess.SubprocessError) as error:
+        raise RuntimeError(instruction) from error
+    if not any(name.strip().removeprefix("NVIDIA ") == "L4" for name in names):
+        raise RuntimeError(f"{instruction} Detected: {', '.join(names)}.")
+
+
 def ensure_widgets(work):
     """Install the standard widget package in the notebook kernel if missing."""
     if importlib.util.find_spec("ipywidgets") is not None:
@@ -39,6 +59,7 @@ def install_runtime(work):
     work = Path(work)
     if not (work / "scripts/setup/setup.py").is_file():
         raise RuntimeError("Run 'Unpack the lesson files' before installing.")
+    require_colab_l4()
     started = time.monotonic()
     run_logged(
         [sys.executable, "-u", "scripts/setup/setup.py"],
