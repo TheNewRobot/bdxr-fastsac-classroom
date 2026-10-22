@@ -193,11 +193,28 @@ def joint_figures(folder):
 
 
 def joint_explorer(path):
-    """Display precomputed poses with standard notebook widget controls."""
+    """Use browser-side pose switching in Colab; standard widgets elsewhere."""
+    import importlib
+
+    path = Path(path)
+    try:
+        importlib.import_module("google.colab")
+    except ImportError:
+        pass
+    else:
+        from IPython.display import HTML, Javascript, display
+
+        # Colab can handle input entirely in its output frame. A Python widget
+        # callback would have to wait while a later training cell holds the kernel.
+        markup, script = path.read_text().rsplit("<script>", 1)
+        script = script.rsplit("</script>", 1)[0]
+        panel = HTML(markup)
+        display(panel, Javascript(script))
+        return panel
+
     import ipywidgets as widgets
     from IPython.display import display
 
-    path = Path(path)
     # Read older sweep exports as well as the new frame sidecar.
     sidecar = path.with_suffix(".frames.json")
     if sidecar.exists():
