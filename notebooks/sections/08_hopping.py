@@ -67,7 +67,7 @@ if TRAIN_HOPPING:
 # not silently erase it. Passing these checks does not establish full-course skill.
 
 # %%
-from IPython.display import display, Image
+from IPython.display import display, Image, Video
 
 if HOP_STAGES:
     for candidate in reversed(HOP_STAGES[-3:]):
@@ -78,7 +78,20 @@ if HOP_STAGES:
         if SELECTED_HOP_CHECKPOINT:
             break
     if SELECTED_HOP_CHECKPOINT:
-        selected_run = Path(SELECTED_HOP_CHECKPOINT).parent.parent
+        weights = Path(SELECTED_HOP_CHECKPOINT)
+        selected_run = weights.parent.parent
+        selection = read_json(selected_run / "evaluation/checkpoint_selection.json")
+        checked = next(
+            item
+            for item in selection["candidates"]
+            if item["checkpoint"] == str(weights)
+        )
+        video = lab.record(
+            selected_run,
+            checkpoint=weights.stem,
+            expected_sha256=checked["checkpoint_sha256"],
+        )
+        display(Video(str(video), embed=True, width=640))
         display(Image(filename=str(lab.learning_curve(selected_run)), width=900))
         print("Selected hopping checkpoint:", SELECTED_HOP_CHECKPOINT)
     else:
