@@ -10,10 +10,10 @@ export PYTHONPATH="$PWD/src"
 export MUJOCO_GL=egl
 .venv/bin/python -m bdxr_classroom.learning.train \
   --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
-  --steps 12000 --minutes 15 --command-mode balanced \
+  --steps 12000 --minutes 17 --command-mode balanced \
   --speed-min -.15 --speed-max .35 --yaw-max .45 --initial-jitter .03 \
   --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 10 \
-  --lateral-bias-weight 2 --mirror-replay --compile
+  --lateral-bias-weight 2 --mirror-replay --compile --save-every 3000
 ```
 
 These settings match the notebook's walking recipe. Runtime depends on the GPU;

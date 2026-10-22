@@ -28,6 +28,6 @@ while elapsed simulation time and fall count accumulate. Pause before exporting.
 No hopping policy is required for the core course.
 
 Allow for two training runs, setup, discussion, rendering, and gameplay. The
-15-minute training limit is per run, not the duration of the whole lesson. A
-slower runtime may stop before the requested step count. See the current
+17-minute training limit is per run, not the duration of the whole lesson.
+Require Colab's L4 GPU and retain the 12,000-step target. See the current
 [validation scope](progress.md) before advertising a classroom duration.
