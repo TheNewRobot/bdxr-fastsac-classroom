@@ -29,7 +29,7 @@ Checks save trajectory measurements without rendering unused videos. The selecte
 video is a separate rollout of the assessed weights, verified by checksum before
 recording. Backups include runtime versions and diagnostic logs.
 
-All 90 local tests passed, including GPU environment, checkpoint identity,
+All 96 local tests passed, including GPU environment, checkpoint identity,
 interrupted setup, download failures, and game reset/finish contracts. The right-knee
 slider was checked against actual right-foot model coordinates and exercised in a
 browser. Its camera shows the moving leg and highlights the hinge. Static left-leg
@@ -41,6 +41,9 @@ release ran all 37 code cells and eight optional hopping stages at 60-step budge
 its backup contained eleven resumable runs and setup diagnostics. A metadata-free
 copy of the revised notebook also downloaded successfully and preserved results on
 rerun. Short integration runs establish workflow execution, not learned policy quality.
+An additional local run exercised both recovery branches: all 38 code cells
+completed and the backup contained 13 resumable runs. That check reused installed
+dependencies and used short budgets; it did not retest installation or policy quality.
 
 One fresh seed-7 run reached its 9,000-step checkpoint in 579 seconds; that snapshot
 passed all 50 command trials twice, including recording through the notebook helper.
@@ -54,6 +57,17 @@ The default level-feet experiment produced flatter stepping but also failed drif
 limits; it is not a qualified replacement. Further candidate checks are in progress.
 A shared-GPU seed-8 run stopped at 7,399 steps after 901.4 seconds and failed motion
 checks. It is not a full 10,000-step replication or a Colab timing.
+
+An additional recovery option uses yaw-bias reward weight 10 while keeping the
+original baseline and first recovery unchanged. It qualified two failed training
+parents: seed 7 at 3,000 recovery steps (176 seconds), and seed 42 at its saved
+2,000-step snapshot. The latter's final weights still failed. The seed-7 recovery
+also passed 50 additional trials with evaluation seed 2000.
+This bounded extra attempt runs only after the existing checks and recovery fail,
+and only when the original final policy failed drift checks alone. It starts from
+that original attempt and retains the same acceptance limits. Applying the same
+refinement to an undertrained seed-8 parent did not fix its falls or command errors;
+the notebook therefore excludes such parents from this targeted refinement.
 
 Two local simulator probes used identical seeded initial states and fixed actions,
 without learner updates. First-step differences were about 3e-8 metres in root

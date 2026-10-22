@@ -37,6 +37,7 @@ def test_copy(
     game_port=18765,
     include_hopping=False,
     bundle_url=None,
+    exercise_recovery=False,
 ):
     """Modify only runtime location/budgets in the executed validation copy."""
     if not full:
@@ -73,10 +74,26 @@ print("Reused pinned environment; GPU:", gpu)
                 source += "\nLEARNING_CONFIG.update(num_envs=32, batch_size=256, steps=60, compile=False)\n"
             if source.startswith("EXPERIMENT ="):
                 source += "\nPAIR_LEARNING.update(steps=60)\n"
-            source = source.replace(
-                'if not BASELINE_CHECK["passed"]:',
-                "if False:  # Integration copy only; failed verdict retained.",
-            )
+            if exercise_recovery:
+                source = source.replace('"steps": 3000', '"steps": 60')
+                source = source.replace(
+                    "and drift_only_failure(INITIAL_BASELINE_CHECK):",
+                    "and True:  # Exercise routing only; short runs are not eligible policies.",
+                )
+                source = source.replace(
+                    'if not BASELINE_CHECK["passed"]:\n    raise RuntimeError(',
+                    "if False:  # Integration copy only; failed verdict retained.\n"
+                    "    raise RuntimeError(",
+                )
+            else:
+                source = source.replace(
+                    'if not BASELINE_CHECK["passed"] and drift_only_failure(INITIAL_BASELINE_CHECK):',
+                    "if False:  # Integration copy only; skip optional refinement.",
+                )
+                source = source.replace(
+                    'if not BASELINE_CHECK["passed"]:',
+                    "if False:  # Integration copy only; failed verdict retained.",
+                )
             source = source.replace(
                 "evaluate_walking(lab, BASELINE)",
                 "evaluate_walking(lab, BASELINE, episodes=1, seconds=2)",
@@ -119,6 +136,11 @@ def main():
     parser.add_argument("--game-port", type=int, default=18765)
     parser.add_argument("--full", action="store_true")
     parser.add_argument(
+        "--exercise-recovery",
+        action="store_true",
+        help="Exercise both recovery branches with short integration budgets.",
+    )
+    parser.add_argument(
         "--include-hopping",
         action="store_true",
         help="Exercise all optional curriculum stages with short integration budgets.",
@@ -144,6 +166,7 @@ def main():
         "dependency_installation_tested": args.reuse_env is None,
         "bundle_url_override": args.bundle_url,
         "optional_hopping_enabled": args.full or args.include_hopping,
+        "recovery_branches_exercised": args.exercise_recovery and not args.full,
         "scope": "Local notebook execution; short integration unless full_training is true.",
     }
     test_copy(
@@ -154,6 +177,7 @@ def main():
         args.game_port,
         args.include_hopping,
         args.bundle_url,
+        args.exercise_recovery,
     )
     notebook.metadata.kernelspec.name = args.kernel
     client = NotebookClient(

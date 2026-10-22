@@ -18,7 +18,7 @@ def export_results(work, runs, include_replay=True):
     temporary = destination.with_suffix(".tmp.zip")
     folders = [Path(run).resolve() for run in runs if run is not None]
     for pattern in (
-        "*_command_walking_recovery",
+        "*_command_walking_*recovery",
         "*_desert_droid_game",
         "*_transition_validation*",
     ):
