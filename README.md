@@ -1,146 +1,29 @@
+<p align="center">
+  <img src="assets/lesson/reference/robot.png" alt="The BDX-R droid in simulation" width="520">
+</p>
+
 # Teach a little droid to walk
 
-A 163A/263A robotics lesson using **BDX-R + FastSAC + MuJoCo Warp**.
-Train, measure, change one parameter, and play a small desert-droid course.
+**[Open in Google Colab](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Walking_101.ipynb)** · [Download the notebook](notebooks/BDXR_Walking_101.ipynb) · [Watch the 15-second demo](assets/lesson/course25_run/highlights_15s.mp4)
 
-![Desert Droid Run interface](assets/lesson/course_preview.png)
+A beginner robotics lesson for **163A/263A**, using **BDX-R, FastSAC, and MuJoCo Warp**. Train a small droid, inspect its motion, and explore how rewards change its gait.
 
-The lesson walks through the actual robot's joints and forward kinematics,
-environment configuration, observations, actions, rewards, and SAC. Students
-train a controller, change a reward setting, compare measured behavior, and
-load their policies into the final interactive course.
+## Start the lesson
 
-**Measured locally:** the scratch walking baseline passed 50 command trials
-after about 9 minutes on an L40S. Three scratch-trained variations passed too:
-flatter feet, quicker steps, and crouched walking. The hopping curriculum took
-about 23 minutes; the recorded course finished in 53.56 simulated seconds with
-visual steering and no falls. These are selected results from individual
-training seeds, not guaranteed outcomes. The images and animated examples have
-been checked in Colab without a connected runtime. **Full GPU execution in Colab
-remains untested.** See the short [results guide](docs/results.md) for matched-control
-caveats and acceptance checks. Detailed timings accompany the lesson recordings.
+Open the Colab link, save a copy in Drive, select a GPU runtime, and run the cells in order. Setup downloads the lesson automatically; no manual ZIP upload is needed.
 
-[![Reference and three walking styles](assets/lesson/walking_overview/comparison.png)](assets/lesson/walking_overview/comparison.mp4)
+## What you will explore
 
-[Compare the reference and three walking styles](assets/lesson/walking_overview/comparison.mp4).
-[Watch the 15-second highlights](assets/lesson/course25_run/highlights_15s.mp4),
-[watch the full course run](assets/lesson/course25_run/rollout.mp4), or
-[compare the hopping motions](assets/lesson/course_hops/comparison.mp4).
+- Robot joints, forward kinematics, observations, actions, and rewards.
+- Walking from scratch, learning curves, and checkpoint evaluation.
+- Changing one reward to compare gaits, with optional hopping and an interactive obstacle course.
 
-The displayed head bounce and idle looks are cosmetic; leg motion and physical head
-targets are unchanged. A physical neutral-pose correction remains unvalidated.
+The actor uses proprioception and movement commands; the critic may use additional simulator observations during training.
 
-- [Open the lesson in Google Colab](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Walking_101.ipynb)
-- [Download the student notebook](notebooks/BDXR_Walking_101.ipynb)
-- [Short instructor notes](docs/instructor_notes.md)
-- [Measured results and their limits](docs/results.md)
-- [Implementation status](docs/progress.md)
+**Validation:** selected policies passed local L40S checks. Colab's teaching media have been checked, but **full GPU execution in Colab remains unvalidated**. Training outcomes and timings can vary. See the [results](docs/results.md) and [latest validation notes](docs/progress.md).
 
-Open the Colab link above, save a copy in Drive, and select a GPU runtime.
-Setup downloads a versioned lesson release with an integrity check, then fetches
-pinned upstream robot assets. Downloads and long operations report progress. Teaching previews load directly from this public repository.
-
-## What the policy sees
-
-The actor receives joint positions/velocities, body angular velocity, gravity
-direction, previous actions, and requested speed/yaw rate. It does not receive
-true base linear velocity, world position, absolute heading, or a terrain map.
-The training critic may use privileged simulator observations.
-
-The deployed controller follows user commands. There is no planner or external
-heading correction. World measurements are used for evaluation and game scoring.
-
-## Repository layout
-
-| Path | Purpose |
-| --- | --- |
-| `src/bdxr_classroom/simulation/` | Robot environment, commands, terrain, and rewards |
-| `src/bdxr_classroom/learning/` | FastSAC, replay symmetry, training, and policy export |
-| `src/bdxr_classroom/evaluation/` | Rollouts, command checks, measurements, and plots |
-| `src/bdxr_classroom/game/` | Course, controller handovers, scoring, and web interface |
-| `src/bdxr_classroom/lesson/` | Notebook execution, visualizations, assessment, and exports |
-| `notebooks/` | Portable notebook and readable chapter sources in `sections/` |
-| `configs/` | Pinned revisions, evaluation targets, course, and hopping curriculum |
-| `assets/lesson/` | Only selected media used by the lesson |
-| `scripts/` | Entry points grouped into setup, lesson, training, evaluation, and media |
-| `tests/` | Tests grouped by simulation, learning, evaluation, game, lesson, and storage |
-| `experiments/lesson/` | **Gitignored** selected policy runs |
-| `experiments/candidates/` | New or unfinished training runs |
-| `experiments/evaluations/` | Course, obstacle, and controller checks |
-| `experiments/support/` | Parent policies and historical media sources |
-| `experiments/archive/` | Retired trial evidence and cleanup manifests |
-
-Vendor checkouts, caches, raw results, checkpoints, and private working notes
-stay out of new commits. Curated media captions distinguish preliminary results
-from selected command policies.
-Local results are explained in `experiments/INDEX.md`; its linked catalog records
-individual trials. Each run keeps its `<timestamp>_<name>` directory and its
-configuration, checkpoints, metrics, and videos together. New training runs go
-to `candidates/`; selection requires review of their results.
-
-Edit the teaching cells in `notebooks/sections/`, then rebuild the portable file
-with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classroom
-code and selected recordings; students do not need to clone the repository.
-Instructor figures and short animated examples use public image links directly
-in Markdown, visible without executing cells. Internet access is required for
-these previews; Colab did not display the former Jupyter attachment links.
-Student activities generate separate results.
-The notebook downloads its versioned archive from a public GitHub release; it does
-not read notebook metadata through the Colab frontend. Students need no manual ZIP
-upload. Rebuilding writes release files under ignored `artifacts/lesson_releases/`;
-publish the matching ZIP and checksum before sharing the rebuilt notebook.
-
-## Local use
-
-```bash
-python scripts/setup/setup.py
-export PYTHONPATH="$PWD/src"
-export MUJOCO_GL=egl
-.venv/bin/python -m bdxr_classroom.learning.train \
-  --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
-  --steps 10000 --minutes 15 --command-mode balanced \
-  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 6 \
-  --lateral-bias-weight 2 --mirror-replay --compile
-```
-
-These settings match the notebook's walking recipe. Runtime depends on the GPU;
-the time limit can stop training before 10,000 steps. The trainer prints the
-actual timestamped experiment path. To evaluate it:
-
-```bash
-.venv/bin/python -m bdxr_classroom.evaluation.command_evaluate \
-  experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt
-python scripts/evaluation/check_command_results.py \
-  experiments/candidates/<timestamp>_command_walking/evaluation/final_commands/summary.json
-```
-
-Resume with `--resume .../checkpoints/resume.pt`; policy, critics, optimizers,
-normalization and replay are restored, while simulation episodes restart.
-Use `--finetune` to start a new experiment from a compatible training checkpoint.
-Fine-tuning uses the requested seed for a new random stream; resuming restores
-the checkpoint's random stream.
-W&B is on by default; students can use `--wandb-mode disabled`.
-
-Launch the game with walking and optional hopping checkpoints:
-
-```bash
-.venv/bin/python -m bdxr_classroom.game.server \
-  --walking experiments/lesson/<walking-run>/checkpoints/final.pt \
-  --hopping experiments/lesson/<hopping-run>/checkpoints/<selected-checkpoint>.pt \
-  --course-config configs/classroom_course.json \
-  --head-motion-config configs/head_motion.json
-```
-
-The local panel runs on port 8765. The notebook includes the Colab port-proxy
-integration. Falls reset the robot; simulation time and fall count accumulate.
-The calibrated course uses three 17.5–25 mm obstacles, rough ground and an
-18 cm ascent. Four route checkpoints must be crossed before the finish counts.
-Use `--course-config path/to/settings.json` to explore a harder course;
-`{"obstacle_scale": 1.0}` doubles the classroom obstacle heights.
+[Instructor notes](docs/instructor_notes.md) · [Local setup and development](docs/local_use.md) · [Compare walking styles](assets/lesson/walking_overview/comparison.mp4)
 
 ## Credits
 
-[BDX-R](https://github.com/BDX-R/BDX-R-MjLab) provides the robot and starting task.
-[Holosoma / FastSAC](https://younggyo.me/fastsac-humanoid/) provides the learning
-components. The desert outpost is original procedural scenery.
-See [third-party notices](THIRD_PARTY_NOTICES.md) and [citation metadata](CITATION.cff).
+Robot and starting task: [BDX-R](https://github.com/BDX-R/BDX-R-MjLab). Learning components: [Holosoma / FastSAC](https://younggyo.me/fastsac-humanoid/). See [third-party notices](THIRD_PARTY_NOTICES.md) and [citation metadata](CITATION.cff).
