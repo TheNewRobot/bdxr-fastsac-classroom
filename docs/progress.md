@@ -98,6 +98,28 @@ also passed 50 command trials and 50 additional starts per policy. Training took
 decreased from 8.53° to 4.94°; 95th-percentile clearance increased from 24 to 43 mm.
 These are repeated local results, not a guarantee across seeds or GPU types.
 
+A split full-budget local execution completed setup, baseline/recovery, the matched
+gait activity, all eight hopping stages, game startup, and backup export. The
+baseline was trained in the first part and reused by verified checkpoint hash
+when the revised gait activity resumed. All 32 cells in that continuation completed
+without exceptions. The exported backup contains 12 resumable training runs.
+
+Hopping used 24,000 steps and 1,256 seconds of training. The final stage missed
+one slow-motion trial; an extra fine-tune and a final-stage seed variation introduced
+falls. The earlier **natural-hops** stage passed all 15 terrain-screen trials and
+all ten flat/on-step handover trials with the newly trained walker. The notebook
+now checks the last three curriculum stages, newest first, and shows the selected
+weights' verified video and that stage's curve. Training settings and acceptance
+criteria are unchanged, and failed checks remain in the history. The fresh pair
+also passed local browser control and mode-switching checks. This does not
+establish full-course traversal.
+
+The updated selection flow also completed a 38-cell short-budget integration
+with both recovery branches and all hopping stages. Its backup contains 13
+resumable runs. The selected-hopper video branch was added during that test and
+then executed separately with the real qualified weights, hash check, video,
+and curve. Short-budget execution establishes integration, not policy quality.
+
 **The revised workflow has not run in an authenticated Colab GPU runtime.** The
 submitted L4 output is evidence about the prior workflow. New GPU tests use a local
 L40S; concurrent jobs and cached installation affect measured wall-clock times.
