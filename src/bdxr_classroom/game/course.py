@@ -165,11 +165,13 @@ def build_course(spec, cfg=None):
     # see the droid clearly before its first step.
     for x in [-0.5, 12]:
         base = cfg.finish_height if x == 12 else 0
-        geom(f"gate_{x}", box, (x, 0, base + 0.85), (0.055, 1.0, 0.05), metal, False)
+        # Keep the non-colliding arch above the walking camera's view of the droid.
+        beam_height = base + (1.35 if cfg.walking_only else 0.85)
+        geom(f"gate_{x}", box, (x, 0, beam_height), (0.055, 1.0, 0.05), metal, False)
         geom(
             f"gate_glow_{x}",
             box,
-            (x - 0.056, 0, base + 0.85),
+            (x - 0.056, 0, beam_height),
             (0.004, 0.75, 0.017),
             blue,
             False,
