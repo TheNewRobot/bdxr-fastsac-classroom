@@ -14,10 +14,14 @@
 # %% [markdown]
 # ### Instructor example · the policy interface
 #
-# For one robot, the baseline has **47 actor inputs**, **62 critic inputs**, and
-# **10 actions**. The actor uses proprioception and commands; additional simulator
-# measurements help the critic learn. The action scale converts a dimensionless
-# network output into a joint-angle offset in radians.
+# For one walking robot, the **actor observation vector has length 47** and the
+# **critic observation vector has length 62**. These count scalar components,
+# not networks. The actor produces an **action vector of length 10**, converted
+# into leg-joint targets using the action scales.
+#
+# The actor observes proprioception and commands. The critic's extra components
+# describe simulated motion and foot contact. Hopping adds two phase components,
+# so its observation lengths are 49 and 64.
 #
 # ### Your activity · verify the interface
 #
@@ -26,9 +30,10 @@
 
 # %%
 %%robot
-print("Actor observation shape:", observations["actor"].shape)
-print("Critic observation shape:", observations["critic"].shape)
-print("Action dimension:", env.action_manager.total_action_dim)
+print("Actor observation length per robot:", observations["actor"].shape[-1])
+print("Critic observation length per robot:", observations["critic"].shape[-1])
+print("Action vector length per robot:", env.action_manager.total_action_dim)
+print("Parallel robots in this batch:", observations["actor"].shape[0])
 print("Actor terms:", list(env.cfg.observations["actor"].terms))
 print("Critic terms:", list(env.cfg.observations["critic"].terms))
 print("Joint target scales:", env.cfg.actions["joint_pos"].scale)

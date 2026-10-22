@@ -60,6 +60,12 @@ from bdxr_classroom.lesson.presentation import media_pair, read_json
 
 # %% [hidden]
 # @title Install pinned dependencies
+if "WORK" not in globals() or not (WORK / "scripts/setup/setup.py").is_file():
+    raise RuntimeError(
+        "Run 'Unpack the lesson files' successfully before installing dependencies. "
+        "The extracted lesson must contain scripts/setup/setup.py."
+    )
+
 from bdxr_classroom.lesson.process import run_logged
 
 setup_start = time.monotonic()
