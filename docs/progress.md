@@ -53,10 +53,17 @@ Its final 10,000-step weights and a 3,000-step recovery failed drift limits. The
 notebook now checks up to two earlier snapshots before additional training, retaining
 all reports and displaying the exact selected checkpoint. A second seed-7 run,
 its recovery, and a separate optimizer/replay continuation missed drift limits.
-The default level-feet experiment produced flatter stepping but also failed drift
-limits; it is not a qualified replacement. Further candidate checks are in progress.
+The earlier level-feet recipe with yaw-bias weight 6 produced flatter stepping
+but failed drift limits; it is not a qualified replacement.
 A shared-GPU seed-8 run stopped at 7,399 steps after 901.4 seconds and failed motion
-checks. It is not a full 10,000-step replication or a Colab timing.
+checks. Completing its budget in a separate resumed run still failed command checks.
+
+The full-budget notebook validation also needed recovery. Its 10,000-step baseline
+took 847 seconds, followed by 172 seconds for a 3,000-step recovery with unchanged
+behavior settings. The notebook selected the recovery's 2,000-step snapshot:
+it passed 50 command trials and 50 additional seed-2000 starts. The later checkpoint
+failed drift limits. About 17 minutes of training were spent, excluding setup and
+evaluation; a 15-minute successful result is not guaranteed.
 
 An additional recovery option uses yaw-bias reward weight 10 while keeping the
 original baseline and first recovery unchanged. It qualified two failed training
@@ -84,6 +91,12 @@ with a 25-minute wall-clock cap to avoid truncating its fixed step budget.
 The original walking baseline and other style presets are unchanged. This
 is one matched training pair, not proof that every new run will qualify:
 a separate control repetition qualified at 8,000 steps but failed at 10,000.
+
+A second fresh matched pair, executed through the revised notebook activity,
+also passed 50 command trials and 50 additional starts per policy. Training took
+578 seconds for the control and 524 seconds for the variation. Swing-foot tilt
+decreased from 8.53° to 4.94°; 95th-percentile clearance increased from 24 to 43 mm.
+These are repeated local results, not a guarantee across seeds or GPU types.
 
 **The revised workflow has not run in an authenticated Colab GPU runtime.** The
 submitted L4 output is evidence about the prior workflow. New GPU tests use a local
