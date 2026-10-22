@@ -20,7 +20,7 @@ from bdxr_classroom.game.session import GameSession
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("walking")
-    parser.add_argument("hopping")
+    parser.add_argument("hopping", nargs="?", help="Optional hopping policy")
     parser.add_argument("--course-config", type=Path)
     parser.add_argument("--head-motion-config", type=Path)
     parser.add_argument("--seed", type=int, default=263)

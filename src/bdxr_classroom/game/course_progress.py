@@ -15,6 +15,7 @@ class CourseProgress:
     completed: int = 0
     entered: bool = False
     previous_feet: list | None = field(default=None, repr=False)
+    centers: tuple = (0.0, 0.0, 0.0, 0.0)
 
     def update(self, feet):
         """Both feet must pass each challenge in order, within its width.
@@ -25,13 +26,14 @@ class CourseProgress:
         if self.completed == len(self.checkpoints):
             return
         front, back, half_width = self.checkpoints[self.completed]
-        inside = all(abs(foot[1]) <= half_width for foot in feet)
+        center = self.centers[self.completed]
+        inside = all(abs(foot[1] - center) <= half_width for foot in feet)
         if not inside:
             self.entered = False
         elif self.previous_feet is not None:
             before = all(foot[0] < front for foot in self.previous_feet)
             if before and all(
-                abs(foot[1]) <= half_width for foot in self.previous_feet
+                abs(foot[1] - center) <= half_width for foot in self.previous_feet
             ):
                 self.entered = True
             if self.entered and all(foot[0] > back for foot in feet):

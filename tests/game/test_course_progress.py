@@ -8,6 +8,17 @@ def feet(x, y=0):
 
 
 class CourseProgressTests(unittest.TestCase):
+    def test_offset_passage_requires_the_actual_opening(self):
+        progress = CourseProgress(
+            checkpoints=((1.72, 2.28, 0.36),), centers=(0.22,)
+        )
+        for x in (1.5, 2.0, 2.5):
+            progress.update(feet(x, -0.2))
+        self.assertFalse(progress.complete)
+        for x in (1.5, 2.0, 2.5):
+            progress.update(feet(x, 0.22))
+        self.assertTrue(progress.complete)
+
     def test_bypass_and_finish_teleport_do_not_count(self):
         progress = CourseProgress()
         progress.update(feet(12))

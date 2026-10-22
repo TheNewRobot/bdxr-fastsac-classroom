@@ -1,7 +1,7 @@
 """Original, procedural desert-droid course; all traversable surfaces are physics."""
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 import mujoco
 import numpy as np
@@ -18,10 +18,12 @@ class CourseConfig:
     roughness: float = 0.015
     finish_height: float = 0.18
     seed: int = 263
+    walking_only: bool = False
 
 
-def build_course(spec, cfg=CourseConfig()):
+def build_course(spec, cfg=None):
     """Add collision terrain and original scenery to the existing terrain body."""
+    cfg = cfg or CourseConfig()
     terrain = spec.body("terrain")
     if terrain is None:
         raise ValueError(
@@ -89,6 +91,26 @@ def build_course(spec, cfg=CourseConfig()):
         (0.07, 0.65, 0.018 * scale),
         orange,
     )
+    if cfg.walking_only:
+        # Offset passages reward steering. Low floor features require walking,
+        # while the original hopping course keeps its previous geometry.
+        for index, (x, center) in enumerate(((2.0, 0.32), (4.8, -0.32), (7.3, 0.18))):
+            for side in (-1, 1):
+                geom(
+                    f"walking_gate_{index}_{side}",
+                    box,
+                    (x, center + side * 0.30, 0.13),
+                    (0.28, 0.045, 0.13),
+                    metal,
+                )
+                geom(
+                    f"walking_gate_light_{index}_{side}",
+                    sphere,
+                    (x, center + side * 0.30, 0.28),
+                    (0.045, 0, 0),
+                    blue,
+                    False,
+                )
     # Deterministic rough patch, with modest relief for the small droid.
     rng = np.random.default_rng(cfg.seed)
     for ix in range(8):

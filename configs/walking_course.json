@@ -1,0 +1,7 @@
+{
+  "walking_only": true,
+  "obstacle_scale": 0.15,
+  "step_height": 0.006,
+  "roughness": 0.004,
+  "finish_height": 0.045
+}
