@@ -10,14 +10,16 @@ export PYTHONPATH="$PWD/src"
 export MUJOCO_GL=egl
 .venv/bin/python -m bdxr_classroom.learning.train \
   --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
-  --steps 10000 --minutes 15 --command-mode balanced \
-  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 6 \
+  --steps 12000 --minutes 15 --command-mode balanced \
+  --speed-min -.15 --speed-max .35 --yaw-max .45 --initial-jitter .03 \
+  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 10 \
   --lateral-bias-weight 2 --mirror-replay --compile
 ```
 
 These settings match the notebook's walking recipe. Runtime depends on the GPU;
-the time limit can stop training before 10,000 steps. The trainer prints the
-actual timestamped experiment path. To evaluate it:
+the time limit can stop training before 12,000 steps. The trainer prints the
+actual timestamped experiment path. The notebook uses a short forward check.
+For the deeper **development-only** command suite:
 
 ```bash
 .venv/bin/python -m bdxr_classroom.evaluation.command_evaluate \
@@ -33,22 +35,21 @@ Fine-tuning uses the requested seed for a new random stream; resuming restores
 the checkpoint's random stream.
 W&B is on by default; students can use `--wandb-mode disabled`.
 
-Launch the game with walking and optional hopping checkpoints:
+Launch the core game with your walking checkpoint:
 
 ```bash
 .venv/bin/python -m bdxr_classroom.game.server \
-  --walking experiments/lesson/<walking-run>/checkpoints/final.pt \
-  --hopping experiments/lesson/<hopping-run>/checkpoints/<selected-checkpoint>.pt \
-  --course-config configs/classroom_course.json \
+  --walking experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt \
+  --course-config configs/walking_course.json \
   --head-motion-config configs/head_motion.json
 ```
 
 The local panel runs on port 8765. The notebook includes the Colab port-proxy
 integration. Falls reset the robot; simulation time and fall count accumulate.
-The calibrated course uses three 17.5–25 mm obstacles, rough ground and an
-18 cm ascent. Four route checkpoints must be crossed before the finish counts.
-Use `--course-config path/to/settings.json` to explore a harder course;
-`{"obstacle_scale": 1.0}` doubles the classroom obstacle heights.
+The walking course uses three offset passages, approximately 5–6 mm obstacles,
+4 mm uneven ground, and a 45 mm finish ascent. Four route checkpoints must be
+crossed before the finish counts. The separate hopping extension retains
+`configs/classroom_course.json`; it is not the required walking course.
 
 ## Repository layout
 
@@ -59,7 +60,7 @@ Use `--course-config path/to/settings.json` to explore a harder course;
 | `src/bdxr_classroom/evaluation/` | Rollouts, command checks, measurements, and plots |
 | `src/bdxr_classroom/game/` | Course, controller handovers, scoring, and web interface |
 | `src/bdxr_classroom/lesson/` | Notebook execution, visualizations, assessment, and exports |
-| `notebooks/` | Portable notebook and readable chapter sources in `sections/` |
+| `notebooks/` | Walking and optional hopping notebooks; authored cells in `sections/` and `extensions/` |
 | `configs/` | Pinned revisions, evaluation targets, course, and hopping curriculum |
 | `assets/lesson/` | Only selected media used by the lesson |
 | `scripts/` | Entry points grouped into setup, lesson, training, evaluation, and media |

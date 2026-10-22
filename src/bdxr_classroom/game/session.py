@@ -9,19 +9,19 @@ import os
 os.environ.setdefault("MUJOCO_GL", "egl")
 import imageio.v2 as imageio
 import numpy as np
-from PIL import Image, ImageDraw
 import torch
+from PIL import Image, ImageDraw
 
 from bdxr_classroom.evaluation.command_evaluate import load_agent, set_command
+from bdxr_classroom.experiments import (
+    create_experiment,
+    resolve_experiment_path,
+    write_manifest,
+)
 from bdxr_classroom.game.course import CourseConfig
 from bdxr_classroom.game.course_progress import CourseProgress
 from bdxr_classroom.simulation.environment import make_env
 from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
-from bdxr_classroom.experiments import (
-    create_experiment,
-    write_manifest,
-    resolve_experiment_path,
-)
 
 
 @dataclasses.dataclass
@@ -162,6 +162,16 @@ class GameSession:
             self.head.reset(self.head_config.seed + self.score.falls)
         self.posture = PostureMonitor()
         self.progress = CourseProgress()
+        if self.course.walking_only:
+            self.progress = CourseProgress(
+                checkpoints=(
+                    (1.72, 2.28, 0.25),
+                    (4.52, 5.08, 0.25),
+                    (7.02, 7.58, 0.25),
+                    (7.915, 9.275, 0.55),
+                ),
+                centers=(0.32, -0.32, 0.18, 0.0),
+            )
         self.stage = "walk"
         self.requested_mode = "walk"
         self.requested_speed = self.requested_yaw = 0.0
@@ -174,8 +184,13 @@ class GameSession:
             raise ValueError("Mode must be walk or hop")
         if mode == "hop" and self.hop is None:
             raise ValueError("Load a hopping checkpoint before requesting hop mode")
-        self.requested_speed = float(np.clip(speed, -0.25, 0.5))
-        self.requested_yaw = float(np.clip(yaw, -0.6, 0.6))
+        if mode == "hop" and self.course.walking_only:
+            raise ValueError("This course uses walking commands only.")
+        speed_min = self.walk_cfg.get("speed_min", -0.25)
+        speed_max = self.walk_cfg.get("speed_max", 0.5)
+        yaw_max = self.walk_cfg.get("yaw_max", 0.6)
+        self.requested_speed = float(np.clip(speed, speed_min, speed_max))
+        self.requested_yaw = float(np.clip(yaw, -yaw_max, yaw_max))
         self.requested_mode = mode
         self.paused = False
 
@@ -385,6 +400,12 @@ class GameSession:
             "hopping": self.hopping_path,
             "speed": self.speed,
             "yaw": self.yaw,
+            "walking_only": self.course.walking_only,
+            "command_limits": {
+                "speed_min": self.walk_cfg.get("speed_min", -0.25),
+                "speed_max": self.walk_cfg.get("speed_max", 0.5),
+                "yaw_max": self.walk_cfg.get("yaw_max", 0.6),
+            },
         }
 
     def save_summary(self):

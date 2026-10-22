@@ -6,6 +6,7 @@
   Desert Droid Run
  </title>
  <style>
+ [hidden] { display: none !important; }
   * {
   box-sizing: border-box
 }
@@ -276,7 +277,7 @@ details {
      <b id="yawLabel">
       0.00 rad/s
      </b>
-     <input id="yaw" max="0.6" min="-0.6" step="0.1" type="range" value="0"/>
+     <input id="yaw" max="0.6" min="-0.6" step="0.05" type="range" value="0"/>
     </label>
     <div class="drive">
      <button onclick="drive(.3,0)">
@@ -295,7 +296,7 @@ details {
       Stop
      </button>
     </div>
-    <div class="drive">
+    <div class="drive" id="modeControls">
      <button onclick="chooseMode('walk')">
       Walk
      </button>
@@ -303,10 +304,10 @@ details {
       Hop
      </button>
     </div>
-    <p class="help">
+    <p class="help" id="keyboardHelp">
      Keyboard: hold W/S to move, A/D to turn. Space switches walk/hop. Click this panel first. Release movement keys to stop.
     </p>
-    <p class="help">
+    <p class="help" id="terrainHelp">
      Slow down and switch to hopping before an obstacle. Wait until both feet have cleared it and landed before switching back to walking. Leave room for the robot to slow down, and watch the mode label.
     </p>
    </section>
@@ -315,7 +316,7 @@ details {
    <summary>
     Load your trained policies
    </summary>
-   <p>
+   <p id="loaderHelp">
     Choose walking and hopping checkpoints produced with this lesson's robot settings.
    </p>
    <datalist id="checkpoint-options">
@@ -324,7 +325,7 @@ details {
     Walking checkpoint
     <input id="walking" list="checkpoint-options" type="text"/>
    </label>
-   <label>
+   <label id="hoppingLoader">
     Hopping checkpoint (optional)
     <input id="hopping" list="checkpoint-options" type="text"/>
    </label>
@@ -356,7 +357,10 @@ async function send(value) {
   }
 }
 
+let walkingOnly = false;
 function drive(speed, yaw) {
+  speed = Math.max(Number($('speed').min), Math.min(Number($('speed').max), speed));
+  yaw = Math.max(Number($('yaw').min), Math.min(Number($('yaw').max), yaw));
   lastDrive = JSON.stringify([speed, yaw]);
   $('speed').value = speed;
   $('yaw').value = yaw;
@@ -432,7 +436,7 @@ window.addEventListener('keydown', e => {
     keys.add(e.code);
     keyboard()
   }
-  if (e.code === 'Space' && !e.repeat) {
+  if (e.code === 'Space' && !e.repeat && !walkingOnly) {
     e.preventDefault();
     chooseMode(desiredMode === 'walk' ? 'hop' : 'walk')
   }
@@ -451,6 +455,21 @@ async function poll() {
     const s = await (await fetch('./api/state')).json();
     $('message').textContent = s.error || s.message || '';
     if (s.ready) {
+      walkingOnly = Boolean(s.walking_only);
+      $('modeControls').hidden = walkingOnly;
+      $('hoppingLoader').hidden = walkingOnly;
+      if (walkingOnly) {
+        desiredMode = 'walk';
+        $('loaderHelp').textContent = 'Choose the walking checkpoint you trained in this lesson.';
+        $('keyboardHelp').textContent = 'Hold W/S to move and A/D to turn. Release keys to stop. Use sliders for finer speed control.';
+        $('terrainHelp').textContent = 'Steer through the offset passages, slow down for uneven ground, then climb to the finish. This course uses your walking policy only.';
+      }
+      if (s.command_limits) {
+        $('speed').min = s.command_limits.speed_min;
+        $('speed').max = s.command_limits.speed_max;
+        $('yaw').min = -s.command_limits.yaw_max;
+        $('yaw').max = s.command_limits.yaw_max;
+      }
       if (s.falls !== previousFalls) {
         clearControls();
         previousFalls = s.falls
