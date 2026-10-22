@@ -38,6 +38,8 @@ allowance passed. Their saved configurations differ only in the sole-level rewar
 weight, experiment name, and folder.
 Foot landings increased from 3.70 to 4.48 per second. This is a modest gait
 change from one matched pair, not evidence that every seed improves.
+W&B confirms both full-budget comparison runs finished at step 12,000; their
+learning metrics also remain in each local experiment record.
 
 The first policy also passed seven development-only command checks, including
 reverse, stop, and left/right turns (21 trials; 109 s). It completed all four
@@ -81,6 +83,7 @@ gaps. Local runs confirm that poor command tracking is possible even without
 falls. The short assessment now prints saved training steps, duration, and GPU
 to make subsequent reports easier to diagnose.
 
-An anonymous Colab frontend was accessible, but no authenticated GPU runtime was
+The published notebook opened in Colab's anonymous frontend, where all eight
+embedded images and animations loaded. No authenticated GPU runtime was
 available. **Actual Colab GPU execution remains untested.** This evidence does
 not yet justify calling the lesson classroom-ready on its required Colab L4.
