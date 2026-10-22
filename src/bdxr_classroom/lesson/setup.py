@@ -81,6 +81,9 @@ def install_runtime(work):
         MUJOCO_GL="egl",
         BDXR_RUNTIME="colab" if Path("/content").exists() else "local_notebook",
     )
+    from .rendering import configure_rendering
+
+    environment = configure_rendering(work, python, environment)
     gpu = json.loads(
         subprocess.check_output(
             [

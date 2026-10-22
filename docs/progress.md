@@ -85,7 +85,7 @@ to make subsequent reports easier to diagnose.
 
 The published notebook opened in Colab's anonymous frontend, where all eight
 embedded images and animations loaded. No authenticated GPU runtime was
-available. **Actual Colab GPU execution remains untested.** This evidence does
+available to the developer. The user-reported GPU run below adds evidence, but does
 not yet justify calling the lesson classroom-ready on Colab GPUs, including T4.
 
 ## T4 setup correction
@@ -93,8 +93,32 @@ not yet justify calling the lesson classroom-ready on Colab GPUs, including T4.
 A reported T4 session was stopped by our L4-only preflight, before installation.
 That artificial model-name restriction has been removed. Setup requires a GPU
 and reports its name; dependency/runtime checks still apply. The 12,000-step
-target and 17-minute cap are unchanged. T4 speed and completed steps within
-that cap have not been measured, so the L40S timings are not T4 promises.
+target and 17-minute cap are unchanged. A subsequent user-reported T4 run
+completed 12,000 steps in 1,024 seconds; local L40S timings are not T4 promises.
+
+## Reported T4 recording slowdown and graphics repair
+
+The supplied checkpoint `8f518d7436e8` completed 12,000 training steps in
+1,024 seconds on Tesla T4. Its short forward check passed in 33 seconds:
+zero falls in three starts, speed error 0.032 m/s, yaw error 0.027 rad/s,
+and mean maximum drift 0.143 m. This establishes short forward walking,
+not turning or course completion.
+
+Recording its ten-second video took 391 seconds. The supplied recording log
+has no exception; all 31 listed Warp kernel loads were cached (0.137 seconds
+combined). The user's graphics probe reported Mesa / llvmpipe: CPU software
+rendering despite CUDA training. The old log does not separate simulation,
+rendering, and encoding time, so the exact contribution is unknown.
+
+Setup now probes a rendered frame in a fresh process. When NVIDIA is not
+selected, it tries a workspace-local EGL vendor manifest and adopts that
+setting only after verifying an NVIDIA renderer. It does not replace drivers
+or change training. Diagnostics stay in `.runtime/rendering.json`; an
+unsuccessful repair reports the problem and preserves the previous selection.
+Five mocked selection/failure tests pass. Local L40S testing verifies actual
+NVIDIA frame rendering and recovery from an invalid vendor selection.
+This machine has no Mesa EGL vendor installed, so the exact llvmpipe-to-NVIDIA
+transition and the resulting T4 recording duration still require Colab retesting.
 
 ## Joint explorer correction
 
