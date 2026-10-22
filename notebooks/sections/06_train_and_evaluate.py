@@ -65,12 +65,14 @@ print("Actual timing:", read_json(BASELINE / "metrics/timing.json"))
 # %%
 from bdxr_classroom.lesson.assessment import (
     check_recent_walking,
+    drift_only_failure,
     evaluate_walking,
     selected_walking,
 )
 from bdxr_classroom.lesson.presentation import command_table
 
 BASELINE_SUMMARY, BASELINE_CHECK = evaluate_walking(lab, BASELINE)
+INITIAL_BASELINE_CHECK = BASELINE_CHECK
 command_table(BASELINE_SUMMARY)
 print("Passed:", BASELINE_CHECK["passed"])
 print("Failures:", BASELINE_CHECK["failures"])
@@ -96,6 +98,31 @@ if not BASELINE_CHECK["passed"]:
         ENV_CONFIG,
         recovery,
         parent=BASELINE / "checkpoints/final.pt",
+    )
+    BASELINE_SUMMARY, BASELINE_CHECK = evaluate_walking(lab, BASELINE)
+    BASELINE_SUMMARY, BASELINE_CHECK = check_recent_walking(
+        lab, BASELINE, BASELINE_SUMMARY, BASELINE_CHECK
+    )
+    command_table(BASELINE_SUMMARY)
+
+# %% [markdown]
+# If no snapshot passes and the original final policy failed **only drift**,
+# try one last **3,000-step recovery** with yaw-bias
+# reward weight **10** (the baseline uses 6). This discourages sustained turning
+# without adding a heading controller. It starts again from your original
+# attempt; all failed experiments and their timings remain saved.
+# Falls or poor command following need more basic learning, not this refinement.
+
+# %%
+# @title Additional recovery only if needed
+if not BASELINE_CHECK["passed"] and drift_only_failure(INITIAL_BASELINE_CHECK):
+    recovery_env = {**ENV_CONFIG, "yaw_bias_weight": 10.0}
+    recovery_learning = {**LEARNING_CONFIG, "steps": 3000, "minutes": 10}
+    BASELINE = lab.train(
+        "command_walking_yaw_recovery",
+        recovery_env,
+        recovery_learning,
+        parent=INITIAL_BASELINE / "checkpoints/final.pt",
     )
     BASELINE_SUMMARY, BASELINE_CHECK = evaluate_walking(lab, BASELINE)
     BASELINE_SUMMARY, BASELINE_CHECK = check_recent_walking(

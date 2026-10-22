@@ -56,6 +56,17 @@ def selected_walking(reports):
     return select_checkpoint(reports)
 
 
+def drift_only_failure(verdict):
+    """Allow yaw refinement only when all other command checks passed."""
+    failures = verdict.get("failures", [])
+    drift_suffixes = (": mean drift too large", ": worst-episode drift too large")
+    return (
+        not verdict["passed"]
+        and bool(failures)
+        and all(failure.endswith(drift_suffixes) for failure in failures)
+    )
+
+
 def check_recent_walking(lab, run, summary, verdict, limit=2):
     """Try a bounded number of earlier snapshots under the same full criteria.
 

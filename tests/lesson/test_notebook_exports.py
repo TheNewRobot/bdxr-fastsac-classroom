@@ -10,6 +10,20 @@ from bdxr_classroom.lesson.exports import export_results
 
 
 class NotebookExports(unittest.TestCase):
+    def test_both_recovery_experiments_are_discovered_for_backup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary)
+            for name in ("command_walking_recovery", "command_walking_yaw_recovery"):
+                path = work / "experiments" / ("2026-01-01_" + name) / "checkpoints"
+                path.mkdir(parents=True)
+                (path / "resume.pt").write_bytes(b"saved recovery")
+            backup = export_results(work, [])
+            with zipfile.ZipFile(backup) as archive:
+                self.assertEqual(len(archive.namelist()), 2)
+                self.assertTrue(
+                    all(name.endswith("/resume.pt") for name in archive.namelist())
+                )
+
     def test_setup_evidence_is_included_without_environment_credentials(self):
         with tempfile.TemporaryDirectory() as temporary:
             work = Path(temporary)
@@ -67,11 +81,13 @@ class NotebookExports(unittest.TestCase):
                 )
                 self.assertEqual(len(archive.namelist()), len(runs))
             previous_backup = backup.read_bytes()
-            with patch.object(
-                zipfile.ZipFile, "write", side_effect=OSError("interrupted export")
+            with (
+                patch.object(
+                    zipfile.ZipFile, "write", side_effect=OSError("interrupted export")
+                ),
+                self.assertRaisesRegex(OSError, "interrupted export"),
             ):
-                with self.assertRaisesRegex(OSError, "interrupted export"):
-                    export_results(work, runs)
+                export_results(work, runs)
             self.assertEqual(backup.read_bytes(), previous_backup)
 
     def test_nested_trials_and_game_are_exported_once(self):
