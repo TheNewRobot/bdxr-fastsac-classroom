@@ -43,7 +43,7 @@
 # %% [markdown]
 # ### Install and configure the environment
 #
-# Select **Runtime → Change runtime type → L4 GPU**. **L4 is required for class.**
+# Select **Runtime → Change runtime type → GPU**. Setup reports the assigned GPU.
 # Setup is separate from training.
 # An environment defines the robot, ground, actuators, observations, rewards,
 # and episode endings. We first inspect one robot, then train many copies.

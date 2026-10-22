@@ -1,7 +1,7 @@
 # %% [markdown]
 # # Optional after-class extension: learn to hop
 #
-# Select the required L4 GPU runtime and run setup before enabling training.
+# Select a GPU runtime and run setup before enabling training.
 # This extension is separate from the completed walking lesson.
 #
 # A hop lifts **both feet** before a controlled landing. This recorded hopper

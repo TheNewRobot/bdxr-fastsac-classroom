@@ -75,7 +75,7 @@ print("W&B:", LEARNING_CONFIG["wandb_mode"])
 print("Local metrics and checkpoints are saved even when W&B is disabled.")
 
 # %% [markdown]
-# Use the required **L4 GPU** and allow **up to 17 minutes per training run**,
+# Use a **GPU runtime** and allow **up to 17 minutes per training run**,
 # excluding setup and display. The target remains **12,000 steps**. The actual step count is
 # printed and saved; unfinished budgets must not be treated as matching experiments.
 
