@@ -25,11 +25,6 @@ are two runs in the lesson. Hopping is a [separate after-class extension](notebo
 
 The actor uses proprioception and movement commands; the critic may use additional simulator observations during training.
 
-**Validation:** local L40S checks include successful and unsuccessful fresh runs.
-**Colab GPU execution and T4 training timing remain unvalidated**;
-this is not yet a classroom reliability guarantee. See the [results](docs/results.md)
-and .
-
 [Instructor notes](docs/instructor_notes.md) · [Local setup and development](docs/local_use.md) · [Walking-only course video](assets/lesson/classroom_walking/course.mp4)
 
 ## Credits
