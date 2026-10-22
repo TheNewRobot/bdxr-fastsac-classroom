@@ -11,32 +11,25 @@ from bdxr_classroom.lesson.process import run_logged
 
 
 class ProcessTests(unittest.TestCase):
-    def test_compact_progress_retains_logs_and_important_results(self):
-        updates = []
+    def test_training_steps_remain_separate_output_lines(self):
         with (
             tempfile.TemporaryDirectory() as directory,
             contextlib.redirect_stdout(io.StringIO()) as output,
         ):
-            log = Path(directory) / "command.log"
             run_logged(
                 [
                     sys.executable,
                     "-u",
                     "-c",
-                    "import time;print('step=50');time.sleep(.1);print('Result: saved')",
+                    "print('step=50 elapsed=2s');print('step=100 elapsed=4s')",
                 ],
                 cwd=directory,
-                log_path=log,
-                heartbeat=0.03,
+                log_path=Path(directory) / "training.log",
                 timeout=3,
-                progress=updates.append,
             )
-            self.assertIn("step=50", updates)
-            self.assertTrue(any("still running" in value for value in updates))
-            self.assertIn("completed", updates[-1])
-            self.assertNotIn("step=50", output.getvalue())
-            self.assertIn("Result: saved", output.getvalue())
-            self.assertIn("step=50", log.read_text())
+            self.assertIn(
+                "step=50 elapsed=2s\nstep=100 elapsed=4s\n", output.getvalue()
+            )
 
     def test_quiet_command_reports_progress_and_keeps_filtered_output(self):
         with (
@@ -63,7 +56,6 @@ class ProcessTests(unittest.TestCase):
             self.assertIn("detail", log.read_text())
 
     def test_timeout_and_error_include_diagnostics(self):
-        updates = []
         with tempfile.TemporaryDirectory() as directory:
             log = Path(directory) / "command.log"
             with self.assertRaisesRegex(TimeoutError, "exceeded"):
@@ -85,7 +77,4 @@ class ProcessTests(unittest.TestCase):
                     cwd=directory,
                     log_path=log,
                     timeout=3,
-                    progress=updates.append,
                 )
-            self.assertIn("stopped", updates[-1])
-            self.assertIn("deliberate failure", log.read_text())

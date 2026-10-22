@@ -225,7 +225,7 @@ def sweep_joint(env, joint_name, angles_deg, destination):
     initial = int(np.argmin(np.abs(angles)))
     document = f'''<!doctype html><meta charset="utf-8"><style>
 body{{font-family:system-ui;margin:0;background:#faf7f0;color:#263b3b;padding:20px}}
-main{{display:flex;gap:24px;flex-wrap:wrap}}img{{width:min(100%,640px);border-radius:12px}}
+main{{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}}img{{width:min(100%,640px);border-radius:12px}}
 input{{width:100%}}aside{{flex:1;min-width:220px}}h2{{margin-top:0}}pre{{font-size:16px}}
 </style><h2>{title}: forward kinematics</h2><main><img id="pose" src="data:image/jpeg;base64,{frames[initial]}" alt="Actual MuJoCo joint configuration"><aside>
 <p>Move the visible {side.lower()}-leg joint marked by the orange ring. The root and other joints stay fixed.</p><input id="angle" aria-label="{title} angle" type="range" min="0" max="{len(angles) - 1}" value="{initial}" step="1" disabled><p id="value">{angles[initial]:.1f} degrees</p>

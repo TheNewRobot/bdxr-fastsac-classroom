@@ -60,8 +60,8 @@ or Colab setup estimate. The separate hopping notebook also executed all eight
 stages at short budgets using the pinned local environment. These runs check code
 paths, not learned-policy quality. Exported baseline/variation and eight hopping
 checkpoints, including resumable states, passed ZIP integrity checks.
-Full training uses one updating Jupyter status display; complete logs and errors
-remain available. A real kernel check verified that repeated updates stay compact.
+Training progress remains visible as separate lines, with complete logs and errors
+saved. The earlier single updating display was removed after classroom feedback.
 
 The local browser passed movement-key release, turning, reverse limits, stop,
 pause, camera, reset, and checkpoint-load checks. The actual knee slider changed
@@ -95,3 +95,11 @@ That artificial model-name restriction has been removed. Setup requires a GPU
 and reports its name; dependency/runtime checks still apply. The 12,000-step
 target and 17-minute cap are unchanged. T4 speed and completed steps within
 that cap have not been measured, so the L40S timings are not T4 promises.
+
+## Joint explorer correction
+
+Cell 10 now uses browser-side pose switching in Colab instead of Python widget
+callbacks. The rendered poses, foot coordinates, and path marker update without
+waiting for the kernel to service an interaction during training. Local Jupyter
+keeps its standard widget controls. Browser interaction and generated poses are
+checked locally; authenticated Colab interaction remains unverified.
