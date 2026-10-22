@@ -27,6 +27,13 @@ class BriefAssessmentTests(unittest.TestCase):
             (run / "checkpoints").mkdir(parents=True)
             weights = run / "checkpoints/final.pt"
             weights.write_bytes(b"unchanged policy fixture")
+            (run / "metrics").mkdir()
+            timing = {
+                "step": 12000,
+                "session_training_seconds": 720,
+                "hardware": "test GPU",
+            }
+            (run / "metrics/timing.json").write_text(json.dumps(timing))
 
             def evaluate(module, *arguments):
                 self.assertEqual(module, "bdxr_classroom.evaluation.command_evaluate")
@@ -62,6 +69,8 @@ class BriefAssessmentTests(unittest.TestCase):
                 verdict = assess_walking(lab, run)
             lab.run.assert_called_once()
             lab.train.assert_not_called()
+            self.assertEqual(verdict["training_context"], timing)
+            self.assertIn("12,000 steps in 720s on test GPU", output.getvalue())
             self.assertEqual(weights.read_bytes(), b"unchanged policy fixture")
             self.assertGreaterEqual(verdict["wall_seconds"], 0)
             return verdict, output.getvalue()

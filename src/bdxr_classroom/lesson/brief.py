@@ -18,6 +18,13 @@ def assess_walking(lab, run, seconds=10, episodes=3):
     run = Path(run)
     weights = run / "checkpoints/final.pt"
     digest = checkpoint_digest(weights)
+    timing_path = run / "metrics/timing.json"
+    timing = json.loads(timing_path.read_text()) if timing_path.is_file() else {}
+    if timing:
+        print(
+            f"Training context: {timing['step']:,} steps in "
+            f"{timing['session_training_seconds']:.0f}s on {timing['hardware']}."
+        )
     output = run / "evaluation" / f"brief_{time.time_ns()}"
     lab.run(
         "bdxr_classroom.evaluation.command_evaluate",
@@ -58,6 +65,7 @@ def assess_walking(lab, run, seconds=10, episodes=3):
         evaluation_directory=str(output),
         wall_seconds=time.monotonic() - started,
         scope=f"{episodes} forward trials × {seconds:g}s; not full command validation",
+        training_context=timing,
     )
     (output / "brief_check.json").write_text(json.dumps(verdict, indent=2))
     command_table(summary)
