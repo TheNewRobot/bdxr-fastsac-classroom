@@ -162,7 +162,6 @@ print("Episode time limit:", env.cfg.episode_length_s, "seconds")
 from bdxr_classroom.lesson.kinematics import save_pose
 
 save_pose(env, "figures/robot.png")
-print("Robot joints:", env.scene["robot"].joint_names)
 
 # %%
 from IPython.display import display, Image

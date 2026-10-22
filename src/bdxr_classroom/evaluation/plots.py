@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
 from bdxr_classroom.experiments import metrics_path
 
 
@@ -75,7 +76,12 @@ def plot_run(run_dir, through_step=None, output=None):
         if has_tracking
         else ["Episode reward", "Episode duration (s)", "Mean forward speed (m/s)"]
     )
-    fig, axs = plt.subplots(1, len(keys), figsize=(14, 3.5), constrained_layout=True)
+    # Keep four learning curves readable at ordinary notebook display widths.
+    if len(keys) == 4:
+        fig, axs = plt.subplots(2, 2, figsize=(8, 5), constrained_layout=True)
+        axs = axs.ravel()
+    else:
+        fig, axs = plt.subplots(1, len(keys), figsize=(14, 3.5), constrained_layout=True)
     for ax, key, title in zip(
         axs,
         keys,

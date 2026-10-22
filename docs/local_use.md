@@ -19,14 +19,17 @@ export MUJOCO_GL=egl
 These settings match the notebook's walking recipe. Runtime depends on the GPU;
 the time limit can stop training before 12,000 steps. The trainer prints the
 actual timestamped experiment path. The notebook uses a short forward check.
-For the deeper **development-only** command suite:
+For a deeper **development-only** assessment within the classroom command range:
 
 ```bash
 .venv/bin/python -m bdxr_classroom.evaluation.command_evaluate \
-  experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt
-python scripts/evaluation/check_command_results.py \
-  experiments/candidates/<timestamp>_command_walking/evaluation/final_commands/summary.json
+  experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt \
+  --cases slow forward reverse stop turn_left turn_right left right
 ```
+
+The evaluator's default ten-command suite includes faster and farther reverse
+commands for broader stress testing. Its strict checker remains in
+`scripts/evaluation/check_command_results.py`; the student flow uses the brief check.
 
 Resume with `--resume .../checkpoints/resume.pt`; policy, critics, optimizers,
 normalization and replay are restored, while simulation episodes restart.
