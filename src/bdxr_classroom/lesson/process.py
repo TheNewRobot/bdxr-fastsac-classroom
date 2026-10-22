@@ -1,5 +1,6 @@
 """Bounded subprocess execution with complete logs and periodic progress."""
 
+import html
 import os
 import queue
 import signal
@@ -7,6 +8,37 @@ import subprocess
 import threading
 import time
 from pathlib import Path
+
+
+def notebook_progress():
+    """Use one live status area in a notebook; keep terminal output unchanged."""
+    try:
+        from IPython import get_ipython
+        from IPython.display import HTML, display
+    except ImportError:
+        return None
+    shell = get_ipython()
+    if shell is None or not hasattr(shell, "kernel"):
+        return None
+    handle = display(HTML("<pre>Starting training…</pre>"), display_id=True)
+    latest_step = ""
+
+    def update(message):
+        nonlocal latest_step
+        if message.startswith("step="):
+            latest_step = message
+            text = message
+        else:
+            text = f"{latest_step}\n{message}".strip()
+        handle.update(
+            HTML(
+                '<pre style="white-space:pre-wrap;overflow-wrap:anywhere">'
+                + html.escape(text)
+                + "</pre>"
+            )
+        )
+
+    return update
 
 
 def run_logged(
@@ -19,6 +51,7 @@ def run_logged(
     heartbeat=15,
     show=None,
     label="Working",
+    progress=None,
 ):
     """Stream selected output without mistaking a quiet process for completion."""
     log_path = Path(log_path)
@@ -57,7 +90,11 @@ def run_logged(
                         f"{label} exceeded {timeout:g}s. Full log: {log_path}"
                     )
                 if now >= next_report:
-                    print(f"{label}: still running ({now - started:.0f}s).", flush=True)
+                    message = f"{label}: still running ({now - started:.0f}s)."
+                    if progress:
+                        progress(message)
+                    else:
+                        print(message, flush=True)
                     next_report = now + heartbeat
                 try:
                     line = messages.get(timeout=min(0.2, heartbeat))
@@ -68,7 +105,10 @@ def run_logged(
                 else:
                     log.write(line)
                     if show is None or show(line):
-                        print(line.rstrip(), flush=True)
+                        if progress and line.startswith("step="):
+                            progress(line.rstrip())
+                        else:
+                            print(line.rstrip(), flush=True)
             returncode = process.wait(
                 timeout=max(1, timeout - (time.monotonic() - started))
             )
@@ -77,6 +117,10 @@ def run_logged(
                 f"{label} failed (exit {returncode}). Full log: {log_path}\n"
                 + log_path.read_text()[-6000:]
             )
+    except Exception:
+        if progress:
+            progress(f"{label}: stopped; see the error below and the full log.")
+        raise
     finally:
         if process.poll() is None:
             if os.name == "posix":
@@ -93,5 +137,9 @@ def run_logged(
                 process.wait(timeout=10)
         reader.join(timeout=2)
         process.stdout.close()
-    print(f"{label}: completed in {time.monotonic() - started:.0f}s.", flush=True)
+    message = f"{label}: completed in {time.monotonic() - started:.0f}s."
+    if progress:
+        progress(message)
+    else:
+        print(message, flush=True)
     return log_path

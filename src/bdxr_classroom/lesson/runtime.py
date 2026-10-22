@@ -8,7 +8,7 @@ import json
 import time
 from pathlib import Path
 
-from .process import run_logged
+from .process import notebook_progress, run_logged
 
 
 def command_arguments(settings):
@@ -52,6 +52,7 @@ class Lesson:
             env=self.environment,
             log_path=log_path,
             timeout=budget,
+            progress=notebook_progress() if module.endswith(".train") else None,
             label=module.rsplit(".", 1)[-1].replace("_", " ").capitalize(),
             show=lambda line: (
                 line.startswith(
