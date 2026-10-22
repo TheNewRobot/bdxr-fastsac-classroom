@@ -118,8 +118,8 @@ print("Reused pinned environment; GPU:", gpu)
                     '        stage = {**stage, "learning": {**stage["learning"], "steps": 60}}\n',
                 )
                 source = source.replace(
-                    "lab, HOP_STAGES[-1], SELECTED_WALK_CHECKPOINT",
-                    "lab, HOP_STAGES[-1], SELECTED_WALK_CHECKPOINT, episodes=1, seconds=2",
+                    "lab, candidate, SELECTED_WALK_CHECKPOINT",
+                    "lab, candidate, SELECTED_WALK_CHECKPOINT, episodes=1, seconds=2",
                 )
         else:
             source = source.replace("USE_WANDB = False", "USE_WANDB = True")
