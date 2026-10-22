@@ -11,7 +11,7 @@
   "maximum_stop_speed_m_s": 0.05,
   "notes": [
     "Every trial must finish without a fall and contain repeated landed hops.",
-    "The clearance screen exceeds the classroom's 20 mm obstacle height, but does not establish clearance at the right time or position.",
+    "The 25 mm clearance threshold matches the classroom step height; passing it does not establish obstacle traversal or clearance at the right time and position.",
     "Walking/hopping handovers, backward/turning commands, and full course traversal need separate evaluation.",
     "Five perturbed starts are not five independent training seeds."
   ]
