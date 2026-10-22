@@ -20,6 +20,7 @@ the actor.
 | First seed 7 | 12,000 | 718 s | No falls; speed error 0.031 m/s, mean max drift 0.032 m; passes |
 | Seed 8 sensitivity check | 12,000 | 854 s | No falls; speed error 0.084 m/s, mean max drift 0.093 m; **speed check fails** |
 | Default seed 7 repeat | 11,074 (time cap) | 901 s | No falls; speed error 0.027 m/s, mean max drift 0.070 m; passes |
+| Foot-level pilot | 11,525 (time cap) | 901 s | No falls; speed error 0.013 m/s, mean max drift 0.113 m; passes; unequal budget |
 | Full-budget seed 7 baseline (17-minute allowance) | 12,000 | 947 s | No falls; speed error 0.029 m/s, mean max drift 0.017 m; passes |
 | Full-budget foot-level variation (17-minute allowance) | 12,000 | 899 s | No falls; speed error 0.052 m/s, mean max drift 0.092 m; **speed check fails** |
 
@@ -50,10 +51,12 @@ and [media provenance](../assets/lesson/classroom_walking/provenance.json).
 
 ## Execution and presentation
 
-All 32 core code cells executed locally with short integration budgets; the
-separate hopping notebook executed all eight stages at short budgets. These
-runs check code paths, not learned-policy quality. Dependencies were reused from
-the pinned local environment. Exported baseline/variation and eight hopping
+All 32 core code cells executed from the public release in a fresh local lesson
+folder and dependency environment, with short integration budgets and no errors.
+Setup took 11 seconds with package caches available; this is not a cold-download
+or Colab setup estimate. The separate hopping notebook also executed all eight
+stages at short budgets using the pinned local environment. These runs check code
+paths, not learned-policy quality. Exported baseline/variation and eight hopping
 checkpoints, including resumable states, passed ZIP integrity checks.
 Full training uses one updating Jupyter status display; complete logs and errors
 remain available. A real kernel check verified that repeated updates stay compact.
@@ -63,6 +66,9 @@ pause, camera, reset, and checkpoint-load checks. The actual knee slider changed
 its rendered image in JupyterLab. Instructor figures remain in Markdown; student
 results remain executable. The regression suite ran 106 tests, with its
 optional simulator contract also passing separately against the new policy.
+Anonymous downloads of the release ZIP, bootstrap, checksums, and all eight
+Markdown images/animations matched their expected hashes. The main notebook has
+no saved student outputs. Local rendering confirmed the example layout.
 
 ## What the reported Colab failure establishes
 
