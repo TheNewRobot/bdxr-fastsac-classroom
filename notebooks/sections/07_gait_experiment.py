@@ -3,7 +3,7 @@
 #
 # Commanding a trained robot to walk faster is different from **changing a reward
 # and training a different gait**. Here we hold the command range fixed and alter
-# one interpretable behavior setting. Train the variant and an unchanged control
+# one interpretable behavior setting. Train the variant and its matched control
 # from scratch with the same seed and step budget.
 #
 # | Experiment | Changed reward setting | What to inspect |
@@ -105,7 +105,7 @@ variation_video = lab.record(
 media_pair(
     [
         (
-            "Your unchanged control",
+            "Your matched control",
             control_video,
             "Fresh training at the matched seed and budget.",
         ),
