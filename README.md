@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="assets/lesson/reference/robot.png" alt="The BDX-R droid in simulation" width="520">
+  <a href="assets/lesson/command_walking/rollout.mp4">
+    <img src="assets/lesson/inline/walking.gif" alt="BDX-R walking in simulation — click for the full video" width="480">
+  </a>
 </p>
 
 # Teach a little droid to walk
