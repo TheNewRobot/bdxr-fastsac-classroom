@@ -124,6 +124,13 @@ and curve. Short-budget execution establishes integration, not policy quality.
 submitted L4 output is evidence about the prior workflow. New GPU tests use a local
 L40S; concurrent jobs and cached installation affect measured wall-clock times.
 
+A follow-up issue log prompted a live dimension check: walking observations have
+lengths 47/62 (actor/critic), hopping 49/64, and both use ten action components.
+The lesson now names observation-vector lengths explicitly and gives an actionable
+error if installation is attempted before unpacking. Fonts and right-knee geometry
+were rechecked. The PDF's specific failed recovery could not be matched to a saved
+run; its checkpoint, configuration, and evaluation report are still needed.
+
 ## Teaching media and earlier results
 
 Figures and eight silent animations use public PNG/GIF URLs inside Markdown.
