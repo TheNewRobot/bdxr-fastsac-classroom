@@ -9,8 +9,10 @@
 # |:---:|
 # | ![Fresh baseline and flatter-foot comparison, with check outcomes](lesson-asset:classroom_walking/reward_comparison.gif) |
 #
-# Both trained from scratch for 12,000 steps. Swing-foot tilt fell from **8.7° to
-# 5.6°**, but the variant missed the speed target. Your measurements may differ.
+# Only `level_feet_weight` changes: **0 → 0.75**. Both trained from scratch for
+# 12,000 steps. Look at the feet during each step: measured swing-foot tilt fell
+# from **8.7° to 5.6°**. The difference is subtle, not a new gait; the variant also
+# walked slower and missed the speed tolerance. Your measurements may differ.
 
 # %%
 PREDICTION = "The feet will stay flatter during stepping."  # @param {type:"string"}

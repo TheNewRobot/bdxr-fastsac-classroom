@@ -14,9 +14,12 @@ STYLE = """
 .bdx-card h4 {margin:0 0 10px;font-size:18px}.bdx-card p {line-height:1.5;margin-bottom:0}
 .bdx-card img,.bdx-card video {width:100%;border-radius:8px}
 .bdx-card img {max-height:420px;object-fit:contain}
-.bdx-table {border-collapse:collapse;margin:14px 0;font-family:system-ui,sans-serif}
-.bdx-table th,.bdx-table td {padding:9px 14px;border-bottom:1px solid #d8d1c2;text-align:left}
-.bdx-table th {background:#e8efeb}.bdx-note {color:#516766;font-size:13px}
+table.bdx-table {border-collapse:collapse;margin:14px 0;font-family:system-ui,sans-serif;
+ color:inherit;background:transparent}
+table.bdx-table thead,table.bdx-table tbody,table.bdx-table tr,
+table.bdx-table th,table.bdx-table td {background:transparent !important;color:inherit !important}
+table.bdx-table th,table.bdx-table td {padding:9px 14px;border-bottom:1px solid #8888;text-align:left}
+table.bdx-table th {font-weight:600}.bdx-note {color:#516766;font-size:13px}
 </style>
 """
 
