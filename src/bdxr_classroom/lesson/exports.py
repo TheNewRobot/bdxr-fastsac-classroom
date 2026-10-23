@@ -4,6 +4,22 @@ import zipfile
 from pathlib import Path
 
 
+def optional_download(work, runs, enabled=False, include_replay=False):
+    """Keep Run All from creating or downloading a large backup unexpectedly."""
+    if not enabled:
+        print("Saving is optional. Enable SAVE_RESULTS to download your results ZIP.")
+        return None
+    backup = export_results(work, runs, include_replay=include_replay)
+    print("Saved:", backup)
+    try:
+        from google.colab import files
+    except ImportError:
+        print("Retrieve the ZIP from your local lesson folder.")
+    else:
+        files.download(str(backup))
+    return backup
+
+
 def export_results(work, runs, include_replay=True):
     """Include all curriculum stages and game/transition evidence exactly once.
 

@@ -1,512 +1,147 @@
-<!DOCTYPE html>
-<html lang="en">
- <meta charset="utf-8"/>
- <meta content="width=device-width,initial-scale=1" name="viewport"/>
- <title>
-  Desert Droid Run
- </title>
- <style>
- [hidden] { display: none !important; }
-  * {
-  box-sizing: border-box
-}
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Desert Droid Run</title><style>
+*{box-sizing:border-box}body{margin:0;background:#102629;color:#f3ecd9;font:15px system-ui,sans-serif}
+main{max-width:1120px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;gap:20px}
+h1{font-size:26px;color:#ffe0a3;margin:0}p{line-height:1.5}small,.muted{color:#bed0ca}
+.badge{border:1px solid #56716b;border-radius:20px;padding:7px 12px;font-size:12px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:18px;margin-top:22px}
+.screen{position:relative;border-radius:16px;overflow:hidden;background:#203d3e}
+.screen img{width:100%;display:block;aspect-ratio:3/2;object-fit:cover}
+.overlay{position:absolute;top:12px;left:12px;background:#102629eb;border-radius:8px;padding:8px 12px;font-size:12px}
+.panel{border:1px solid #405e59;border-radius:16px;background:#1b3839;padding:18px}
+h2{font-size:16px;margin:0 0 12px}.stats{display:flex;justify-content:space-between;padding:14px 4px;color:#bed0ca;font-size:13px}
+.stats strong{color:#fff0ce}.row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+button{font:inherit;font-weight:600;border:1px solid #57716b;border-radius:9px;background:#29494a;color:#f3ecd9;padding:10px 12px;cursor:pointer;touch-action:none;user-select:none}
+button:hover{background:#35595a}button:focus-visible{outline:3px solid #83ddd0;outline-offset:3px}
+button[aria-pressed=true],button.held{background:#f1c47d;color:#172e30;border-color:#f1c47d}
+.speeds{display:flex;gap:6px}.speeds button{flex:1;padding:9px 5px;font-size:13px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:18px 0}.pad button{padding:15px 4px}
+.forward{grid-column:2}.left{grid-column:1}.back{grid-column:2}.right{grid-column:3}
+.stop{width:100%;background:#e7b681;color:#172e30;border:0}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-bottom:1px solid #405e59;padding-bottom:14px;margin-bottom:16px}
+.readout strong{display:block;font-size:22px;color:#9ae3d3;margin-top:5px}.readout strong small{display:block;font-size:13px;font-weight:400}
+.help{font-size:13px;color:#bed0ca;margin:12px 0 0}
+.request{font-size:13px;min-height:36px;color:#ffe0a3}
+details{margin-top:18px;border-top:1px solid #405e59;padding-top:16px}summary{cursor:pointer;color:#d4e0d7}
+button:disabled{opacity:.55;cursor:default}
+@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}header{align-items:flex-start}.badge{max-width:130px}.panel{max-width:none}}
 
-body {
-  margin: 0;
-  background: #122a2d;
-  color: #f8ebcd;
-  font: 15px system-ui, sans-serif
-}
-
-main {
-  max-width: 1120px;
-  margin: auto;
-  padding: 18px
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px
-}
-
-h1 {
-  font-size: 28px;
-  margin: 0;
-  color: #ffe1a0
-}
-
-p {
-  line-height: 1.5
-}
-
-small {
-  color: #c5d2c5
-}
-
-.stats {
-  display: flex;
-  gap: 15px
-}
-
-.stat {
-  background: #203c3d;
-  border-radius: 12px;
-  padding: 10px 18px;
-  text-align: center
-}
-
-.stat strong {
-  font-size: 24px;
-  display: block;
-  color: #82e1db
-}
-
-.layout {
-  display: grid;
-  grid-template-columns: 1fr 290px;
-  gap: 15px;
-  margin-top: 16px
-}
-
-.screen {
-  position: relative;
-  min-height: 320px;
-  background: #263e44;
-  border-radius: 16px;
-  overflow: hidden
-}
-
-img {
-  width: 100%;
-  display: block
-}
-
-.win {
-  position: absolute;
-  inset: 0;
-  display: none;
-  place-content: center;
-  background: #13382ab3;
-  text-align: center;
-  font-size: 30px;
-  color: #ffe295
-}
-
-.panel {
-  background: #203c3d;
-  border: 1px solid #486465;
-  border-radius: 16px;
-  padding: 15px
-}
-
-button {
-  border: 0;
-  border-radius: 9px;
-  padding: 10px 13px;
-  margin: 4px 2px;
-  cursor: pointer;
-  background: #e3ba77;
-  color: #122a2d;
-  font-weight: 700
-}
-
-button.secondary {
-  background: #365659;
-  color: #e6f3ec
-}
-
-button:hover {
-  filter: brightness(1.15)
-}
-
-input[type=range] {
-  width: 100%;
-  accent-color: #89e6df
-}
-
-label {
-  display: block;
-  margin-top: 14px
-}
-
-input[type=text] {
-  width: 100%;
-  background: #122a2d;
-  color: #f4e7ca;
-  border: 1px solid #587575;
-  border-radius: 7px;
-  padding: 9px;
-  margin: 5px 0
-}
-
-.mode {
-  color: #84e9df;
-  font-weight: 700
-}
-
-.help {
-  font-size: 13px;
-  color: #d2dfd6
-}
-
-.path {
-  overflow-wrap: anywhere;
-  font-size: 12px
-}
-
-details {
-  margin-top: 15px
-}
-
-.message {
-  padding: 10px 0;
-  color: #abe9df
-}
-
-.drive {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center
-}
-
-@media(max-width:800px) {
-  .layout {
-    grid-template-columns: 1fr
-  }
-
-  .stats {
-    gap: 5px
-  }
-
-  .stat {
-    padding: 8px
-  }
-
-  h1 {
-    font-size: 22px
-  }
-}
- </style>
- <main>
-  <header>
-   <div>
-    <h1>
-     ✦ Desert Droid Run
-    </h1>
-    <small>
-     A little droid. Three obstacles. One finish beacon.
-    </small>
-   </div>
-   <div class="stats">
-    <div class="stat">
-     <strong id="timer">
-      0.0
-     </strong>
-     sim seconds
-    </div>
-    <div class="stat">
-     <strong id="falls">
-      0
-     </strong>
-     falls
-    </div>
-    <div class="stat">
-     <strong id="checkpoints">
-      0 / 4
-     </strong>
-     checkpoints
-    </div>
-   </div>
-  </header>
-  <div class="layout">
-   <div>
-    <div class="screen">
-     <img alt="Live simulated droid" id="frame"/>
-     <div class="win" id="win">
-      ✦ BEACON REACHED ✦
-      <p>
-       Your droid made it!
-      </p>
-     </div>
-    </div>
-    <div class="message" id="message">
-     Connecting to your simulator…
-    </div>
-    <div>
-     <button class="secondary" onclick="camera('follow')">
-      Follow droid
-     </button>
-     <button class="secondary" onclick="camera('top')">
-      Top view
-     </button>
-     <button class="secondary" onclick="camera('overview')">
-      See course
-     </button>
-     <button class="secondary" onclick="send({action:'pause'})">
-      Pause / resume
-     </button>
-     <button class="secondary" onclick="newGame()">
-      New game
-     </button>
-    </div>
-    <p class="help">
-     Cross the three obstacles and rough ground to collect four checkpoints, then reach the raised beacon upright. Falling returns you to the start; time and falls stay on the scoreboard. Pause stops simulation time.
-    </p>
-   </div>
-   <section class="panel">
-    <div>
-     Controller:
-     <span class="mode" id="mode">
-      loading
-     </span>
-    </div>
-    <p class="help" id="applied">
-     Applied command: 0.00 m/s · 0.00 rad/s
-    </p>
-    <label>
-     Forward / backward
-     <b id="speedLabel">
-      0.00 m/s
-     </b>
-     <input id="speed" max="0.5" min="-0.25" step="0.05" type="range" value="0"/>
-    </label>
-    <label>
-     Turn rate
-     <b id="yawLabel">
-      0.00 rad/s
-     </b>
-     <input id="yaw" max="0.6" min="-0.6" step="0.05" type="range" value="0"/>
-    </label>
-    <div class="drive">
-     <button onclick="drive(.3,0)">
-      Forward
-     </button>
-     <button onclick="drive(-.2,0)">
-      Back
-     </button>
-     <button onclick="drive(0,.4)">
-      ↶ Left
-     </button>
-     <button onclick="drive(0,-.4)">
-      Right ↷
-     </button>
-     <button onclick="stopRobot()">
-      Stop
-     </button>
-    </div>
-    <div class="drive" id="modeControls">
-     <button onclick="chooseMode('walk')">
-      Walk
-     </button>
-     <button onclick="chooseMode('hop')">
-      Hop
-     </button>
-    </div>
-    <p class="help" id="keyboardHelp">
-     Keyboard: hold W/S to move, A/D to turn. Space switches walk/hop. Click this panel first. Release movement keys to stop.
-    </p>
-    <p class="help" id="terrainHelp">
-     Slow down and switch to hopping before an obstacle. Wait until both feet have cleared it and landed before switching back to walking. Leave room for the robot to slow down, and watch the mode label.
-    </p>
-   </section>
-  </div>
-  <details class="panel">
-   <summary>
-    Load your trained policies
-   </summary>
-   <p id="loaderHelp">
-    Choose walking and hopping checkpoints produced with this lesson's robot settings.
-   </p>
-   <datalist id="checkpoint-options">
-   </datalist>
-   <label>
-    Walking checkpoint
-    <input id="walking" list="checkpoint-options" type="text"/>
-   </label>
-   <label id="hoppingLoader">
-    Hopping checkpoint (optional)
-    <input id="hopping" list="checkpoint-options" type="text"/>
-   </label>
-   <button onclick="loadPolicies()">
-    Load and start a new game
-   </button>
-   <p class="path" id="experiment">
-   </p>
-  </details>
- </main>
- <script>
-  const $ = id => document.getElementById(id);
-let desiredMode = 'walk',
-  initialized = false,
-  keys = new Set(),
-  lastDrive = '',
-  previousFalls = 0;
+[hidden]{display:none!important}.win{position:absolute;inset:0;display:grid;place-content:center;background:#102629cc;color:#ffe0a3;font-size:26px}input{max-width:100%;width:100%;padding:9px;background:#102629;color:#f3ecd9;border:1px solid #57716b;border-radius:8px}label{display:block;margin:10px 0}.path{overflow-wrap:anywhere;font-size:12px}
+</style>
+<main><header><div><h1>✦ Desert Droid Run</h1><p class="muted">Drive your trained droid to the finish beacon.</p></div><span class="badge" id="mode">Connecting…</span></header>
+<div class="layout"><section>
+<div class="screen"><img id="frame" alt="Live simulated droid"><div class="win" id="win" hidden>✦ BEACON REACHED ✦</div></div>
+<div class="stats"><span>Time <strong id="timer">0.0 s</strong></span><span>Falls <strong id="falls">0</strong></span><span>Checkpoints <strong id="checkpoints">0 / 4</strong></span></div>
+<div class="row" id="cameras"><button data-camera="follow" aria-pressed="true">Follow</button><button data-camera="top" aria-pressed="false">Top view</button><button data-camera="overview" aria-pressed="false">Course</button></div>
+<p class="help" id="terrainHelp">Steer through the passages, cross the uneven ground, and reach the raised beacon. Leave room for the whole robot.</p>
+<p class="help">Falling returns you to the start; time and falls stay on the scoreboard. Pause freezes simulation time.</p>
+</section><aside class="panel"><h2>Drive your policy</h2>
+<div class="readout"><div><small>Actual speed</small><strong><span id="actualSpeed">—</span> <small>m/s</small></strong></div><div><small>Actual turn rate</small><strong><span id="actualYaw">—</span> <small>rad/s</small></strong></div></div>
+<div class="speeds"><button data-speed=".15" aria-pressed="false">Slow</button><button data-speed=".3" aria-pressed="true">Normal</button><button data-speed=".5" aria-pressed="false">Fast</button></div>
+<div class="pad"><button class="forward" data-key="KeyW">↑<br>Forward</button><button class="left" data-key="KeyA">↶<br>Left</button><button class="back" data-key="KeyS">↓<br>Back</button><button class="right" data-key="KeyD">↷<br>Right</button></div>
+<button class="stop" id="stop">Stop</button>
+<p class="help">Hold a direction to move. Release to request a stop. Hold W/S + A/D to move and turn together.</p>
+<div class="row" id="modeControls" hidden><button id="walkMode" aria-pressed="true">Walk</button><button id="hopMode" aria-pressed="false">Hop</button></div>
+<p class="help" id="hopHelp" hidden>Hop is an explicit mode: click Hop to hop, and Walk to return to walking. Stop always requests quiet walking mode. Allow room to land before switching.</p>
+<p class="request" id="requested">Requested: 0.00 m/s · 0.00 rad/s</p>
+<div class="row"><button id="pause">Pause</button><button id="reset">Reset</button></div><p class="help" id="message" role="status">Connecting to your simulator…</p>
+</aside></div>
+<details><summary>Load another trained policy</summary><p class="help" id="loaderHelp">Your selected policy is already loaded. Change it here only if needed.</p><datalist id="checkpoint-options"></datalist>
+<label>Walking checkpoint<input id="walking" list="checkpoint-options" type="text"></label><label id="hoppingLoader" hidden>Hopping checkpoint<input id="hopping" list="checkpoint-options" type="text"></label><button id="load">Load and reset</button><p class="path" id="experiment"></p></details>
+<p class="help">Gameplay records automatically. When finished, pause and use the optional notebook cells to watch or download your recording.</p>
+</main><script>const $ = id => document.getElementById(id);
+const buttons = [...document.querySelectorAll('[data-key]')];
+const keys = new Set(), pointers = new Map();
+let selectedSpeed = .3, desiredMode = 'walk', walkingOnly = true;
+let paused = false, ready = false, initialized = false, previousFalls = 0;
+let limits = {speed_min:-.25, speed_max:.5, yaw_max:.6};
+let pendingDrive = null, sendingDrive = false;
 async function send(value) {
+  const response = await fetch('./api/command', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(value)
+  });
+  if (!response.ok) throw new Error('Command failed');
+}
+// Keep at most one pending drive request; a delayed request cannot overtake Stop.
+async function flushDrive() {
+  if (sendingDrive) return;
+  sendingDrive = true;
   try {
-    await fetch('./api/command', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(value)
-    })
-  } catch (e) {
-    $('message').textContent = 'Connection interrupted. Your experiment is saved on the runtime.'
-  }
+    while (pendingDrive) {
+      const command = pendingDrive; pendingDrive = null;
+      await send(command);
+    }
+  } catch (_) { $('message').textContent = 'Connection interrupted. Releasing controls requests a stop.'; }
+  finally { sendingDrive = false; }
 }
-
-let walkingOnly = false;
-function drive(speed, yaw) {
-  speed = Math.max(Number($('speed').min), Math.min(Number($('speed').max), speed));
-  yaw = Math.max(Number($('yaw').min), Math.min(Number($('yaw').max), yaw));
-  lastDrive = JSON.stringify([speed, yaw]);
-  $('speed').value = speed;
-  $('yaw').value = yaw;
-  labels();
-  send({
-    speed,
-    yaw,
-    mode: desiredMode
-  })
+function drive() {
+  const held = new Set([...keys, ...pointers.values()]);
+  const enabled = ready && !paused;
+  buttons.forEach(b => b.classList.toggle('held', enabled && held.has(b.dataset.key)));
+  let speed = enabled ? (held.has('KeyW') ? selectedSpeed : 0) - (held.has('KeyS') ? Math.min(selectedSpeed,.2) : 0) : 0;
+  let yaw = enabled ? (held.has('KeyA') ? .4 : 0) - (held.has('KeyD') ? .4 : 0) : 0;
+  speed = Math.max(limits.speed_min, Math.min(limits.speed_max,speed));
+  yaw = Math.max(-limits.yaw_max, Math.min(limits.yaw_max,yaw));
+  $('requested').textContent = `Requested: ${speed.toFixed(2)} m/s · ${yaw.toFixed(2)} rad/s`;
+  $('walkMode').setAttribute('aria-pressed', String(desiredMode==='walk'));
+  $('hopMode').setAttribute('aria-pressed', String(desiredMode==='hop'));
+  if (ready) { pendingDrive = {speed,yaw,mode:desiredMode,hold_to_move:true}; flushDrive(); }
 }
-
-function labels() {
-  $('speedLabel').textContent = Number($('speed').value).toFixed(2) + ' m/s';
-  $('yawLabel').textContent = Number($('yaw').value).toFixed(2) + ' rad/s'
+function clearControls() { keys.clear(); pointers.clear(); desiredMode='walk'; drive(); }
+async function action(value) {
+  try { await send(value); } catch (_) { $('message').textContent='Connection interrupted.'; }
 }
-
-function chooseMode(mode) {
-  desiredMode = mode;
-  drive(Number($('speed').value), Number($('yaw').value))
-}
-
-function stopRobot() {
-  desiredMode = 'walk';
-  drive(0, 0)
-}
-
-function camera(view) {
-  send({
-    action: 'camera',
-    view
-  })
-}
-
-function clearControls() {
-  keys.clear();
-  lastDrive = '';
-  desiredMode = 'walk';
-  $('speed').value = 0;
-  $('yaw').value = 0;
-  labels()
-}
-
-function newGame() {
-  clearControls();
-  send({
-    action: 'new'
-  })
-}
-
-function loadPolicies() {
-  clearControls();
-  send({
-    action: 'load',
-    walking: $('walking').value.trim(),
-    hopping: $('hopping').value.trim()
-  })
-}
-['speed', 'yaw'].forEach(id => $(id).addEventListener('input', () => drive(Number($('speed').value), Number($('yaw').value))));
-
-function keyboard() {
-  let speed = (keys.has('KeyW') ? .3 : 0) - (keys.has('KeyS') ? .2 : 0),
-    yaw = (keys.has('KeyA') ? .4 : 0) - (keys.has('KeyD') ? .4 : 0);
-  const encoded = JSON.stringify([speed, yaw]);
-  if (encoded !== lastDrive) {
-    lastDrive = encoded;
-    drive(speed, yaw)
-  }
-}
-window.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
-  if (['KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
-    e.preventDefault();
-    keys.add(e.code);
-    keyboard()
-  }
-  if (e.code === 'Space' && !e.repeat && !walkingOnly) {
-    e.preventDefault();
-    chooseMode(desiredMode === 'walk' ? 'hop' : 'walk')
-  }
+buttons.forEach(b => {
+  b.addEventListener('pointerdown', e => { e.preventDefault(); b.setPointerCapture(e.pointerId); pointers.set(e.pointerId,b.dataset.key); drive(); });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(name => b.addEventListener(name,e => { pointers.delete(e.pointerId); drive(); }));
 });
-window.addEventListener('keyup', e => {
-  if (keys.delete(e.code)) keyboard()
+window.addEventListener('keydown',e => {
+  if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (['KeyW','KeyS','KeyA','KeyD'].includes(e.code)) { e.preventDefault(); keys.add(e.code); drive(); }
 });
-window.addEventListener('blur', () => {
-  if (keys.size) {
-    keys.clear();
-    keyboard()
-  }
+window.addEventListener('keyup',e => { if (keys.delete(e.code)) drive(); });
+window.addEventListener('blur',clearControls);
+document.addEventListener('visibilitychange',() => { if (document.hidden) clearControls(); });
+$('stop').onclick=clearControls;
+$('pause').onclick=() => { clearControls(); action({action:'pause'}); };
+$('reset').onclick=() => { clearControls(); action({action:'new'}); };
+$('load').onclick=() => { clearControls(); initialized=false; action({action:'load',walking:$('walking').value.trim(),hopping:$('hopping').value.trim()}); };
+document.querySelectorAll('[data-speed]').forEach(b => b.onclick=() => {
+  selectedSpeed=Number(b.dataset.speed);
+  document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); drive();
 });
+document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-camera]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  action({action:'camera',view:b.dataset.camera});
+});
+$('walkMode').onclick=()=>{desiredMode='walk';drive();};
+$('hopMode').onclick=()=>{if(!walkingOnly){desiredMode='hop';drive();}};
 async function poll() {
   try {
-    const s = await (await fetch('./api/state')).json();
-    $('message').textContent = s.error || s.message || '';
-    if (s.ready) {
-      walkingOnly = Boolean(s.walking_only);
-      $('modeControls').hidden = walkingOnly;
-      $('hoppingLoader').hidden = walkingOnly;
-      if (walkingOnly) {
-        desiredMode = 'walk';
-        $('loaderHelp').textContent = 'Choose the walking checkpoint you trained in this lesson.';
-        $('keyboardHelp').textContent = 'Hold W/S to move and A/D to turn. Release keys to stop. Use sliders for finer speed control.';
-        $('terrainHelp').textContent = 'Steer through the offset passages, slow down for uneven ground, then climb to the finish. This course uses your walking policy only.';
-      }
-      if (s.command_limits) {
-        $('speed').min = s.command_limits.speed_min;
-        $('speed').max = s.command_limits.speed_max;
-        $('yaw').min = -s.command_limits.yaw_max;
-        $('yaw').max = s.command_limits.yaw_max;
-      }
-      if (s.falls !== previousFalls) {
-        clearControls();
-        previousFalls = s.falls
-      }
-      $('timer').textContent = s.time.toFixed(1);
-      $('falls').textContent = s.falls;
-      $('checkpoints').textContent = (s.course_checkpoints || 0) + ' / 4';
-      $('mode').textContent = s.mode + (s.paused ? ' · paused' : '');
-      $('applied').textContent = 'Applied command: ' + s.speed.toFixed(2) + ' m/s · ' + s.yaw.toFixed(2) + ' rad/s';
-      $('win').style.display = s.finished ? 'grid' : 'none';
-      $('experiment').textContent = 'Saved experiment: ' + s.experiment;
-      if (!initialized) {
-        $('walking').value = s.walking;
-        $('hopping').value = s.hopping || '';
-        initialized = true
-      }
+    const s=await (await fetch('./api/state')).json(); ready=Boolean(s.ready);
+    $('message').textContent=s.error||s.message||'';
+    if(ready){
+      walkingOnly=Boolean(s.walking_only); paused=s.paused;
+      if(walkingOnly)desiredMode='walk';
+      ['modeControls','hopHelp','hoppingLoader'].forEach(id=>$(id).hidden=walkingOnly);
+      if(!walkingOnly)$('terrainHelp').textContent='Cross the obstacles and rough ground, then reach the raised beacon. Choose hopping when needed; allow space to land.';
+      if(s.command_limits)limits=s.command_limits;
+      if(s.falls!==previousFalls){clearControls();previousFalls=s.falls;}
+      $('timer').textContent=s.time.toFixed(1)+' s'; $('falls').textContent=s.falls;
+      $('checkpoints').textContent=(s.course_checkpoints||0)+' / 4';
+      $('mode').textContent=s.mode+(paused?' · paused':''); $('pause').textContent=paused?'Resume':'Pause';
+      $('actualSpeed').textContent=Number.isFinite(s.actual_speed)?s.actual_speed.toFixed(2):'—';
+      $('actualYaw').textContent=Number.isFinite(s.actual_yaw)?s.actual_yaw.toFixed(2):'—';
+      $('win').hidden=!s.finished; $('experiment').textContent='Saved experiment: '+s.experiment;
+      if(!initialized){$('walking').value=s.walking;$('hopping').value=s.hopping||'';initialized=true;}
     }
-  } catch (e) {}
-  setTimeout(poll, 250)
+  } catch(_){ready=false;$('message').textContent='Reconnecting to the simulator…';}
+  setTimeout(poll,250);
 }
-async function frame() {
-  try {
-    const response = await fetch('./api/frame');
-    if (response.ok) {
-      const old = $('frame').src;
-      $('frame').src = URL.createObjectURL(await response.blob());
-      if (old.startsWith('blob:')) URL.revokeObjectURL(old)
-    }
-  } catch (e) {}
-  setTimeout(frame, 100)
+async function frame(){
+  try{const response=await fetch('./api/frame');if(response.ok){const old=$('frame').src;$('frame').src=URL.createObjectURL(await response.blob());if(old.startsWith('blob:'))URL.revokeObjectURL(old);}}catch(_){}
+  setTimeout(frame,100);
 }
-fetch('./api/checkpoints').then(r => r.json()).then(paths => paths.forEach(path => {
-  const o = document.createElement('option');
-  o.value = path;
-  $('checkpoint-options').appendChild(o)
-}));
-poll();
-frame();
- </script>
-</html>
+fetch('./api/checkpoints').then(r=>r.json()).then(paths=>paths.forEach(path=>{const option=document.createElement('option');option.value=path;$('checkpoint-options').appendChild(option);})).catch(()=>{});
+// A server lease stops motion if the browser closes or its connection disappears.
+setInterval(()=>{if(ready&&!document.hidden)drive();},250);
+poll();frame();</script></html>

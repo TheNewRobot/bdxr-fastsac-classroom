@@ -6,10 +6,15 @@ import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
-from bdxr_classroom.lesson.exports import export_results
+from bdxr_classroom.lesson.exports import export_results, optional_download
 
 
 class NotebookExports(unittest.TestCase):
+    def test_default_optional_save_creates_nothing(self):
+        with patch("bdxr_classroom.lesson.exports.export_results") as export:
+            self.assertIsNone(optional_download("/unused", []))
+            export.assert_not_called()
+
     def test_both_recovery_experiments_are_discovered_for_backup(self):
         with tempfile.TemporaryDirectory() as temporary:
             work = Path(temporary)

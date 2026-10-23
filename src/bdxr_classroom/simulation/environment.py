@@ -32,6 +32,8 @@ def make_env(
     yaw_tracking="full",
     yaw_std=0.2,
     course=None,
+    full_link_collisions=False,
+    quiet_standing_weight=0.0,
     linear_weight=None,
     swing_height=None,
     training_terrain_height=0.0,
@@ -268,6 +270,13 @@ def make_env(
         )
     if reward_scale <= 0:
         raise ValueError("Reward scale must be positive")
+    if quiet_standing_weight:
+        if task_version == "hop":
+            raise ValueError("Quiet standing is a walking-mode objective; explicit hopping remains active.")
+        cfg.rewards["quiet_standing"] = RewardTermCfg(
+            func=behaviors.quiet_standing_reward,
+            weight=quiet_standing_weight,
+        )
     # Preserve relative objectives while keeping returns inside the categorical
     # critic's support. Stronger hopping weights can otherwise saturate its top bin.
     for reward in cfg.rewards.values():
@@ -286,6 +295,11 @@ def make_env(
     if proprio_only:
         cfg.observations["critic"] = copy.deepcopy(cfg.observations["actor"])
     robot = cfg.scene.entities["robot"]
+    if full_link_collisions:
+        from bdxr_classroom.game.collisions import full_link_collision_config
+
+        robot = full_link_collision_config(robot)
+        cfg.scene.entities["robot"] = robot
     robot.articulation = replace(
         robot.articulation,
         actuators=tuple(

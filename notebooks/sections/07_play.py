@@ -10,9 +10,10 @@
 # |:---:|
 # | ![Desert walking course](lesson-asset:course_preview.png) |
 #
-# Click inside the panel: **W/S** moves and **A/D** turns. Release keys to stop;
-# use the sliders for finer speed control. Falling resets the robot but keeps
-# accumulated time and falls. Pause stops simulation time.
+# Click **Resume**, then hold a direction button or **W/S** to move and **A/D**
+# to turn. Release to request stopping. **Slow / Normal / Fast** select speed;
+# they do not start movement. Actual motion and requested commands are shown
+# separately. Falling keeps accumulated time and falls; Pause freezes simulation.
 # On remote VS Code, forward port 8765 if the panel is blank.
 
 # %%
@@ -26,11 +27,11 @@ status = launch_game(lab, walking, port=GAME_PORT, course="configs/walking_cours
 display_game(GAME_PORT)
 
 # %% [markdown]
-# ### Keep your result
+# ### Optional · watch and keep your result
 #
-# Play first, then pause and run these cells to show your latest recording and
-# export configurations, measurements, checkpoints, and gameplay. Replay state
-# preserves collected experience for continuation; it increases the download size.
+# Gameplay records automatically. Pause, then run the replay cell if you want to
+# watch it. Saving is optional: the ZIP contains configurations, measurements,
+# checkpoints, and gameplay. Include replay only for a larger resumable backup.
 
 # %%
 from IPython.display import display, Video
@@ -42,16 +43,11 @@ else:
     print("Drive the droid first, then rerun this cell to see your recording.")
 
 # %%
-from bdxr_classroom.lesson.exports import export_results
+from bdxr_classroom.lesson.exports import optional_download
 
-INCLUDE_REPLAY = True  # @param {type:"boolean"}
-backup = export_results(WORK, lab.runs, include_replay=INCLUDE_REPLAY)
-print("Saved:", backup)
-try:
-    from google.colab import files
-    files.download(str(backup))
-except ImportError:
-    print("Retrieve the ZIP from your local lesson folder.")
+SAVE_RESULTS = False  # @param {type:"boolean"}
+INCLUDE_REPLAY = False  # @param {type:"boolean"}
+backup = optional_download(WORK, lab.runs, SAVE_RESULTS, INCLUDE_REPLAY)
 
 # %% [markdown]
 # **Submit:** your walking video, short check, reward prediction/comparison,

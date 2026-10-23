@@ -44,7 +44,7 @@ def build_course(spec, cfg=None):
             rgba=rgba,
             quat=quat,
             contype=1 if collision else 0,
-            conaffinity=1 if collision else 0,
+            conaffinity=3 if collision else 0,
             group=0 if collision else 2,
             friction=(1.0, 0.005, 0.0001),
         )
@@ -53,6 +53,7 @@ def build_course(spec, cfg=None):
         if surface.type == mujoco.mjtGeom.mjGEOM_PLANE:
             surface.material = ""
             surface.rgba = sand
+            surface.conaffinity |= 2
     box, cylinder = mujoco.mjtGeom.mjGEOM_BOX, mujoco.mjtGeom.mjGEOM_CYLINDER
     sphere = mujoco.mjtGeom.mjGEOM_SPHERE
     # The route's subtle color strip is visual only and has no raised edges.
