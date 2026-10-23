@@ -259,7 +259,7 @@ def joint_explorer(path):
             '<svg viewBox="0 0 280 190" width="280" aria-label="Foot x–z path">'
             f'<polyline points="{points}" fill="none" stroke="#25847a" stroke-width="3"/>'
             f'<circle cx="{x}" cy="{z}" r="6" fill="#d78535"/>'
-            '<text x="80" y="183" font-size="13">Foot x–z path (m)</text></svg>'
+            '<text x="80" y="183" font-size="13" fill="currentColor">Foot x–z path (m)</text></svg>'
         )
 
     update()

@@ -224,14 +224,20 @@ def sweep_joint(env, joint_name, angles_deg, destination):
     title = html.escape(joint_name)
     initial = int(np.argmin(np.abs(angles)))
     document = f'''<!doctype html><meta charset="utf-8"><style>
-body{{font-family:system-ui;margin:0;background:#faf7f0;color:#263b3b;padding:20px}}
-main{{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}}img{{width:min(100%,640px);border-radius:12px}}
-input{{width:100%}}aside{{flex:1;min-width:220px}}h2{{margin-top:0}}pre{{font-size:16px}}
-</style><h2>{title}: forward kinematics</h2><main><img id="pose" src="data:image/jpeg;base64,{frames[initial]}" alt="Actual MuJoCo joint configuration"><aside>
+.bdx-joint-explorer{{font-family:system-ui;margin:0;background:#faf7f0;color:#263b3b;padding:20px;color-scheme:light}}
+.bdx-joint-explorer h2,.bdx-joint-explorer h3,.bdx-joint-explorer p,
+.bdx-joint-explorer pre{{color:#263b3b !important;background:transparent !important}}
+.bdx-joint-explorer main{{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}}
+.bdx-joint-explorer img{{width:min(100%,640px);border-radius:12px}}
+.bdx-joint-explorer input{{width:100%;accent-color:#25847a}}
+.bdx-joint-explorer aside{{flex:1;min-width:220px}}
+.bdx-joint-explorer h2{{margin-top:0}}.bdx-joint-explorer pre{{font-size:16px}}
+.bdx-joint-explorer svg text{{fill:#263b3b !important}}
+</style><div class="bdx-joint-explorer"><h2>{title}: forward kinematics</h2><main><img id="pose" src="data:image/jpeg;base64,{frames[initial]}" alt="Actual MuJoCo joint configuration"><aside>
 <p>Move the visible {side.lower()}-leg joint marked by the orange ring. The root and other joints stay fixed.</p><input id="angle" aria-label="{title} angle" type="range" min="0" max="{len(angles) - 1}" value="{initial}" step="1" disabled><p id="value">{angles[initial]:.1f} degrees</p>
 <h3>{side} foot in torso frame</h3><pre id="position">{html.escape(str(positions[initial]))} m</pre>
 <p>These are geometric configurations, not a balance test or the full reachable workspace.</p>
-<svg id="trace" viewBox="0 0 280 210" style="width:100%;max-width:350px"></svg></aside></main>
+<svg id="trace" viewBox="0 0 280 210" style="width:100%;max-width:350px"></svg></aside></main></div>
 <script>const data={payload};const slider=document.getElementById('angle');
 const xs=data.positions.map(p=>p[0]),zs=data.positions.map(p=>p[2]);
 const scale=(v,a,b,lo,hi)=>lo+(v-a)/(b-a||1)*(hi-lo);
