@@ -43,6 +43,10 @@ def main():
     p.add_argument(
         "--command-mode", choices=["fixed", "mixed", "balanced"], default="fixed"
     )
+    p.add_argument(
+        "--command-interval", type=float,
+        help="Seconds between training commands; default preserves the 3–6s range",
+    )
     p.add_argument("--speed-min", type=float, default=-0.25)
     p.add_argument("--speed-max", type=float, default=0.5)
     p.add_argument("--yaw-max", type=float, default=0.6)
@@ -171,6 +175,7 @@ def main():
             "compile",
             "amp",
             "command_mode",
+            "command_interval",
             "speed_min",
             "speed_max",
             "yaw_max",
@@ -270,6 +275,7 @@ def main():
         hop_height=args.hop_height,
         hop_body_weight=args.hop_body_weight,
         command_mode=args.command_mode,
+        command_interval=args.command_interval,
         speed_min=args.speed_min,
         speed_max=args.speed_max,
         yaw_max=args.yaw_max,
