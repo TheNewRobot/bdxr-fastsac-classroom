@@ -13,6 +13,17 @@ from bdxr_classroom.evaluation.command_evaluate import checkpoint_hash, load_age
 from bdxr_classroom.simulation.environment import make_env
 
 
+def stationary_start_indices(row):
+    """A responsive parallel start must not hide another start's stall."""
+    if "speed" not in row:
+        return []
+    return [
+        index for index, (speed, yaw) in enumerate(zip(row["speed"], row["yaw"]))
+        if (abs(row["command"][0]) >= .1 and abs(speed) < .02)
+        or (abs(row["command"][1]) >= .2 and abs(yaw) < .02)
+    ]
+
+
 def assess(checkpoint, starts=3, reverse_speed=None):
     agent, config = load_agent(checkpoint, starts)
     kwargs = {k: v for k, v in config.items() if k in inspect.signature(make_env).parameters}
@@ -89,13 +100,10 @@ def assess(checkpoint, starts=3, reverse_speed=None):
             print(json.dumps(row), flush=True)
             if failure:
                 break
-        stationary = [
-            row["segment"] for row in output
-            if "speed" in row and (
-                (abs(row["command"][0]) >= .1 and max(map(abs, row["speed"])) < .02)
-                or (abs(row["command"][1]) >= .2 and max(map(abs, row["yaw"])) < .02)
-            )
-        ]
+        stationary_starts = {
+            row["segment"]: stationary_start_indices(row)
+            for row in output if stationary_start_indices(row)
+        }
         repeated_idle_steps = [
             row["segment"] for row in output
             if row["command"] == [0, 0]
@@ -105,7 +113,8 @@ def assess(checkpoint, starts=3, reverse_speed=None):
             "checkpoint": str(checkpoint), "checkpoint_sha256": checkpoint_hash(checkpoint),
             "starts": starts, "seconds": time.monotonic()-started, "segments": output,
             "completed": failure is None, "failure": failure,
-            "stationary_motion_segments": stationary,
+            "stationary_motion_segments": list(stationary_starts),
+            "stationary_motion_starts": stationary_starts,
             "repeated_idle_step_segments": repeated_idle_steps,
             "quiet_scope": "At most one balance step per start after one second of settling.",
             "reverse_scope": "configured command minimum" if reverse_speed is None else "explicit stress command",
