@@ -36,6 +36,10 @@ def main():
     p.add_argument("--speed", type=float, default=0.3)
     p.add_argument("--smoothness", type=float, default=1)
     p.add_argument("--quiet-standing-weight", type=float, default=0.0)
+    p.add_argument("--idle-velocity-weight", type=float, default=0.0)
+    p.add_argument("--contact-spin-weight", type=float, default=0.0)
+    p.add_argument("--contact-spin-rate-clip", type=float)
+    p.add_argument("--contact-spin-turn-only", action="store_true")
     p.add_argument(
         "--command-mode", choices=["fixed", "mixed", "balanced"], default="fixed"
     )
@@ -200,6 +204,10 @@ def main():
             "hop_crouch",
             "swing_clearance",
             "quiet_standing_weight",
+            "idle_velocity_weight",
+            "contact_spin_weight",
+            "contact_spin_rate_clip",
+            "contact_spin_turn_only",
         ]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
@@ -253,6 +261,10 @@ def main():
         args.smoothness,
         args.seed,
         quiet_standing_weight=args.quiet_standing_weight,
+        idle_velocity_weight=args.idle_velocity_weight,
+        contact_spin_weight=args.contact_spin_weight,
+        contact_spin_rate_clip=args.contact_spin_rate_clip,
+        contact_spin_turn_only=args.contact_spin_turn_only,
         initial_jitter=args.initial_jitter,
         task_version=args.task_version,
         hop_height=args.hop_height,

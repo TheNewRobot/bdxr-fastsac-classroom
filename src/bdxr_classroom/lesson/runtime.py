@@ -32,9 +32,10 @@ class Lesson:
         self.runs = []
         self.game_process = None
 
-    def presentation_arguments(self):
+    def presentation_arguments(self, game=False):
         """Apply the internal rendering configuration consistently at inference."""
-        path = self.work / "configs/head_motion.json"
+        name = "game_head_motion.json" if game else "head_motion.json"
+        path = self.work / "configs" / name
         return ["--head-motion-config", str(path)] if path.is_file() else []
 
     def run(self, module, *arguments):

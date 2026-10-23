@@ -17,6 +17,22 @@ def model(config):
 
 
 class CourseGeometryTests(unittest.TestCase):
+    def test_classroom_gate_clearance_preserves_the_terrain(self):
+        narrow = model(CourseConfig(walking_only=True, walking_gate_gap=.51))
+        wider = model(CourseConfig(walking_only=True, walking_gate_gap=.65))
+        for index in range(3):
+            low = wider.geom(f"walking_gate_{index}_-1").id
+            high = wider.geom(f"walking_gate_{index}_1").id
+            opening = (
+                wider.geom_pos[high, 1] - wider.geom_size[high, 1]
+                - wider.geom_pos[low, 1] - wider.geom_size[low, 1]
+            )
+            self.assertAlmostEqual(opening, .65)
+        for geom in range(narrow.ngeom):
+            if not narrow.geom(geom).name.startswith("walking_gate"):
+                np.testing.assert_array_equal(narrow.geom_pos[geom], wider.geom_pos[geom])
+                np.testing.assert_array_equal(narrow.geom_size[geom], wider.geom_size[geom])
+
     def test_step_override_changes_only_middle_obstacle(self):
         original = model(CourseConfig())
         taller = model(CourseConfig(step_height=0.035))

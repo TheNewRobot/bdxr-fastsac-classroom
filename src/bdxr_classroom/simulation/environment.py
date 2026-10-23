@@ -34,6 +34,10 @@ def make_env(
     course=None,
     full_link_collisions=False,
     quiet_standing_weight=0.0,
+    idle_velocity_weight=0.0,
+    contact_spin_weight=0.0,
+    contact_spin_rate_clip=None,
+    contact_spin_turn_only=False,
     linear_weight=None,
     swing_height=None,
     training_terrain_height=0.0,
@@ -277,6 +281,24 @@ def make_env(
             func=behaviors.quiet_standing_reward,
             weight=quiet_standing_weight,
         )
+    if idle_velocity_weight:
+        cfg.rewards["idle_velocity"] = RewardTermCfg(
+            func=behaviors.idle_motion_cost,
+            weight=-idle_velocity_weight,
+        )
+    if contact_spin_rate_clip is not None and (
+        not math.isfinite(contact_spin_rate_clip) or contact_spin_rate_clip <= 0
+    ):
+        raise ValueError("Contact spin rate clip must be positive and finite.")
+    if contact_spin_weight:
+        cfg.rewards["contact_spin"] = RewardTermCfg(
+            func=behaviors.contact_spin_cost,
+            weight=-contact_spin_weight,
+            params={
+                "max_rate": contact_spin_rate_clip,
+                "turn_only": contact_spin_turn_only,
+            },
+        )
     # Preserve relative objectives while keeping returns inside the categorical
     # critic's support. Stronger hopping weights can otherwise saturate its top bin.
     for reward in cfg.rewards.values():
@@ -300,6 +322,18 @@ def make_env(
 
         robot = full_link_collision_config(robot)
         cfg.scene.entities["robot"] = robot
+        # The training heuristic sizes buffers for a small primitive model.
+        # Full-link falls and wall contacts can involve many more mesh pairs.
+        cfg.sim.nconmax = 512
+        cfg.sim.njmax = 2048
+        cfg.sim.contact_sensor_maxmatch = 256
+        # Multi-point convex contact can generate distant, invalid contact
+        # positions for a leg cover against a gate. Single-point CCD retains
+        # every collision shape and resolves the captured failing state.
+        cfg.sim.mujoco.disableflags = (
+            *cfg.sim.mujoco.disableflags,
+            "multiccd",
+        )
     robot.articulation = replace(
         robot.articulation,
         actuators=tuple(

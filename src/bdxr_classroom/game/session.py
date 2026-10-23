@@ -22,7 +22,7 @@ from bdxr_classroom.game.course import CourseConfig
 from bdxr_classroom.game.course_progress import CourseProgress
 from bdxr_classroom.simulation.environment import make_env
 from bdxr_classroom.simulation.behaviors import imu_turn_rate
-from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
+from bdxr_classroom.simulation.head_motion import HeadMotionConfig, make_head_motion
 
 
 @dataclasses.dataclass
@@ -108,11 +108,7 @@ class GameSession:
         )
         self.env.cfg.episode_length_s = 1e9
         self.head_config = HeadMotionConfig(**(head_config or {}))
-        self.head = (
-            HeadMotion(self.env, self.head_config)
-            if self.head_config.enabled or self.head_config.level_gaze_in_render
-            else None
-        )
+        self.head = make_head_motion(self.env, self.head_config)
         self.foot_ids, _ = self.env.scene["robot"].find_sites(
             ["left_foot", "right_foot"]
         )
@@ -140,6 +136,7 @@ class GameSession:
             "course": dataclasses.asdict(self.course),
             "flat_transition_test": self.flat,
             "demo_link_collisions": not self.flat,
+            "convex_contact_mode": "single-point" if not self.flat else "training default",
             "operator": self.operator,
             "control": "velocity/mode commands; no navigation or heading correction",
             "head_motion": dataclasses.asdict(self.head_config),
@@ -171,11 +168,12 @@ class GameSession:
         self.posture = PostureMonitor()
         self.progress = CourseProgress()
         if self.course.walking_only:
+            half_opening = self.course.walking_gate_gap / 2 - 0.005
             self.progress = CourseProgress(
                 checkpoints=(
-                    (1.72, 2.28, 0.25),
-                    (4.52, 5.08, 0.25),
-                    (7.02, 7.58, 0.25),
+                    (1.72, 2.28, half_opening),
+                    (4.52, 5.08, half_opening),
+                    (7.02, 7.58, half_opening),
                     (7.915, 9.275, 0.55),
                 ),
                 centers=(0.32, -0.32, 0.18, 0.0),
@@ -186,6 +184,11 @@ class GameSession:
         self.speed = self.yaw = 0.0
         self.stage_time = self.hop_time = 0.0
         self.last_action = torch.zeros(1, 10, device=self.env.device)
+
+    def set_recording(self, enabled):
+        self.record = bool(enabled)
+        if not self.record:
+            self.save_summary()
 
     def command(self, speed=0, yaw=0, mode="walk", resume=True):
         if mode not in ["walk", "hop"]:
@@ -245,6 +248,8 @@ class GameSession:
         self.speed += float(np.clip(target_speed - self.speed, -0.6 * dt, 0.6 * dt))
         self.yaw += float(np.clip(target_yaw - self.yaw, -1.2 * dt, 1.2 * dt))
         obs = set_command(self.env, self.speed, self.yaw)["actor"]
+        if self.head:
+            obs = self.head.policy_observations(obs)
         with torch.no_grad():
             walk_action = self.walk.act(obs[:, :47], deterministic=True)
             if self.stage in ["walk", "braking"]:
@@ -263,9 +268,51 @@ class GameSession:
                 fraction = 1 - fraction
             return (1 - fraction) * walk_action + fraction * hop_action
 
+    def _reset_invalid_simulation(self, reason, previous_qpos, previous_qvel, action=None):
+        """Preserve numerical failures, then reset and pause rather than score them."""
+        diagnostic = self.output / "evaluation" / f"physics_failure_{self.steps:06d}.npz"
+        np.savez_compressed(
+            diagnostic,
+            previous_qpos=previous_qpos.cpu().numpy(),
+            previous_qvel=previous_qvel.cpu().numpy(),
+            qpos=self.env.sim.data.qpos.cpu().numpy(),
+            qvel=self.env.sim.data.qvel.cpu().numpy(),
+            ctrl=self.env.sim.data.ctrl.cpu().numpy(),
+            action=action.cpu().numpy() if action is not None else np.empty(0),
+            contact_count=self.env.sim.wp_data.nacon.numpy(),
+            constraint_count=self.env.sim.wp_data.nefc.numpy(),
+            contact_distance=self.env.sim.wp_data.contact.dist.numpy(),
+            contact_frame=self.env.sim.wp_data.contact.frame.numpy(),
+            contact_geoms=self.env.sim.wp_data.contact.geom.numpy(),
+        )
+        self.score.advance(self.env.step_dt, True, False)
+        self.log.write(json.dumps({
+            "time": self.score.elapsed,
+            "event": "numerical_failure",
+            "fall_reason": reason,
+            "falls": self.score.falls,
+            "diagnostic": str(diagnostic),
+        }) + "\n")
+        self.reset_robot()
+        self.paused = True
+        self.message = (
+            "Simulation error: reset and paused. Diagnostics were saved with this run."
+        )
+        if self.render_enabled:
+            self.render()
+        self.save_summary()
+        return self.status()
+
     def step(self):
         if self.paused or self.score.finished:
             return self.status()
+        previous_qpos = self.env.sim.data.qpos.clone()
+        previous_qvel = self.env.sim.data.qvel.clone()
+        self.steps += 1
+        if not bool(torch.isfinite(torch.cat((previous_qpos, previous_qvel), -1)).all()):
+            return self._reset_invalid_simulation(
+                "nonfinite_state_before_control", previous_qpos, previous_qvel
+            )
         if self.render_enabled and self.record and self.writer is None:
             self.video_part += 1
             self.writer = imageio.get_writer(
@@ -276,10 +323,20 @@ class GameSession:
                 macro_block_size=16,
             )
         action = self._policy_action()
+        if not bool(torch.isfinite(action).all()):
+            return self._reset_invalid_simulation(
+                "nonfinite_policy_action", previous_qpos, previous_qvel, action
+            )
         if self.head:
             self.head.step(self.env.step_dt, self.speed, self.yaw, self.stage)
         _, _, terminated, _, _ = self.env.step(action)
-        self.steps += 1
+        state = torch.cat(
+            (self.env.sim.data.qpos.clone(), self.env.sim.data.qvel.clone()), -1
+        )
+        if not bool(torch.isfinite(state).all()):
+            return self._reset_invalid_simulation(
+                "nonfinite_state_after_physics", previous_qpos, previous_qvel, action
+            )
         robot = self.env.scene["robot"].data
         position = robot.root_link_pos_w[0].cpu().tolist()
         feet = robot.site_pos_w[0, self.foot_ids].cpu().tolist()
@@ -336,7 +393,7 @@ class GameSession:
             .tolist(),
             "body_angular_velocity": robot.root_link_ang_vel_b[0].cpu().tolist(),
             "hop_phase": self.hop_time % 1.0,
-            "head_targets_rad": self.head.position.tolist()
+            "head_targets_rad": self.head.position.reshape(-1, 4)[0].tolist()
             if self.head
             else [0, 0, 0, 0],
         }
@@ -403,6 +460,7 @@ class GameSession:
             "mode": self.stage,
             "course_checkpoints": self.progress.completed,
             "paused": self.paused,
+            "recording": self.record,
             "message": self.message,
             "experiment": str(self.output),
             "walking": self.walking_path,

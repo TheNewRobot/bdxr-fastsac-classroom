@@ -31,7 +31,7 @@ def launch_game(
         str(walking),
         "--port",
         str(port),
-        *lab.presentation_arguments(),
+        *lab.presentation_arguments(game=True),
     ]
     if hopping:
         command += ["--hopping", str(hopping)]

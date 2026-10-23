@@ -93,16 +93,22 @@ else:
 # Upload your walking lesson's `final.pt` using Colab's Files panel and enter its
 # path below. This game uses your two trained policies: **Walk** handles movement
 # and standing; **Hop** explicitly requests hopping. Click **Resume**, hold
-# direction buttons or W/S/A/D, and release to request stopping. **Stop** also
-# returns to walking mode. Leave room to land before switching.
+# direction buttons or W/S/A/D. Release clears speed and turning commands;
+# **Stop** also ends hopping and requests quiet walking mode.
+# Leave room to land before switching.
 
 # %%
 from bdxr_classroom.lesson.play import launch_game, display_game
 
 WALKING_CHECKPOINT = ""  # @param {type:"string"}
+GAME_STAGE = 6  # @param {type:"integer"}
+GAME_PORT = 8765
 if HOP_STAGES and WALKING_CHECKPOINT:
-    status = launch_game(lab, WALKING_CHECKPOINT, str(chosen / "checkpoints/final.pt"))
-    display_game(8765)
+    if not 1 <= GAME_STAGE <= len(HOP_STAGES):
+        raise ValueError("Choose a trained stage number.")
+    hopper = HOP_STAGES[GAME_STAGE - 1] / "checkpoints/final.pt"
+    status = launch_game(lab, WALKING_CHECKPOINT, str(hopper), port=GAME_PORT)
+    display_game(GAME_PORT)
 else:
     print("Optional: provide your walking checkpoint after training a hopping stage.")
 

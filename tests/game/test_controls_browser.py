@@ -17,7 +17,7 @@ class BrowserControls(unittest.TestCase):
         document = (root / "src/bdxr_classroom/game/web/game.html").read_text()
         commands = []
         state = dict(
-            ready=True, walking_only=True, paused=False, time=2., falls=0,
+            ready=True, walking_only=True, paused=False, recording=False, time=2., falls=0,
             course_checkpoints=0, mode="walk", speed=0., yaw=0.,
             actual_speed=.26, actual_yaw=.03, finished=False,
             experiment="test", walking="test/final.pt", hopping="",
@@ -36,6 +36,8 @@ class BrowserControls(unittest.TestCase):
                     commands.append(command)
                     if command.get("action") == "pause":
                         state["paused"] = not state["paused"]
+                    elif command.get("action") == "record":
+                        state["recording"] = command["enabled"]
                     route.fulfill(json={"ok": True})
                 elif path == "/api/checkpoints":
                     route.fulfill(json=[])
@@ -48,6 +50,14 @@ class BrowserControls(unittest.TestCase):
             page.goto("http://demo.test/")
             page.wait_for_function("document.getElementById('actualSpeed').textContent === '0.26'")
             self.assertEqual(page.locator('input[type=range]').count(), 0)
+            self.assertFalse(any(c.get("action") == "record" for c in commands))
+            page.locator("details").filter(has=page.locator("#record")).locator("summary").click()
+            page.locator("#record").click()
+            page.wait_for_function("document.getElementById('record').textContent === 'Stop recording'")
+            self.assertTrue(state["recording"])
+            page.locator("#record").click()
+            page.wait_for_function("document.getElementById('record').textContent === 'Start recording'")
+            self.assertFalse(state["recording"])
             page.locator('[data-speed=".5"]').click()
             page.locator('[data-key="KeyW"]').hover()
             page.mouse.down()
@@ -62,6 +72,20 @@ class BrowserControls(unittest.TestCase):
             page.wait_for_function("document.getElementById('requested').textContent.includes('0.00 m/s · 0.00 rad/s')")
             page.keyboard.up("w")
             page.keyboard.up("a")
+            page.keyboard.down("w")
+            page.locator("#stop").click()
+            page.keyboard.down("w")  # Auto-repeat while the original key is held.
+            page.wait_for_timeout(350)
+            self.assertIn(
+                "0.00 m/s · 0.00 rad/s", page.locator("#requested").inner_text()
+            )
+            self.assertEqual([c for c in commands if "speed" in c][-1]["speed"], 0)
+            page.keyboard.up("w")
+            page.keyboard.down("w")
+            page.wait_for_function(
+                "document.getElementById('requested').textContent.includes('0.45 m/s')"
+            )
+            page.keyboard.up("w")
             page.locator("#pause").click()
             page.wait_for_function("document.getElementById('pause').textContent === 'Resume'")
             page.wait_for_timeout(350)
@@ -82,4 +106,10 @@ class BrowserControls(unittest.TestCase):
             self.assertEqual([c for c in commands if "speed" in c][-1]["mode"], "walk")
             page.set_viewport_size(dict(width=390, height=844))
             self.assertTrue(page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
+            page.locator("#stop").scroll_into_view_if_needed()
+            screen = page.locator(".screen").bounding_box()
+            stop = page.locator("#stop").bounding_box()
+            self.assertGreaterEqual(screen["y"], 0)
+            self.assertLess(screen["y"] + screen["height"], stop["y"])
+            self.assertLess(stop["y"] + stop["height"], 845)
             browser.close()

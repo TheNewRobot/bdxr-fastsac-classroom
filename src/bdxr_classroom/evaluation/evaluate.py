@@ -19,7 +19,7 @@ import torch
 from bdxr_classroom.experiments import experiment_root, resolve_experiment_path
 from bdxr_classroom.learning.fastsac import FastSAC
 from bdxr_classroom.simulation.environment import make_env
-from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
+from bdxr_classroom.simulation.head_motion import HeadMotionConfig, make_head_motion
 from bdxr_classroom.simulation.training_terrain import sampled_sole_clearance
 
 
@@ -135,11 +135,7 @@ def main():
                 flush=True,
             )
             obs, _ = env.reset(seed=1000 + episode)
-            head = (
-                HeadMotion(env, head_config)
-                if head_config.enabled or head_config.level_gaze_in_render
-                else None
-            )
+            head = make_head_motion(env, head_config)
             reward_total = 0.0
             fell = False
             previous_action = torch.zeros(
@@ -147,11 +143,13 @@ def main():
             )
             steps = int(args.seconds / env.step_dt)
             for t in range(steps):
+                actor_obs = obs["actor"]
                 if head:
+                    actor_obs = head.policy_observations(actor_obs)
                     mode = "hop" if cfg.get("task_version") == "hop" else "walk"
                     head.step(env.step_dt, speed, 0, mode)
                 with torch.no_grad():
-                    actions = agent.act(obs["actor"], deterministic=True)
+                    actions = agent.act(actor_obs, deterministic=True)
                     obs, reward, terminated, truncated, _ = env.step(actions)
                 robot = env.scene["robot"].data
                 sample = {

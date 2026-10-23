@@ -23,6 +23,7 @@ class FullLinkCollisions(unittest.TestCase):
             size=[.01, 0, 0], contype=0, conaffinity=2,
         )
         model = spec.compile()
+        model.opt.disableflags |= int(mujoco.mjtDisableBit.mjDSBL_MULTICCD)
         np.testing.assert_array_equal(original.body_mass, model.body_mass[:original.nbody])
         np.testing.assert_array_equal(original.body_inertia, model.body_inertia[:original.nbody])
         data = mujoco.MjData(model)
@@ -44,3 +45,5 @@ class FullLinkCollisions(unittest.TestCase):
                 )
                 mujoco.mj_forward(model, data)
                 self.assertTrue(any(set(c.geom) == {target, probe} for c in data.contact))
+                self.assertTrue(np.isfinite(data.qacc).all())
+                self.assertTrue(all(np.isfinite(c.pos).all() for c in data.contact))
