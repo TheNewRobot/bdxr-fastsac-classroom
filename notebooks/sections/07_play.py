@@ -29,8 +29,9 @@ display_game(GAME_PORT)
 # %% [markdown]
 # ### Optional · watch and keep your result
 #
-# Gameplay records automatically. Pause, then run the replay cell if you want to
-# watch it. Saving is optional: the ZIP contains configurations, measurements,
+# To keep a clip, open **Recording · optional** in the game and start recording.
+# Stop recording or pause, then run the replay cell to watch it.
+# Saving is optional: the ZIP contains configurations, measurements,
 # checkpoints, and gameplay. Include replay only for a larger resumable backup.
 
 # %%
@@ -40,7 +41,7 @@ recordings = pause_and_recordings(lab, GAME_PORT)
 if recordings:
     display(Video(str(recordings[-1]), embed=True, width=640))
 else:
-    print("Drive the droid first, then rerun this cell to see your recording.")
+    print("Start recording in the game, drive, then stop recording and rerun this cell.")
 
 # %%
 from bdxr_classroom.lesson.exports import optional_download
@@ -50,8 +51,8 @@ INCLUDE_REPLAY = False  # @param {type:"boolean"}
 backup = optional_download(WORK, lab.runs, SAVE_RESULTS, INCLUDE_REPLAY)
 
 # %% [markdown]
-# **Submit:** your walking video, short check, reward prediction/comparison,
-# and a gameplay clip. State actual steps/timings and one limitation.
+# **Submit:** your walking video, short check, and reward prediction/comparison.
+# State actual steps/timings and one limitation. A gameplay clip is optional.
 #
 # After class: [the separate hopping extension](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Hopping_Extra.ipynb)
 # explores another behavior. It is not required to finish this lesson or drive the course.

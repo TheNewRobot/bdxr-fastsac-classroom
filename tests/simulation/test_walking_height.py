@@ -26,6 +26,7 @@ class WalkingHeightTests(unittest.TestCase):
         torch.testing.assert_close(reward[[0, 2]], torch.ones(2))
         self.assertLess(float(reward[1]), 0.2)
 
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
     def test_height_reward_does_not_add_actor_observations(self):
         env = make_env(4, walking_height=0.23, yaw_tracking="imu")
         try:

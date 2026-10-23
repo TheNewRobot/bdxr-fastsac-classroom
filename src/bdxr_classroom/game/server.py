@@ -49,6 +49,7 @@ def main():
                 course=course,
                 operator=args.operator,
                 head_config=head_config,
+                record=False,
             )
             while not stopping.is_set():
                 start = time.monotonic()
@@ -80,6 +81,7 @@ def main():
                                 course=course,
                                 operator=args.operator,
                                 head_config=head_config,
+                                record=False,
                             )
                             render_requested = True
                         elif game is None:
@@ -94,6 +96,8 @@ def main():
                         elif action == "camera":
                             game.set_camera(command.get("view", "follow"))
                             render_requested = True
+                        elif action == "record":
+                            game.set_recording(command.get("enabled", False))
                         else:
                             game.command(
                                 command.get("speed", 0),

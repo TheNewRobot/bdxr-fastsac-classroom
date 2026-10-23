@@ -4,6 +4,7 @@
 # **Objective:** stay upright and follow the requested forward speed and turn rate.
 # Zero turn rate asks for approximately straight walking; commands can also request
 # stopping or reversing. The policy receives the robot state and these commands.
+# With no movement requested, aim for quiet standing with small balance corrections.
 # It outputs **ten leg-joint position targets**. Motor position controllers
 # generate forces to approach those targets; the policy does not directly place
 # the feet or teleport the robot.
@@ -33,8 +34,8 @@
 # |---|---:|---|
 # | Angular velocity | 3 | Gyroscope-like body rotation measurement |
 # | Gravity direction | 3 | Gravity projected into the body frame; an orientation estimate |
-# | Joint positions | 14 | Encoder-like joint measurements relative to the default pose |
-# | Joint velocities | 14 | Joint velocity measurements |
+# | Joint positions | 14 | Encoder-like angles relative to their joint references |
+# | Joint velocities | 14 | Joint velocities relative to their references |
 # | Previous actions | 10 | The controller's own previous leg commands |
 # | Movement command | 3 | Requested forward, sideways, and turning velocities |
 #
@@ -96,6 +97,8 @@ print("Joint target scales:", env.cfg.actions["joint_pos"].scale)
 # | Speed and turn tracking | Move according to the command |
 # | Upright posture | Keep the torso balanced |
 # | Foot airtime and clearance | Lift and place the feet during stepping |
+# | Quiet standing | Keep both feet supported when no movement is requested |
+# | Low planted-foot rotation | Turn by stepping instead of twisting planted feet |
 # | Small action changes | Avoid abrupt changes in motor targets |
 # | Low sustained yaw/sideways bias | Reduce persistent turning and sideways motion |
 #

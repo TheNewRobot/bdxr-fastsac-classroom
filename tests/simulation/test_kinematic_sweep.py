@@ -7,12 +7,14 @@ from pathlib import Path
 
 import mujoco
 import numpy as np
+import torch
 
 from bdxr_classroom.lesson.kinematics import lesson_font, model_state, sweep_joint
 from bdxr_classroom.simulation.environment import make_env
 
 
 class KinematicSweepTests(unittest.TestCase):
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
     def test_right_knee_moves_right_foot_and_preserves_simulated_state(self):
         env = make_env(num_envs=1, seed=7)
         try:

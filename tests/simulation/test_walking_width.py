@@ -25,6 +25,7 @@ class WalkingWidthTests(unittest.TestCase):
         torch.testing.assert_close(foot_spacing(env), torch.full((2,), 0.2))
         torch.testing.assert_close(foot_spacing_reward(env, 0.2), torch.ones(2))
 
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA required")
     def test_width_reward_preserves_actor_contract(self):
         env = make_env(4, walking_width=0.2, yaw_tracking="imu")
         try:

@@ -44,12 +44,18 @@ Launch the core game with your walking checkpoint:
 .venv/bin/python -m bdxr_classroom.game.server \
   --walking experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt \
   --course-config configs/walking_course.json \
-  --head-motion-config configs/head_motion.json
+  --head-motion-config configs/game_head_motion.json
 ```
 
 The local panel runs on port 8765. The notebook includes the Colab port-proxy
 integration. Falls reset the robot; simulation time and fall count accumulate.
-The walking course uses three offset passages, approximately 5–6 mm obstacles,
+Hold direction buttons or W/S/A/D; releasing clears the movement command.
+The game uses physical head articulation so its visible pose and collisions agree.
+Full mesh coverage uses single-point convex contacts to avoid a reproduced
+multi-point contact failure. Training physics keeps its existing settings.
+Recording is opt-in in the panel; saving a ZIP is optional in both notebooks.
+The walking course uses three offset passages with 65 cm openings for the full
+robot body, approximately 5–6 mm obstacles,
 4 mm uneven ground, and a 45 mm finish ascent. Four route checkpoints must be
 crossed before the finish counts. The separate hopping extension retains
 `configs/classroom_course.json`; it is not the required walking course.

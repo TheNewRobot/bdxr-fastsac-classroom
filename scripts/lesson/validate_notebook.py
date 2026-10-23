@@ -36,6 +36,7 @@ def test_copy(
     game_port=18765,
     include_hopping=False,
     bundle_url=None,
+    walking_checkpoint=None,
 ):
     """Modify only runtime location/budgets in the executed validation copy."""
     if not full:
@@ -90,6 +91,11 @@ print("Reused pinned environment; GPU:", gpu)
             source = source.replace("USE_WANDB = False", "USE_WANDB = True")
             source = source.replace("TRAIN_HOPPING = False", "TRAIN_HOPPING = True")
         source = source.replace("GAME_PORT = 8765", f"GAME_PORT = {game_port}")
+        if walking_checkpoint and "WALKING_CHECKPOINT =" in source:
+            source = replace_assignment(
+                source, "WALKING_CHECKPOINT",
+                repr(str(Path(walking_checkpoint).resolve())),
+            )
         cell.source = source
     return notebook
 
@@ -112,6 +118,10 @@ def main():
     )
     parser.add_argument("--reuse-env", type=Path)
     parser.add_argument(
+        "--walking-checkpoint", type=Path,
+        help="Explicit walking checkpoint for testing the optional hopping game.",
+    )
+    parser.add_argument(
         "--bundle-url",
         help="Explicit prepublication test URL; hash verification is still required.",
     )
@@ -129,6 +139,9 @@ def main():
         "dependency_installation_tested": args.reuse_env is None,
         "bundle_url_override": args.bundle_url,
         "optional_hopping_enabled": args.full or args.include_hopping,
+        "walking_checkpoint_override": (
+            str(args.walking_checkpoint.resolve()) if args.walking_checkpoint else None
+        ),
         "scope": "Local notebook execution; short integration unless full_training is true.",
     }
     test_copy(
@@ -139,6 +152,7 @@ def main():
         args.game_port,
         args.include_hopping,
         args.bundle_url,
+        args.walking_checkpoint,
     )
     notebook.metadata.kernelspec.name = args.kernel
     client = NotebookClient(

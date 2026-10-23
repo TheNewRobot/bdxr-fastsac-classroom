@@ -27,7 +27,7 @@
 # |:---:|:---:|
 # | ![Disney BDX droid — D23 reference photograph](lesson-asset:reference/disney_bdx.jpg) | ![Recorded instructor walking example](lesson-asset:classroom_walking/baseline.gif) |
 #
-# Head gestures are cosmetic animation; leg motion comes from simulation.
+# Head gestures are procedural; the learned policy controls the legs.
 #
 # Photo: [D23 / Disney](https://d23.com/bdx-droids-disneys-perfect-marriage-of-creativity-and-technological-achievement/), not relicensed. Simulation: the open-source BDX-R model with our recorded walking policy.
 

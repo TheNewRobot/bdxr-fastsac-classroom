@@ -19,6 +19,7 @@ class CourseConfig:
     finish_height: float = 0.18
     seed: int = 263
     walking_only: bool = False
+    walking_gate_gap: float = 0.51
 
 
 def build_course(spec, cfg=None):
@@ -93,6 +94,9 @@ def build_course(spec, cfg=None):
         orange,
     )
     if cfg.walking_only:
+        if not math.isfinite(cfg.walking_gate_gap) or cfg.walking_gate_gap <= 0:
+            raise ValueError("Walking gate gap must be positive and finite")
+        gate_offset = cfg.walking_gate_gap / 2 + 0.045
         # Offset passages reward steering. Low floor features require walking,
         # while the original hopping course keeps its previous geometry.
         for index, (x, center) in enumerate(((2.0, 0.32), (4.8, -0.32), (7.3, 0.18))):
@@ -100,14 +104,14 @@ def build_course(spec, cfg=None):
                 geom(
                     f"walking_gate_{index}_{side}",
                     box,
-                    (x, center + side * 0.30, 0.13),
+                    (x, center + side * gate_offset, 0.13),
                     (0.28, 0.045, 0.13),
                     metal,
                 )
                 geom(
                     f"walking_gate_light_{index}_{side}",
                     sphere,
-                    (x, center + side * 0.30, 0.28),
+                    (x, center + side * gate_offset, 0.28),
                     (0.045, 0, 0),
                     blue,
                     False,

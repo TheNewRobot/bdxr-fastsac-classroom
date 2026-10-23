@@ -31,6 +31,50 @@ def quiet_standing_reward(env, velocity_std=0.5):
     return idle * (0.5 * quiet + 0.5 * supported)
 
 
+def idle_motion_cost(env):
+    """Discourage leg fidgeting only while the movement command is zero.
+
+    Absolute velocity keeps a useful cost away from the quiet pose, where an
+    exponential stillness bonus becomes nearly flat. Head gestures are excluded.
+    """
+    command = env.command_manager.get_command("twist")
+    idle = command[:, :2].norm(dim=-1) + command[:, 2].abs() < 0.05
+    robot = env.scene["robot"]
+    if not hasattr(env, "_quiet_leg_ids"):
+        env._quiet_leg_ids, _ = robot.find_joints(
+            [".*_Hip_Yaw", ".*_Hip_Roll", ".*_Hip_Pitch", ".*_Knee", ".*_Ankle"]
+        )
+    return idle * robot.data.joint_vel[:, env._quiet_leg_ids].abs().mean(-1)
+
+
+def contact_spin_cost(env, max_rate=None, turn_only=False):
+    """Penalize rotating a planted sole instead of taking a turning step.
+
+    Linear foot-slip costs miss rotation about the foot marker. Vertical
+    angular velocity is privileged reward information, not actor input.
+    """
+    robot = env.scene["robot"]
+    if not hasattr(env, "_spin_foot_ids"):
+        env._spin_foot_ids, _ = robot.find_sites(["left_foot", "right_foot"])
+    spin = robot.data.site_ang_vel_w[:, env._spin_foot_ids, 2]
+    if max_rate is not None:
+        # Bound extreme exploratory rotations without changing the cost of
+        # ordinary slow spinning. None preserves older experiment settings.
+        spin = spin.clamp(-max_rate, max_rate)
+    contact = (
+        env.scene["feet_ground_contact"].data.found.reshape(env.num_envs, 2) > 0
+    )
+    cost = (spin.square() * contact).sum(-1)
+    if turn_only:
+        command = env.command_manager.get_command("twist")
+        in_place_turn = (
+            (command[:, :2].norm(dim=-1) < 0.05)
+            & (command[:, 2].abs() >= 0.05)
+        )
+        cost = cost * in_place_turn
+    return cost
+
+
 def sole_tilt(env):
     """Unsigned angle between each collision sole plane and horizontal.
 

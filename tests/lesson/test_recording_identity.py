@@ -44,8 +44,11 @@ class RecordingIdentityTests(unittest.TestCase):
                 "training_step": 10000,
             }
             (output / "evaluation.json").write_text(json.dumps(report))
+            (work / "configs").mkdir()
+            for name in ("head_motion.json", "game_head_motion.json"):
+                (work / "configs" / name).write_text("{}")
             lab = Lesson(work, "unused", dict(os.environ))
-            with patch.object(lab, "run"):
+            with patch.object(lab, "run") as inference:
                 with self.assertRaisesRegex(RuntimeError, "identity mismatch"):
                     lab.record(run)
                 report["checkpoint_sha256"] = hashlib.sha256(
@@ -53,3 +56,14 @@ class RecordingIdentityTests(unittest.TestCase):
                 ).hexdigest()
                 (output / "evaluation.json").write_text(json.dumps(report))
                 self.assertEqual(lab.record(run), video)
+                self.assertIn(
+                    str(work / "configs/head_motion.json"), inference.call_args.args
+                )
+                self.assertNotIn(
+                    str(work / "configs/game_head_motion.json"),
+                    inference.call_args.args,
+                )
+                self.assertEqual(
+                    lab.presentation_arguments(game=True),
+                    ["--head-motion-config", str(work / "configs/game_head_motion.json")],
+                )

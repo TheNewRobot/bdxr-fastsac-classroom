@@ -13,18 +13,24 @@ from bdxr_classroom.game.session import GameSession
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("walking")
-    parser.add_argument("hopping")
+    parser.add_argument("hopping", nargs="?", help="Only needed for a hopping course")
     parser.add_argument("--commands", type=Path)
     parser.add_argument("--seed", type=int, default=263)
     parser.add_argument("--no-video", action="store_true")
     parser.add_argument("--head-motion-config", type=Path)
     parser.add_argument("--name", default="course_validation")
+    parser.add_argument("--run-root", default="experiments/candidates/course_validation")
     parser.add_argument(
         "--course-config",
         type=Path,
         help="Explicit course calibration settings, saved with the experiment",
     )
     args = parser.parse_args()
+    if not args.hopping and not args.commands:
+        parser.error("Walking-only validation needs an explicit --commands schedule.")
+    course_path = args.course_config
+    if course_path is None and not args.hopping:
+        course_path = ROOT / "configs/walking_course.json"
     commands = (
         json.loads(args.commands.read_text())
         if args.commands
@@ -46,11 +52,12 @@ def main():
         record=not args.no_video,
         operator="fixed_scripted_commands_no_feedback",
         name=args.name,
+        run_root=args.run_root,
         head_config=json.loads(args.head_motion_config.read_text())
         if args.head_motion_config
         else None,
-        course=json.loads(args.course_config.read_text())
-        if args.course_config
+        course=json.loads(course_path.read_text())
+        if course_path
         else None,
     )
     (game.output / "config/command_schedule.json").write_text(

@@ -23,7 +23,14 @@ button[aria-pressed=true],button.held{background:#f1c47d;color:#172e30;border-co
 .request{font-size:13px;min-height:36px;color:#ffe0a3}
 details{margin-top:18px;border-top:1px solid #405e59;padding-top:16px}summary{cursor:pointer;color:#d4e0d7}
 button:disabled{opacity:.55;cursor:default}
-@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}header{align-items:flex-start}.badge{max-width:130px}.panel{max-width:none}}
+@media(max-width:760px){
+main{padding:14px}.layout{grid-template-columns:1fr;gap:12px}
+header{align-items:flex-start}.badge{max-width:130px}
+.layout>section{display:contents}
+.screen{position:sticky;top:0;z-index:2}
+.panel{max-width:none;padding:14px}
+.pad{margin:12px 0}.pad button{padding:10px 4px}
+}
 
 [hidden]{display:none!important}.win{position:absolute;inset:0;display:grid;place-content:center;background:#102629cc;color:#ffe0a3;font-size:26px}input{max-width:100%;width:100%;padding:9px;background:#102629;color:#f3ecd9;border:1px solid #57716b;border-radius:8px}label{display:block;margin:10px 0}.path{overflow-wrap:anywhere;font-size:12px}
 </style>
@@ -39,20 +46,21 @@ button:disabled{opacity:.55;cursor:default}
 <div class="speeds"><button data-speed=".15" aria-pressed="false">Slow</button><button data-speed=".3" aria-pressed="true">Normal</button><button data-speed=".5" aria-pressed="false">Fast</button></div>
 <div class="pad"><button class="forward" data-key="KeyW">↑<br>Forward</button><button class="left" data-key="KeyA">↶<br>Left</button><button class="back" data-key="KeyS">↓<br>Back</button><button class="right" data-key="KeyD">↷<br>Right</button></div>
 <button class="stop" id="stop">Stop</button>
-<p class="help">Hold a direction to move. Release to request a stop. Hold W/S + A/D to move and turn together.</p>
+<p class="help">Hold a direction to move. Release clears that command. Hold W/S + A/D to move and turn together.</p>
 <div class="row" id="modeControls" hidden><button id="walkMode" aria-pressed="true">Walk</button><button id="hopMode" aria-pressed="false">Hop</button></div>
 <p class="help" id="hopHelp" hidden>Hop is an explicit mode: click Hop to hop, and Walk to return to walking. Stop always requests quiet walking mode. Allow room to land before switching.</p>
 <p class="request" id="requested">Requested: 0.00 m/s · 0.00 rad/s</p>
 <div class="row"><button id="pause">Pause</button><button id="reset">Reset</button></div><p class="help" id="message" role="status">Connecting to your simulator…</p>
 </aside></div>
+<details><summary>Recording · optional</summary><p class="help">Start recording to keep a gameplay clip. Stop recording or pause to finalize it, then use the optional notebook replay and download cells.</p><button id="record">Start recording</button><p class="help" id="recordStatus">Recording off. Playing does not create a video.</p></details>
 <details><summary>Load another trained policy</summary><p class="help" id="loaderHelp">Your selected policy is already loaded. Change it here only if needed.</p><datalist id="checkpoint-options"></datalist>
 <label>Walking checkpoint<input id="walking" list="checkpoint-options" type="text"></label><label id="hoppingLoader" hidden>Hopping checkpoint<input id="hopping" list="checkpoint-options" type="text"></label><button id="load">Load and reset</button><p class="path" id="experiment"></p></details>
-<p class="help">Gameplay records automatically. When finished, pause and use the optional notebook cells to watch or download your recording.</p>
+
 </main><script>const $ = id => document.getElementById(id);
 const buttons = [...document.querySelectorAll('[data-key]')];
 const keys = new Set(), pointers = new Map();
 let selectedSpeed = .3, desiredMode = 'walk', walkingOnly = true;
-let paused = false, ready = false, initialized = false, previousFalls = 0;
+let paused = false, ready = false, initialized = false, previousFalls = 0, recording = false;
 let limits = {speed_min:-.25, speed_max:.5, yaw_max:.6};
 let pendingDrive = null, sendingDrive = false;
 async function send(value) {
@@ -96,12 +104,17 @@ buttons.forEach(b => {
 });
 window.addEventListener('keydown',e => {
   if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
-  if (['KeyW','KeyS','KeyA','KeyD'].includes(e.code)) { e.preventDefault(); keys.add(e.code); drive(); }
+  if (['KeyW','KeyS','KeyA','KeyD'].includes(e.code)) {
+    e.preventDefault();
+    // Stop or focus loss clears held input. Auto-repeat must not re-arm it.
+    if (!e.repeat) { keys.add(e.code); drive(); }
+  }
 });
 window.addEventListener('keyup',e => { if (keys.delete(e.code)) drive(); });
 window.addEventListener('blur',clearControls);
 document.addEventListener('visibilitychange',() => { if (document.hidden) clearControls(); });
 $('stop').onclick=clearControls;
+$('record').onclick=()=>action({action:'record',enabled:!recording});
 $('pause').onclick=() => { clearControls(); action({action:'pause'}); };
 $('reset').onclick=() => { clearControls(); action({action:'new'}); };
 $('load').onclick=() => { clearControls(); initialized=false; action({action:'load',walking:$('walking').value.trim(),hopping:$('hopping').value.trim()}); };
@@ -120,7 +133,9 @@ async function poll() {
     const s=await (await fetch('./api/state')).json(); ready=Boolean(s.ready);
     $('message').textContent=s.error||s.message||'';
     if(ready){
-      walkingOnly=Boolean(s.walking_only); paused=s.paused;
+      walkingOnly=Boolean(s.walking_only); paused=s.paused; recording=Boolean(s.recording);
+      $('record').textContent=recording?'Stop recording':'Start recording';
+      $('recordStatus').textContent=recording?(paused?'Recording enabled. Resume to capture movement.':'Recording gameplay…'):'Recording off. Playing does not create a video.';
       if(walkingOnly)desiredMode='walk';
       ['modeControls','hopHelp','hoppingLoader'].forEach(id=>$(id).hidden=walkingOnly);
       if(!walkingOnly)$('terrainHelp').textContent='Cross the obstacles and rough ground, then reach the raised beacon. Choose hopping when needed; allow space to land.';

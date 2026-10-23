@@ -25,7 +25,7 @@ from bdxr_classroom.experiments import (
 from bdxr_classroom.learning.fastsac import FastSAC
 from bdxr_classroom.simulation.behaviors import foot_spacing, imu_turn_rate, sole_tilt
 from bdxr_classroom.simulation.environment import make_env
-from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
+from bdxr_classroom.simulation.head_motion import HeadMotionConfig, make_head_motion
 from bdxr_classroom.simulation.training_terrain import (
     ground_height,
     sampled_sole_clearance,
@@ -88,11 +88,7 @@ def load_agent(checkpoint, num_envs):
 
 def run_case(env, agent, case, seconds, video=None, seed=1000, head_config=None):
     env.reset(seed=seed)
-    head = (
-        HeadMotion(env, head_config)
-        if head_config and (head_config.enabled or head_config.level_gaze_in_render)
-        else None
-    )
+    head = make_head_motion(env, head_config)
     env.cfg.episode_length_s = seconds + 1
     robot = env.scene["robot"].data
     origin = robot.root_link_pos_w[:, :2].clone()
@@ -153,11 +149,13 @@ def run_case(env, agent, case, seconds, video=None, seed=1000, head_config=None)
                 -torch.sin(heading0) * delta[:, 0] + torch.cos(heading0) * delta[:, 1]
             )
             obs = set_command(env, speed, yaw)
+            actor_obs = obs["actor"]
             if head:
+                actor_obs = head.policy_observations(actor_obs)
                 mode = "hop" if obs["actor"].shape[-1] == 49 else "walk"
                 head.step(env.step_dt, speed, yaw, mode)
             with torch.no_grad():
-                actions = agent.act(obs["actor"], deterministic=True)
+                actions = agent.act(actor_obs, deterministic=True)
                 _, reward, terminated, truncated, _ = env.step(actions)
             current_alive = alive.clone()
             alive &= ~(terminated | truncated)

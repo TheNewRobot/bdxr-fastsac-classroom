@@ -17,6 +17,7 @@ JOINT_NAMES = ("Neck_Pitch", "Head_Pitch", "Head_Yaw", "Head_Roll")
 @dataclass(frozen=True)
 class HeadMotionConfig:
     enabled: bool = False
+    physical_expression: bool = False
     level_gaze_in_render: bool = False  # cosmetic only; never changes physics.
     walk_amplitude: float = 0.025  # radians; small nod around nominal targets.
     idle_yaw: float = 0.08  # radians; occasional curious glances.
@@ -31,6 +32,8 @@ class HeadMotionConfig:
     display_idle_yaw: float = 0.25  # radians; gentle idle looks.
 
     def __post_init__(self):
+        if self.physical_expression and self.level_gaze_in_render:
+            raise ValueError("Physical head expression cannot use render-only offsets.")
         values = (
             self.walk_amplitude,
             self.idle_yaw,
@@ -169,8 +172,16 @@ class HeadMotion:
             ),
         }
 
+    def policy_observations(self, observations):
+        """Legacy expression preserves the actor's observation reference."""
+        return observations
+
     def display_offsets(self):
-        """Continuous cosmetic gestures; never passed to simulated actuators."""
+        """Continuous gestures around neutral gaze.
+
+        The legacy controller applies these only when rendering; the physical
+        controller uses them as bounded servo references in the final game.
+        """
         moving = self.moving_fraction
         bounce = math.sin(2 * math.pi * 1.25 * self.time + self.phase)
         idle = self.idle_fraction
@@ -256,3 +267,14 @@ class HeadMotion:
         }
         renderer.renderer.update_scene(data, camera=renderer._cam)
         return renderer.render()
+
+
+def make_head_motion(env, config):
+    """Select an explicit expression implementation without changing defaults."""
+    if config is None or not (config.enabled or config.level_gaze_in_render):
+        return None
+    if config.physical_expression:
+        from bdxr_classroom.simulation.physical_head import PhysicalHeadMotion
+
+        return PhysicalHeadMotion(env, config)
+    return HeadMotion(env, config)
