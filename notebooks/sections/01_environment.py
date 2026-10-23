@@ -119,6 +119,7 @@ lab = Lesson(WORK, PYTHON, runtime_env)
 # | Turn-rate range: ±0.45 rad/s | Right and left turns; zero requests straight motion |
 #
 # `balanced` samples stopping, straight movement, turning, and combined commands.
+# Commands change every two seconds to practise stopping and restarting.
 # Small reset perturbations expose the learner to more than one starting posture.
 # These define the task; they are separate from SAC's network and replay settings.
 
@@ -126,6 +127,7 @@ lab = Lesson(WORK, PYTHON, runtime_env)
 ENV_CONFIG = {
     "task_version": "v2",  # Ten leg-joint targets; the complete robot remains physical.
     "command_mode": "balanced",  # Practice forward/backward movement, stopping, and turns.
+    "command_interval": 2.0,  # Seconds between training commands.
     "speed_min": -0.15,  # m/s, backward command limit.
     "speed_max": 0.35,  # m/s, forward command limit.
     "yaw_max": 0.45,  # rad/s, magnitude of the turning command.
@@ -133,6 +135,9 @@ ENV_CONFIG = {
     "yaw_std": 0.20,  # rad/s, width of the turning reward.
     "yaw_bias_weight": 10.0,  # Weight for reducing sustained turning error.
     "lateral_bias_weight": 2.0,  # Weight for reducing sustained sideways drift.
+    "quiet_standing_weight": 3.0,  # Reward quiet legs and two grounded feet at zero command.
+    "idle_velocity_weight": 0.5,  # Penalize leg fidgeting only at zero command.
+    "contact_spin_weight": 2.0,  # Discourage twisting a planted foot instead of stepping.
     "initial_jitter": 0.03,  # Radians: practice small reset perturbations.
 }
 (WORK / "environment_settings.json").write_text(json.dumps(ENV_CONFIG, indent=2))
