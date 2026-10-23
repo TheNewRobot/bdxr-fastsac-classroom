@@ -24,6 +24,7 @@ def make_env(
     hop_body_weight=0.0,
     initial_jitter=0.0,
     command_mode="fixed",
+    command_interval=None,
     speed_min=-0.25,
     speed_max=0.5,
     yaw_max=0.6,
@@ -83,6 +84,10 @@ def make_env(
         raise ValueError("Hop clearance must use site or sole measurements")
     if not math.isfinite(initial_jitter) or initial_jitter < 0:
         raise ValueError("Initial jitter must be finite and nonnegative")
+    if command_interval is not None and (
+        not math.isfinite(command_interval) or command_interval <= 0
+    ):
+        raise ValueError("Command interval must be positive and finite")
     cfg = bdxr_flat_env_cfg()
     cfg.seed = seed
     cfg.scene.num_envs = num_envs
@@ -130,7 +135,10 @@ def make_env(
             cfg.commands["twist"] = command
         command.ranges.lin_vel_x = (speed_min, speed_max)
         command.ranges.ang_vel_z = (-yaw_max, yaw_max)
-        command.resampling_time_range = (3.0, 6.0)
+        command.resampling_time_range = (
+            (3.0, 6.0) if command_interval is None
+            else (command_interval, command_interval)
+        )
         command.rel_standing_envs = 0.1
         command.rel_forward_envs = 0.0
         command.rel_world_envs = 0.0
