@@ -22,12 +22,15 @@ measurements. Its target step count matches the baseline's completed steps;
 check both actual budgets before attributing a change to the reward. A higher
 return after changing reward weights is not itself evidence of a better gait.
 
-End with students steering their own policy through the walking course. W/S and
-A/D control movement; sliders allow finer commands. Falling resets the robot,
-while elapsed simulation time and fall count accumulate. Pause before exporting.
-No hopping policy is required for the core course.
+End with students steering their own policy through the walking course. Hold
+direction buttons or W/S/A/D to move; release to request stopping. Speed presets
+choose the pace, and the panel shows measured speed and turn rate separately.
+Falling resets the robot while simulation time and falls accumulate. Recording
+and exporting are optional. No hopping policy is required for the core course.
 
 Allow for two training runs, setup, discussion, rendering, and gameplay. The
-17-minute training limit is per run, not the duration of the whole lesson.
-Use a Colab GPU runtime and retain the 12,000-step target. Setup accepts T4 without a model-name restriction; its training time is not yet measured. See the current
+20-minute training limit is per run, not the duration of the whole lesson.
+Use a Colab GPU runtime and retain the 12,000-step target. Setup accepts T4;
+a user-reported run took 1,024 seconds with the earlier recipe. The revised
+quiet-standing recipe still needs Colab timing. See the current
 [validation scope](progress.md) before advertising a classroom duration.

@@ -49,7 +49,7 @@ LEARNING_CONFIG = {
     "batch_size": 2048,  # Replay samples before left/right augmentation.
     "buffer_size": 512,  # Replay slots per parallel robot.
     "steps": 12000,  # Parallel simulation steps.
-    "minutes": 17,  # Allow 12,000 steps to finish; setup/display time is separate.
+    "minutes": 20,  # Time cap for 12,000 steps; setup/display time is separate.
     "gamma": 0.97,  # Discount applied to future reward.
     "updates": 4,  # Learning updates per simulation step.
     "actor_hidden": 256,  # Actor hidden-layer width.
@@ -75,7 +75,7 @@ print("W&B:", LEARNING_CONFIG["wandb_mode"])
 print("Local metrics and checkpoints are saved even when W&B is disabled.")
 
 # %% [markdown]
-# Use a **GPU runtime** and allow **up to 17 minutes per training run**,
+# Use a **GPU runtime** and allow **up to 20 minutes per training run**,
 # excluding setup and display. The target remains **12,000 steps**. The actual step count is
 # printed and saved; unfinished budgets must not be treated as matching experiments.
 

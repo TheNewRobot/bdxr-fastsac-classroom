@@ -20,7 +20,7 @@ Open the Colab link, save a copy in Drive, select a **GPU runtime**, and run the
 - Walking from scratch, learning curves, and one short walking check.
 - Changing one reward, then driving your trained walker through a desert course.
 
-Training targets **12,000 steps**, with a **17-minute cap per run**, excluding setup and display; there
+Training targets **12,000 steps**, with a **20-minute cap per run**, excluding setup and display; there
 are two runs in the lesson. Hopping is a [separate after-class extension](notebooks/BDXR_Hopping_Extra.ipynb).
 
 The actor uses proprioception and movement commands; the critic may use additional simulator observations during training.

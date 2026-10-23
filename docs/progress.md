@@ -1,4 +1,29 @@
-# Classroom validation · October 22, 2026
+# Classroom validation
+
+## Quiet-standing update · October 23, 2026
+
+The revised recipe is still under local validation. It retains 12,000 requested
+steps and uses a 20-minute cap, with two-second command intervals and explicit
+quiet-standing, idle-motion, and planted-foot rotation rewards. One fresh seed-7
+run completed in 1,035 seconds on the shared L40S and passed three-start
+movement/stop/restart checks without falls or settled idle stepping. A fresh
+notebook repeat completed all 12,000 steps in 1,182 seconds and also passed:
+forward speed was about 0.289 m/s, reverse −0.144 m/s, and turns +0.399/−0.393
+rad/s. Its transition assessment took 41 seconds. The matched sole-level reward
+variation remains in progress.
+
+That candidate completed the full-collision walking course in 50.26 simulated
+seconds with no falls. An operator used the button command palette, pausing
+simulation between holds; this is not a real-time human driving benchmark.
+A separate 24-second hopping-to-stop/restart test had no falls or settled idle
+steps and took 67 seconds including recording. It does not establish hopping
+course completion. Earlier tuning attempts included stalled commands, falls,
+and continued idle stepping; their records are retained locally.
+
+These checks do not yet establish reliable fresh training or actual Colab
+execution. The measurements below describe the earlier published recipe.
+
+## Previous classroom evidence · October 22, 2026
 
 The core now has seven walking activities, with 31% less explanatory text and
 38% fewer displayed code lines than the previous version. Students train a baseline and one
@@ -8,7 +33,7 @@ search runs in the required lesson.
 
 ## Fresh training evidence
 
-The classroom recipe keeps 12,000 requested steps, a 17-minute training cap,
+The previous classroom recipe used 12,000 requested steps, a 17-minute training cap,
 a Colab GPU runtime, 512 environments, seed 7, and the visible notebook settings.
 The earlier local trials below used a 15-minute cap. We inspect ordinary
 **final** checkpoints. The actor has 47 proprioceptive/command inputs and ten
