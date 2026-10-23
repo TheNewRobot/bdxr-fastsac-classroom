@@ -9,11 +9,18 @@
 # |:---:|
 # | ![Fresh baseline and flatter-foot comparison, with check outcomes](lesson-asset:classroom_walking/reward_comparison.gif) |
 #
+# The preview loops automatically; it has no Play button.
+# If it stays still, [open the comparison video](lesson-asset:classroom_walking/reward_comparison.mp4)
+# and press ▶ in the video player.
+#
 # Only `level_feet_weight` changes: **0 → 0.75**. Both trained from scratch for
 # 12,000 steps. Measured swing-foot tilt fell from **9.7° to 5.2°**, while foot
 # landings increased from **4.11 to 4.52 per second**. Both passed the brief
-# walking check. Look for flatter feet and slightly quicker steps.
-# Your measurements may differ.
+# walking check.
+#
+# **Watch the feet:** the change is subtle—flatter feet and slightly quicker
+# steps. This example shows how one reward influences movement, rather than a
+# dramatically different gait. Your measurements may differ.
 
 # %%
 PREDICTION = "The feet will stay flatter during stepping."  # @param {type:"string"}
