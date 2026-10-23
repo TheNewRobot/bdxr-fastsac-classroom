@@ -1,5 +1,22 @@
 # Validation · October 23, 2026
 
+## Reported Colab run
+
+The user's T4 run completed both 12,000-step trainings in about 982/980 seconds
+with the supplied settings. The baseline failed its short forward check:
+mean speed was about **0.018 m/s** for a 0.30 m/s command. The variation passed
+at about **0.270 m/s**. Replaying the uploaded baseline locally reproduced a fall
+1.62 seconds after Forward. The uploaded variation completed the local 44-second
+forward/reverse/turn/stop/restart sequence without falls or settled idle stepping.
+This is not a full-course guarantee or proof of reliable baseline training.
+
+The lesson now summarizes both existing checks and defaults to a passing policy,
+preferring baseline only when it passes. Failed, missing or stale checks cannot
+qualify a selection. No extra training, checkpoint search or assessment is added.
+The exact cause of the baseline's poor learning remains unresolved.
+
+## Earlier local campaign
+
 These are **local L40S measurements**, with other desktop training sharing the
 GPU. Actual Google Colab execution remains unverified. The core lesson trains
 from scratch; it does not substitute pretrained weights or search checkpoints.

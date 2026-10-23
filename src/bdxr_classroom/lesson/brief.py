@@ -70,8 +70,9 @@ def assess_walking(lab, run, seconds=10, episodes=3):
     (output / "brief_check.json").write_text(json.dumps(verdict, indent=2))
     command_table(summary)
     if verdict["passed"]:
-        print("Stable forward walking within this short check's tolerances.")
+        print("PASS — stable forward walking within this short check's tolerances.")
     else:
+        print("FAIL — this policy is not ready for the game.")
         trials = summary["cases"]["forward"]
         print(
             "Falls observed."

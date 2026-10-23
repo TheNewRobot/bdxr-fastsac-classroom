@@ -15,16 +15,32 @@
 # they do not start movement. Actual motion and requested commands are shown
 # separately. Falling keeps accumulated time and falls; Pause freezes simulation.
 # On remote VS Code, forward port 8765 if the panel is blank.
+#
+# **Choose a checked policy:** `auto` uses a passing run, preferring baseline if
+# both pass. The summary reuses your existing checks—no extra training or
+# evaluation. A failed selection will not launch the game. Passing the short
+# forward check does not guarantee successful turning or obstacle traversal.
+
+# %%
+from bdxr_classroom.lesson.policy_choice import choose_walking_policy
+
+POLICY = "auto"  # @param ["auto", "baseline", "variation"]
+walking = choose_walking_policy(
+    {"baseline": BASELINE, "variation": VARIATION},
+    {"baseline": BASELINE_CHECK, "variation": VARIATION_CHECK},
+    preference=POLICY,
+)
+SELECTED_WALK_CHECKPOINT = walking
 
 # %%
 from bdxr_classroom.lesson.play import launch_game, display_game
 
-POLICY = "baseline"  # @param ["baseline", "variation"]
 GAME_PORT = 8765
-chosen_run = BASELINE if POLICY == "baseline" else VARIATION
-walking = str(chosen_run / "checkpoints/final.pt")
-status = launch_game(lab, walking, port=GAME_PORT, course="configs/walking_course.json")
-display_game(GAME_PORT)
+if walking:
+    status = launch_game(lab, walking, port=GAME_PORT, course="configs/walking_course.json")
+    display_game(GAME_PORT)
+else:
+    print("Choose a policy with a passing check in the preceding cell.")
 
 # %% [markdown]
 # ### Optional · watch and keep your result
