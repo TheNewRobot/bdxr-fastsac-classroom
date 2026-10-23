@@ -35,6 +35,7 @@ def main():
     p.add_argument("--minutes", type=float, default=30)
     p.add_argument("--speed", type=float, default=0.3)
     p.add_argument("--smoothness", type=float, default=1)
+    p.add_argument("--quiet-standing-weight", type=float, default=0.0)
     p.add_argument(
         "--command-mode", choices=["fixed", "mixed", "balanced"], default="fixed"
     )
@@ -198,6 +199,7 @@ def main():
             "hop_flight_duration",
             "hop_crouch",
             "swing_clearance",
+            "quiet_standing_weight",
         ]:
             if key in previous_cfg:
                 setattr(args, key, previous_cfg[key])
@@ -250,6 +252,7 @@ def main():
         args.speed,
         args.smoothness,
         args.seed,
+        quiet_standing_weight=args.quiet_standing_weight,
         initial_jitter=args.initial_jitter,
         task_version=args.task_version,
         hop_height=args.hop_height,

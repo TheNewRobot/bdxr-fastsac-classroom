@@ -21,6 +21,7 @@ from bdxr_classroom.experiments import (
 from bdxr_classroom.game.course import CourseConfig
 from bdxr_classroom.game.course_progress import CourseProgress
 from bdxr_classroom.simulation.environment import make_env
+from bdxr_classroom.simulation.behaviors import imu_turn_rate
 from bdxr_classroom.simulation.head_motion import HeadMotion, HeadMotionConfig
 
 
@@ -102,6 +103,7 @@ class GameSession:
             render=render,
             task_version="hop",
             course=None if flat else dataclasses.asdict(self.course),
+            full_link_collisions=not flat,
             seed=seed,
         )
         self.env.cfg.episode_length_s = 1e9
@@ -137,6 +139,7 @@ class GameSession:
             "hopping": self.hopping_path,
             "course": dataclasses.asdict(self.course),
             "flat_transition_test": self.flat,
+            "demo_link_collisions": not self.flat,
             "operator": self.operator,
             "control": "velocity/mode commands; no navigation or heading correction",
             "head_motion": dataclasses.asdict(self.head_config),
@@ -147,12 +150,17 @@ class GameSession:
         self.video_part = 0
         self.score = Score()
         self.steps = 0
-        self.message = "Ready. Load your policies, then drive to the finish beacon."
+        self.message = "Ready. Click Resume, then hold a direction to drive."
         self.reset_robot()
         self.paused = True
 
     def pause(self):
         self.paused = not self.paused
+        self.message = (
+            "Paused. Click Resume to continue."
+            if self.paused
+            else "Hold a direction to drive. Release to request a stop."
+        )
         if self.paused:
             self.save_summary()
 
@@ -179,7 +187,7 @@ class GameSession:
         self.stage_time = self.hop_time = 0.0
         self.last_action = torch.zeros(1, 10, device=self.env.device)
 
-    def command(self, speed=0, yaw=0, mode="walk"):
+    def command(self, speed=0, yaw=0, mode="walk", resume=True):
         if mode not in ["walk", "hop"]:
             raise ValueError("Mode must be walk or hop")
         if mode == "hop" and self.hop is None:
@@ -192,7 +200,8 @@ class GameSession:
         self.requested_speed = float(np.clip(speed, speed_min, speed_max))
         self.requested_yaw = float(np.clip(yaw, -yaw_max, yaw_max))
         self.requested_mode = mode
-        self.paused = False
+        if resume:
+            self.paused = False
 
     def _policy_action(self):
         dt = self.env.step_dt
@@ -400,6 +409,8 @@ class GameSession:
             "hopping": self.hopping_path,
             "speed": self.speed,
             "yaw": self.yaw,
+            "actual_speed": float(self.env.scene["robot"].data.root_link_lin_vel_b[0, 0]),
+            "actual_yaw": float(imu_turn_rate(self.env)[0]),
             "walking_only": self.course.walking_only,
             "command_limits": {
                 "speed_min": self.walk_cfg.get("speed_min", -0.25),

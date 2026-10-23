@@ -87,8 +87,33 @@ if HOP_STAGES:
 else:
     print("Enable hopping training above to produce your own policies.")
 
-# %%
-from bdxr_classroom.lesson.exports import export_results
+# %% [markdown]
+# ### Optional · drive with walking and hopping
+#
+# Upload your walking lesson's `final.pt` using Colab's Files panel and enter its
+# path below. This game uses your two trained policies: **Walk** handles movement
+# and standing; **Hop** explicitly requests hopping. Click **Resume**, hold
+# direction buttons or W/S/A/D, and release to request stopping. **Stop** also
+# returns to walking mode. Leave room to land before switching.
 
+# %%
+from bdxr_classroom.lesson.play import launch_game, display_game
+
+WALKING_CHECKPOINT = ""  # @param {type:"string"}
+if HOP_STAGES and WALKING_CHECKPOINT:
+    status = launch_game(lab, WALKING_CHECKPOINT, str(chosen / "checkpoints/final.pt"))
+    display_game(8765)
+else:
+    print("Optional: provide your walking checkpoint after training a hopping stage.")
+
+# %% [markdown]
+# Saving is optional. The results ZIP keeps your policies and measurements;
+# include replay only if you want the larger resumable training state.
+
+# %%
+from bdxr_classroom.lesson.exports import optional_download
+
+SAVE_RESULTS = False  # @param {type:"boolean"}
+INCLUDE_REPLAY = False  # @param {type:"boolean"}
 if HOP_STAGES:
-    print("Saved:", export_results(WORK, lab.runs, include_replay=True))
+    backup = optional_download(WORK, lab.runs, SAVE_RESULTS, INCLUDE_REPLAY)

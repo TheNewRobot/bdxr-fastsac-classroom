@@ -40,6 +40,7 @@ def main():
         game = None
         render_requested = True
         last_frame = None
+        drive_deadline = None
         try:
             game = GameSession(
                 args.walking,
@@ -98,6 +99,12 @@ def main():
                                 command.get("speed", 0),
                                 command.get("yaw", 0),
                                 command.get("mode", "walk"),
+                                resume=not command.get("hold_to_move", False),
+                            )
+                            drive_deadline = (
+                                time.monotonic() + 1.5
+                                if command.get("hold_to_move")
+                                else None
                             )
                     except Exception as error:
                         shared["status"] = dict(
@@ -110,6 +117,12 @@ def main():
                 if game is None:
                     time.sleep(0.1)
                     continue
+                if drive_deadline is not None and time.monotonic() > drive_deadline:
+                    game.command(0, 0, "walk", resume=False)
+                    if not game.paused:
+                        game.pause()
+                    game.message = "Connection inactive. Click Resume to continue."
+                    drive_deadline = None
                 game.step()
                 if render_requested or game.last_frame is None:
                     game.render()
@@ -180,9 +193,9 @@ def main():
                     json.dumps({"error": str(error)}).encode(), "application/json", 400
                 )
 
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     thread = threading.Thread(target=worker, daemon=True)
     thread.start()
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
 
     def shutdown(*_):
         stopping.set()

@@ -10,6 +10,27 @@ from bdxr_classroom.simulation.training_terrain import (
 from mjlab.utils.lab_api.math import quat_apply
 
 
+def quiet_standing_reward(env, velocity_std=0.5):
+    """Reward supported, quiet legs only when no motion is requested.
+
+    Small balance corrections remain possible. This changes the training
+    objective, never the actor's observations or actions at deployment.
+    """
+    command = env.command_manager.get_command("twist")
+    idle = command[:, :2].norm(dim=-1) + command[:, 2].abs() < 0.05
+    robot = env.scene["robot"]
+    if not hasattr(env, "_quiet_leg_ids"):
+        env._quiet_leg_ids, _ = robot.find_joints(
+            [".*_Hip_Yaw", ".*_Hip_Roll", ".*_Hip_Pitch", ".*_Knee", ".*_Ankle"]
+        )
+    velocity = robot.data.joint_vel[:, env._quiet_leg_ids]
+    quiet = torch.exp(-velocity.square().mean(-1) / velocity_std**2)
+    supported = (
+        env.scene["feet_ground_contact"].data.found.reshape(env.num_envs, 2) > 0
+    ).all(-1)
+    return idle * (0.5 * quiet + 0.5 * supported)
+
+
 def sole_tilt(env):
     """Unsigned angle between each collision sole plane and horizontal.
 
