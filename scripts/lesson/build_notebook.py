@@ -145,6 +145,10 @@ def main():
     parser.add_argument(
         "--bundle-dir", type=Path, default=ROOT / "artifacts/lesson_releases"
     )
+    parser.add_argument(
+        "--hopping-only", action="store_true",
+        help="Build the optional lesson without rewriting the finalized walking notebook.",
+    )
     args = parser.parse_args()
     cells = [
         cell
@@ -213,7 +217,8 @@ def main():
             if key in previous.metadata:
                 notebook.metadata[key] = previous.metadata[key]
     nbformat.validate(notebook)
-    nbformat.write(notebook, args.output)
+    if not args.hopping_only:
+        nbformat.write(notebook, args.output)
     # The optional lesson reuses the exact verified setup cells and release.
     extension_cells = []
     for cell in section_cells(ROOT / "notebooks/extensions/hopping.py"):
@@ -238,9 +243,11 @@ def main():
     extension.metadata.colab.name = "BDXR_Hopping_Extra.ipynb"
     nbformat.validate(extension)
     nbformat.write(extension, args.output.parent / "BDXR_Hopping_Extra.ipynb")
-    print(
-        f"Wrote {args.output}: {len(cells)} cells, {args.output.stat().st_size:,} bytes"
-    )
+    if not args.hopping_only:
+        print(
+            f"Wrote {args.output}: {len(cells)} cells, {args.output.stat().st_size:,} bytes"
+        )
+    print(f"Wrote {args.output.parent / 'BDXR_Hopping_Extra.ipynb'}")
     print(f"Release archive: {bundle_dir}")
 
 

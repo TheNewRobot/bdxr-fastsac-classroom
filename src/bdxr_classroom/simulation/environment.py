@@ -34,6 +34,7 @@ def make_env(
     yaw_std=0.2,
     course=None,
     full_link_collisions=False,
+    hopping_practice=False,
     quiet_standing_weight=0.0,
     idle_velocity_weight=0.0,
     contact_spin_weight=0.0,
@@ -385,6 +386,15 @@ def make_env(
         cfg.episode_length_s = 1e9
         cfg.viewer.distance = 2.0
         cfg.viewer.elevation = -18
+    if hopping_practice:
+        from bdxr_classroom.hopping_demo.arena import build_arena
+
+        if course is not None or training_terrain_height:
+            raise ValueError("Use the standalone hopping pad without a course or terrain.")
+        cfg.scene.terrain.textures = ()
+        cfg.scene.terrain.materials = ()
+        cfg.scene.spec_fn = build_arena
+        cfg.viewer.distance, cfg.viewer.elevation = 1.5, -18
     env = ManagerBasedRlEnv(
         cfg=cfg, device="cuda:0", render_mode="rgb_array" if render else None
     )

@@ -80,8 +80,9 @@ print("Reused pinned environment; GPU:", gpu)
                 "assess_walking(lab, VARIATION)",
                 "assess_walking(lab, VARIATION, episodes=1, seconds=2)",
             )
+            if "TRAIN_HOPPING =" in source:
+                source = replace_assignment(source, "TRAIN_HOPPING", repr(include_hopping))
             if include_hopping:
-                source = source.replace("TRAIN_HOPPING = False", "TRAIN_HOPPING = True")
                 source = source.replace(
                     "for stage in CURRICULUM:\n",
                     "for stage in CURRICULUM:\n"
@@ -91,6 +92,7 @@ print("Reused pinned environment; GPU:", gpu)
             source = source.replace("USE_WANDB = False", "USE_WANDB = True")
             source = source.replace("TRAIN_HOPPING = False", "TRAIN_HOPPING = True")
         source = source.replace("GAME_PORT = 8765", f"GAME_PORT = {game_port}")
+        source = source.replace("HOP_PORT = 8766", f"HOP_PORT = {game_port}")
         if walking_checkpoint and "WALKING_CHECKPOINT =" in source:
             source = replace_assignment(
                 source, "WALKING_CHECKPOINT",

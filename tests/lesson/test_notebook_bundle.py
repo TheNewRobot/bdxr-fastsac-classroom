@@ -85,7 +85,18 @@ class NotebookBundleTests(unittest.TestCase):
                 self.assertNotIn("blocking_request", cell.source)
                 self.assertNotIn("SOURCE_BUNDLE", cell.source)
                 self.assertNotIn("files.upload", cell.source)
-        release = notebook.metadata.bdxr_lesson
+        # Hopping can be released independently while walking remains pinned.
+        # Verify the current source bundle against the independently built lesson.
+        extension = nbformat.read(ROOT / "notebooks/BDXR_Hopping_Extra.ipynb", 4)
+        release = extension.metadata.bdxr_lesson
+        for document in (notebook, extension):
+            setup = next(
+                cell.source for cell in document.cells
+                if cell.cell_type == "code"
+                and cell.source.startswith("# @title Unpack the lesson files")
+            )
+            self.assertIn(document.metadata.bdxr_lesson.sha256, setup)
+            self.assertIn(document.metadata.bdxr_lesson.url, setup)
         # A fresh clone has no ignored artifacts directory. Rebuild in memory.
         content = builder.source_bundle()
         self.assertEqual(hashlib.sha256(content).hexdigest(), release.sha256)

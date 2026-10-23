@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Droid hop lab</title>
+<style>
+:root{color-scheme:light dark;font-family:system-ui,sans-serif;background:#142322;color:#edf7ef}
+*{box-sizing:border-box}body{margin:0;padding:16px}main{max-width:1000px;margin:auto}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+h1{font-size:22px;margin:0 0 12px}small,.hint{color:#bdd1c6}
+.frame{background:#233532;border-radius:16px;overflow:hidden;min-height:240px}
+img{display:block;width:100%;max-height:580px;object-fit:contain}
+.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 0}
+button{border:1px solid #77998a;border-radius:10px;padding:12px 25px;background:#263e36;color:#fff;font-size:16px;cursor:pointer}
+#jump{background:#b8ee72;color:#14210b;border-color:#b8ee72;font-weight:700;min-width:140px}
+button:disabled{opacity:.5;cursor:default}button:focus-visible,input:focus-visible{outline:3px solid #f4b85a;outline-offset:3px}
+label{margin-left:auto;display:flex;align-items:center;gap:8px}input{accent-color:#b8ee72;width:18px;height:18px}
+#message{padding:12px 16px;background:#253b32;border-radius:10px;min-height:46px}
+.results{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.result{background:#263b35;padding:12px;border-radius:10px;flex:1;min-width:160px}
+.result strong{display:block;margin-bottom:5px}.hint{font-size:13px;line-height:1.5}
+@media(max-width:500px){body{padding:8px}label{margin-left:0}.controls{gap:8px}button{padding:12px 18px}}
+</style>
+<main>
+<header><h1>Droid hop lab</h1><small>Your trained policy</small></header>
+<div class="frame"><img id="frame" alt="Live MuJoCo view of your hopper"></div>
+<div class="controls">
+<button id="jump" disabled>Jump</button><button id="reset" disabled>Reset</button>
+<label><input id="record" type="checkbox" disabled>Record · optional</label>
+</div>
+<div id="message" role="status">Loading your hopper…</div>
+<div class="results" id="results"></div>
+<p class="hint">Click Jump once and let it land. The same policy balances between requests.
+Reset starts a new attempt. Turn recording off before opening your clip below the panel.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let sending=false, lastResults='';
+async function command(value){
+  if(sending)return;
+  sending=true;$('jump').disabled=true;
+  try{
+    const r=await fetch('./api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(value)});
+    if(!r.ok)throw new Error('Command not accepted');
+  }catch(e){$('message').textContent='Connection interrupted. Reconnect before another attempt.';}
+  finally{sending=false;}
+}
+$('jump').onclick=()=>command({action:'jump'});
+$('reset').onclick=()=>command({action:'reset'});
+$('record').onchange=()=>command({action:'record',enabled:$('record').checked});
+async function poll(){
+  try{
+    const s=await(await fetch('./api/state')).json();
+    $('message').textContent=s.error||s.message;
+    $('jump').disabled=sending||!s.ready||!s.can_jump;
+    $('reset').disabled=!s.ready||sending;
+    $('record').disabled=!s.ready||sending;
+    $('record').checked=Boolean(s.recording);
+    const rows=JSON.stringify((s.results||[]).slice(-3));
+    if(rows!==lastResults){
+      lastResults=rows;$('results').replaceChildren();
+      for(const r of JSON.parse(rows)){
+        const card=document.createElement('div');card.className='result';
+        const title=document.createElement('strong');title.textContent=`Jump ${r.request} · ${r.passed?'clear hop':'review'}`;
+        const text=document.createElement('span');
+        text.textContent=`${(100*r.peak_clearance_m).toFixed(1)} cm clearance · ${r.longest_flight_s.toFixed(2)} s flight${r.fell?' · fell':''}`;
+        card.append(title,text);$('results').append(card);
+      }
+    }
+  }catch(e){$('jump').disabled=true;$('message').textContent='Reconnecting to the simulator…';}
+  setTimeout(poll,300);
+}
+async function frame(){
+  try{
+    const r=await fetch('./api/frame');
+    if(r.status===200){const old=$('frame').src;$('frame').src=URL.createObjectURL(await r.blob());if(old.startsWith('blob:'))URL.revokeObjectURL(old);}
+  }catch(e){}
+  setTimeout(frame,100);
+}
+poll();frame();
+</script>
+</html>
