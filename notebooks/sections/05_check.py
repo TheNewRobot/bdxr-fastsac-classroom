@@ -13,7 +13,6 @@
 from bdxr_classroom.lesson.brief import assess_walking
 
 BASELINE_CHECK = assess_walking(lab, BASELINE)
-SELECTED_WALK_CHECKPOINT = str(BASELINE / "checkpoints/final.pt")
 
 # %% [markdown]
 # **Interpret:** “stayed upright” and “followed the command” are distinct results.
