@@ -29,7 +29,7 @@ Falling resets the robot while simulation time and falls accumulate. Recording
 and exporting are optional. No hopping policy is required for the core course.
 
 Allow for two training runs, setup, discussion, rendering, and gameplay. The
-20-minute training limit is per run, not the duration of the whole lesson.
+22-minute training limit is per run, not the duration of the whole lesson.
 Use a Colab GPU runtime and retain the 12,000-step target. Setup accepts T4;
 a user-reported run took 1,024 seconds with the earlier recipe. The revised
 quiet-standing recipe still needs Colab timing. See the current

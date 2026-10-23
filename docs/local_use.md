@@ -10,7 +10,7 @@ export PYTHONPATH="$PWD/src"
 export MUJOCO_GL=egl
 .venv/bin/python -m bdxr_classroom.learning.train \
   --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
-  --steps 12000 --minutes 20 --command-mode balanced --command-interval 2 \
+  --steps 12000 --minutes 22 --command-mode balanced --command-interval 2 \
   --speed-min -.15 --speed-max .35 --yaw-max .45 --initial-jitter .03 \
   --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 10 \
   --lateral-bias-weight 2 --quiet-standing-weight 3 \
