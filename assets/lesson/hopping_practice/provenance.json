@@ -1,0 +1,45 @@
+{
+  "source_video": "experiments/hopping_standalone/2026-10-23_182428_275307_hopping_demo/videos/hopping_001.mp4",
+  "checkpoint": "/home/ubuntu/workspace/263A/experiments/lesson/2026-10-09_204729_208677_natural_hop_boxes_body3_seed7/checkpoints/final.pt",
+  "checkpoint_sha256": "3c2bc10f79ba1b35b2f1013acdc02e1507cdb7ed9de5b7c0cfcc3ea422cf70cd",
+  "source_video_sha256": "a4f49e2b720dd9b6e31f00f370c69b839a7a1151b17a7698e53574f8d91cbdd6",
+  "start_s": 0.8,
+  "duration_s": 3.2,
+  "speed": 1,
+  "gif_fps": 12,
+  "gif_width": 600,
+  "validation": "Three individual hops passed on the local L40S with full-link collisions and physical head. One policy, phase held at stance between clicks; physics continues. Historical reference policy, not the fresh curriculum run or actual Colab execution.",
+  "measurements": [
+    {
+      "request": 1,
+      "peak_clearance_m": 0.05251163989305496,
+      "longest_flight_s": 0.14,
+      "flight_events": 1,
+      "fell": false,
+      "passed": true,
+      "reason": "Landed. Ready for another jump."
+    },
+    {
+      "request": 2,
+      "peak_clearance_m": 0.05239788442850113,
+      "longest_flight_s": 0.14,
+      "flight_events": 1,
+      "fell": false,
+      "passed": true,
+      "reason": "Landed. Ready for another jump."
+    },
+    {
+      "request": 3,
+      "peak_clearance_m": 0.05248294398188591,
+      "longest_flight_s": 0.14,
+      "flight_events": 1,
+      "fell": false,
+      "passed": true,
+      "reason": "Landed. Ready for another jump."
+    }
+  ],
+  "media_sha256": {
+    "jump.mp4": "8aef8f0f08819fb96362868e5afefbc21f963b1fbd5f829be84329b88509aeea",
+    "jump.gif": "be5ac1341b5c21f1652657c12b8728ec1a50aa46bf8539b1092555f54aa9d238"
+  }
+}

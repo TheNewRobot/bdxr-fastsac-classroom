@@ -1,0 +1,29 @@
+{
+  "environment": {
+    "task_version": "hop",
+    "speed": 0,
+    "hop_height": 0.05,
+    "hop_clearance": "sole",
+    "hop_height_reward": "flight_both",
+    "hop_body_weight": 6,
+    "hop_flight_weight": 4,
+    "level_feet_weight": 1,
+    "level_feet_flight_only": true,
+    "yaw_tracking": "rate",
+    "reward_scale": 0.5
+  },
+  "learning": {
+    "seed": 7,
+    "num_envs": 512,
+    "batch_size": 2048,
+    "buffer_size": 512,
+    "actor_hidden": 256,
+    "critic_hidden": 384,
+    "gamma": 0.97,
+    "updates": 4,
+    "compile": true,
+    "steps": 6000,
+    "minutes": 20,
+    "mirror_replay": true
+  }
+}

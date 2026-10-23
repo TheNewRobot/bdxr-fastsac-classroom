@@ -1,125 +1,196 @@
 # %% [markdown]
-# # Optional after-class extension: learn to hop
+# # Teach a little droid to hop
+# **Optional robotics lesson · BDX-R, FastSAC, and MuJoCo Warp**
 #
-# Select a GPU runtime and run setup before enabling training.
-# This extension is separate from the completed walking lesson.
+# Train one hopping policy, watch its takeoff and landing, then click **Jump**
+# in a small practice arena. No walking checkpoint or policy switching is needed.
 #
-# A hop lifts **both feet** before a controlled landing. This recorded hopper
-# reached about 5.9 cm bilateral clearance and 0.16 s of clear flight; its feet
-# still tilt about 9°. Foot-marker height alone does not prove obstacle clearance.
-
-# %% [markdown]
-# | Earlier vs updated hopping | Same motion at half speed |
-# |:---:|:---:|
-# | ![Recorded hopping comparison](lesson-asset:inline/hopping.gif) | ![Recorded hopping comparison at half speed](lesson-asset:inline/hopping_slow.gif) |
+# ## 1 · Meet the hopping task and set up
 #
-# Watch both feet leave the ground, then inspect the landing.
-
-# %% [markdown]
-# ### A curriculum adds one skill at a time
-#
-# **Rhythm → clearance → foot control → landing.** The goal is not to make every
-# row taller. Some stages return to flat ground to isolate a new skill before
-# adding obstacles again. Each stage starts from its predecessor's networks.
-#
-# | Phase | Stages, in order | What changes—and why |
-# |---|---|---|
-# | **1 · Find a rhythm** | 1. Tiny hops → 2. Moving hops | Start on flat ground; then add speed and turning commands. |
-# | **2 · Clear the ground** | 3. Terrain hops | Measure the whole sole in flight and introduce 25 mm terrain. |
-# | **3 · Control both feet** | 4. Level hops → 5. Level terrain hops | Reward simultaneous clearance and flatter soles on flat ground; then restore terrain. |
-# | **4 · Refine the landing** | 6. Natural hops → 7. Block hops → 8. Soft landing hops | Level feet during flight only, practise steps, then reduce body-lift reward. |
-#
-# The last phases keep the same 6.5 cm foot target while changing **how** the
-# robot takes off, clears terrain, and lands. The eight recorded stages took
-# about **23 minutes** on an L40S, excluding setup and evaluation.
-#
-# | Recorded hopping measurements |
+# | Instructor example · one requested hop, then settle |
 # |:---:|
-# | ![Measured instructor hopping](lesson-asset:course_hops/motion.png) |
+# | ![One hopper taking off and landing](lesson-asset:hopping_practice/jump.gif) |
 #
-# ### Your optional activity · train and validate hopping
-#
-# Enable the toggle below to generate your own policies and videos. Leaving it
-# off does not train or download an instructor checkpoint.
+# Look for **both feet leaving the ground** and a controlled landing. The GIF
+# loops automatically; [open the playable example](lesson-asset:hopping_practice/jump.mp4)
+# if it stays still. This is a recorded reference policy; your own results appear later.
+# Choose a GPU runtime and run the setup cells below. Timings depend on your GPU.
 
 # %% [setup]
 
+# %% [markdown]
+# ## 2 · Define a hop
+#
+# The actor receives body rotation, gravity direction, joint positions and
+# velocities, previous actions, movement commands, and a **two-number phase cue**.
+# That is **49 inputs**; the critic receives **64**, including training-only
+# simulator measurements. True linear velocity, foot contacts and terrain are
+# not inputs to the deployed actor.
+#
+# The **10 outputs** specify leg-joint targets. Position servos produce forces;
+# the controller does not place the robot in midair.
+#
+# $$q_i^{\mathrm{target}} = q_i^{\mathrm{default}} + s_i a_i$$
+# $$\mathrm{phase}(t) = [\sin(2\pi t),\;\cos(2\pi t)]$$
+#
+# During training the phase repeats each second. In the demo, Jump advances one
+# cycle; between requests it holds the stance cue. **Physics and the same actor
+# keep running** while the robot settles. This behavior must be tested, not assumed.
+#
+# Rewards encourage upright posture, both soles clearing the ground, level feet
+# in flight, and landing at the right point in the cycle. Episodes also end on
+# falls or low body height. A tall foot marker alone is not a successful hop.
+
 # %%
 import json
-import os
-from pathlib import Path
 from bdxr_classroom.lesson.runtime import Lesson
-from bdxr_classroom.lesson.hopping import load_curriculum, train_stage
+from bdxr_classroom.lesson.simulator import SimulatorCells
 
 lab = Lesson(WORK, PYTHON, runtime_env)
-CURRICULUM = load_curriculum(WORK)
+HOP_RECIPE = json.loads((WORK / "configs/stationary_hopping.json").read_text())
+HOP_ENV = HOP_RECIPE["environment"]
+if "simulator" in globals():
+    simulator.close()
+simulator = SimulatorCells(PYTHON, WORK, runtime_env)
+simulator.register(get_ipython())
+
+# %%
+%%robot
+import json
+from pathlib import Path
+from bdxr_classroom.simulation.environment import make_env
+from bdxr_classroom.lesson.simulator import setup_log
+
+with setup_log("artifacts/logs/hopping_environment.log"):
+    recipe = json.loads((Path.cwd() / "configs/stationary_hopping.json").read_text())
+    env = make_env(num_envs=1, **recipe["environment"])
+observations, _ = env.reset(seed=7)
+for group in ("actor", "critic"):
+    print(group, "inputs:", observations[group].shape[-1])
+print("Leg actions:", env.action_manager.total_action_dim)
+print("Joint target scales:", env.cfg.actions["joint_pos"].scale)
+print("Physics step:", env.cfg.sim.mujoco.timestep, "s; policy step:", env.step_dt, "s")
+env.close()
+
+# %% [markdown]
+# ## 3 · Train with SAC
+#
+# SAC learns from replayed experience: an actor proposes actions and a critic
+# estimates their return. Exploration helps it discover takeoff and landing.
+# A rising reward curve alone does not prove that both feet leave the ground.
+#
+# **One run from scratch.** Keep the movement command at zero and learn hops on
+# flat ground. No terrain curriculum or walking policy is required.
+#
+# | Objective | What it encourages |
+# |---|---|
+# | Whole-sole clearance | Both feet lift toward a 5 cm target |
+# | Flight bonus | Actual bilateral flight during the requested phase |
+# | Body height and level feet | Coordinated takeoff and controlled landing |
+#
+# One fresh **6,000-step** run took **9.9 minutes on a shared local L40S**
+# (10.1 minutes including startup). Its three recorded hops cleared 5.6–5.7 cm
+# and settled without idle foot lifts. This is one seed, not a Colab timing or
+# success guarantee. The earlier eight-stage recipe failed this same check.
+
+# %%
+from bdxr_classroom.lesson.presentation import table
+
+table([
+    ("Sole-clearance target (m)", HOP_ENV["hop_height"]),
+    ("Bilateral-flight bonus", HOP_ENV["hop_flight_weight"]),
+    ("Level-feet reward", HOP_ENV["level_feet_weight"]),
+    ("Body-lift reward", HOP_ENV["hop_body_weight"]),
+    ("Overall reward scale", HOP_ENV["reward_scale"]),
+], ["Reward parameter", "Value"])
 LEARNING_CONFIG = {
-    "seed": 7, "num_envs": 512, "batch_size": 2048, "buffer_size": 512,
-    "actor_hidden": 256, "critic_hidden": 384, "gamma": 0.97,
-    "updates": 4, "compile": True, "wandb_mode": "disabled",
+    **HOP_RECIPE["learning"],
+    "seed": 7,
+    "steps": 6000,
+    "num_envs": 512,       # Robots collecting experience in parallel.
+    "batch_size": 2048,   # Replay samples per learning update.
+    "wandb_mode": "disabled",
 }
 
 # %%
-TRAIN_HOPPING = False  # @param {type:"boolean"}
-HOP_STAGES = []
+TRAIN_HOPPING = True  # @param {type:"boolean"}
+HOP_RUN = None
 if TRAIN_HOPPING:
-    previous = None
-    for stage in CURRICULUM:
-        print("Training stage:", stage["name"])
-        previous = train_stage(lab, stage, LEARNING_CONFIG, previous)
-        HOP_STAGES.append(previous)
-
-# %% [markdown]
-# Choose a stage to inspect after training. Later stages are not automatically
-# better. Look for both feet leaving the ground and a controlled landing;
-# height of a foot marker alone is not proof of obstacle clearance.
-# These recordings are observations, not certification of a hopping controller.
-
-# %%
-from IPython.display import display, Video
-
-STAGE_TO_WATCH = 6  # @param {type:"integer"}
-if HOP_STAGES:
-    if not 1 <= STAGE_TO_WATCH <= len(HOP_STAGES):
-        raise ValueError("Choose a stage number between 1 and 8.")
-    chosen = HOP_STAGES[STAGE_TO_WATCH - 1]
-    display(Video(str(lab.record(chosen)), embed=True, width=640))
+    HOP_RUN = lab.train("stationary_hops", HOP_ENV, LEARNING_CONFIG)
 else:
-    print("Enable hopping training above to produce your own policies.")
+    print("Enable TRAIN_HOPPING to train your own hopper from scratch.")
 
 # %% [markdown]
-# ### Optional · drive with walking and hopping
+# ## 4 · Watch and check your hopper
 #
-# Upload your walking lesson's `final.pt` using Colab's Files panel and enter its
-# path below. This game uses your two trained policies: **Walk** handles movement
-# and standing; **Hop** explicitly requests hopping. Click **Resume**, hold
-# direction buttons or W/S/A/D. Release clears speed and turning commands;
-# **Stop** also ends hopping and requests quiet walking mode.
-# Leave room to land before switching.
+# Test your final weights with **three individual Jump requests**. Watch both feet,
+# the landing, and the stance between requests. The table reports actual sole
+# clearance, flight duration, and falls. Failed attempts remain visible.
+# A passing attempt needs one flight lasting at least **0.08 s**, at least
+# **2.5 cm** of sole clearance, and a supported landing without falling.
+# We then check two seconds of quiet stance, allowing one small balance correction.
+# Do not infer success from reward alone.
 
 # %%
-from bdxr_classroom.lesson.play import launch_game, display_game
+from IPython.display import Image, display
+from bdxr_classroom.lesson.hop_practice import check_and_watch_hops
 
-WALKING_CHECKPOINT = ""  # @param {type:"string"}
-GAME_STAGE = 6  # @param {type:"integer"}
-GAME_PORT = 8765
-if HOP_STAGES and WALKING_CHECKPOINT:
-    if not 1 <= GAME_STAGE <= len(HOP_STAGES):
-        raise ValueError("Choose a trained stage number.")
-    hopper = HOP_STAGES[GAME_STAGE - 1] / "checkpoints/final.pt"
-    status = launch_game(lab, WALKING_CHECKPOINT, str(hopper), port=GAME_PORT)
-    display_game(GAME_PORT)
+HOP_CHECK = None
+if HOP_RUN:
+    display(Image(filename=str(lab.learning_curve(HOP_RUN)), width=640))
+    HOP_CHECK = check_and_watch_hops(lab, HOP_RUN)
 else:
-    print("Optional: provide your walking checkpoint after training a hopping stage.")
+    print("Train your hopper above to generate its video and measurements.")
 
 # %% [markdown]
-# Saving is optional. The results ZIP keeps your policies and measurements;
-# include replay only if you want the larger resumable training state.
+# **Discuss:** did both feet leave the ground, and did the robot settle afterward?
+# Clearance and flight duration describe the hop; stable landings make it useful.
+# These short flat-ground trials do not establish reliable obstacle jumping.
+#
+# ## 5 · Click Jump
+#
+# Wait for **Ready**, then click **Jump** once. Let the robot land before another
+# request. **Reset** starts a new attempt. This uses only your trained hopper.
+# The arena opens only after the hopping check passes. If it failed, review the
+# recorded behavior and training results; the notebook will not launch a failed policy.
+# On remote VS Code, forward port **8766** if the panel is blank.
+
+# %%
+from bdxr_classroom.lesson.hop_practice import launch_hop_practice
+
+HOP_PORT = 8766  # @param {type:"integer"}
+HOP_DEMO = None
+if HOP_CHECK and HOP_CHECK["passed"]:
+    HOP_DEMO = launch_hop_practice(lab, HOP_RUN, port=HOP_PORT, assessment=HOP_CHECK)
+elif HOP_RUN:
+    print("The hopping check failed. Review the video and measurements above.")
+else:
+    print("Train a hopping policy before opening the practice arena.")
+
+# %% [markdown]
+# ## 6 · Optional recording and saving
+#
+# Enable **Record** in the panel, click Jump, then turn Record off. Enable the
+# switch below to replay that clip. Recording and downloads are optional.
+
+# %%
+from bdxr_classroom.lesson.hop_practice import watch_hop_recording
+
+WATCH_RECORDING = False  # @param {type:"boolean"}
+if HOP_DEMO:
+    replay = watch_hop_recording(lab, HOP_PORT, enabled=WATCH_RECORDING)
 
 # %%
 from bdxr_classroom.lesson.exports import optional_download
 
 SAVE_RESULTS = False  # @param {type:"boolean"}
 INCLUDE_REPLAY = False  # @param {type:"boolean"}
-if HOP_STAGES:
+if HOP_RUN:
     backup = optional_download(WORK, lab.runs, SAVE_RESULTS, INCLUDE_REPLAY)
+
+# %% [markdown]
+# **Keep:** your hopping video, measured clearance and flight duration, and one
+# observation about the landing. Report unsuccessful attempts honestly.
+#
+# [The separate walking class](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Walking_101.ipynb)
+# teaches command-following locomotion; it is not a prerequisite for this lesson.

@@ -1,5 +1,32 @@
 # Validation · October 23, 2026
 
+## Standalone hopping lesson
+
+The independent lesson now trains a single stationary hopper, checks three
+button-triggered hops, and opens a flat practice pad with Jump, Reset and optional
+recording. It needs no walking policy. The walking notebook is unchanged.
+
+A fresh seed-7 run of `configs/stationary_hopping.json` completed **6,000 steps in
+592 seconds** on a shared local L40S (608 seconds including process startup).
+Its three full-collision trials cleared **5.63–5.74 cm**, each with **0.20 seconds**
+of flight, no falls, and no foot lifts during two seconds of stance after landing.
+The recorded check took **25.9 seconds**, excluding Python process import time.
+Physics and the same actor run continuously between Jump requests.
+
+The earlier eight-stage curriculum completed 24,000 steps in 34.1 training
+minutes but produced no flight in the final three-click check. That failure is
+retained locally; the new flat-ground recipe explicitly rewards bilateral flight.
+These are single-seed results, not evidence of reliable Colab reproduction.
+All ten final notebook code cells executed locally with a short training budget.
+A second execution reused the exact separately trained 6,000-step weights and
+passed the recorded check in **35.7 seconds including process startup**, followed
+by two live browser jumps, Reset, recording on/off, and desktop/mobile checks.
+The same actor kept running while idle. An initial browser test raced the Reset
+response; waiting for the backend to finish settling fixed the test.
+All 144 regression tests passed before the recipe update; all 14 affected
+notebook/hopping tests passed again afterward. Rendered layouts were inspected.
+Actual Colab execution and a fresh dependency installation remain unverified.
+
 ## Reported Colab run
 
 The user's T4 run completed both 12,000-step trainings in about 982/980 seconds

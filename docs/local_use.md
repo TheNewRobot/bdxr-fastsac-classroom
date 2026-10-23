@@ -59,8 +59,21 @@ Recording is opt-in in the panel; saving a ZIP is optional in both notebooks.
 The walking course uses three offset passages with 65 cm openings for the full
 robot body, approximately 5–6 mm obstacles,
 4 mm uneven ground, and a 45 mm finish ascent. Four route checkpoints must be
-crossed before the finish counts. The separate hopping extension retains
-`configs/classroom_course.json`; it is not the required walking course.
+crossed before the finish counts. The hopping class uses a separate flat practice
+pad. The older combined course remains available for development, outside either
+classroom workflow.
+
+For the standalone hopping panel:
+
+```bash
+.venv/bin/python -m bdxr_classroom.hopping_demo.server \
+  --checkpoint experiments/candidates/<timestamp>_soft_landing_hops/checkpoints/final.pt \
+  --port 8766
+```
+
+Click Jump once, wait for landing, and use Reset for another attempt. Recording
+is optional. The notebook checks the exact hopper before enabling this panel;
+the direct command above is also useful for inspecting unsuccessful policies.
 
 ## Repository layout
 
@@ -70,9 +83,10 @@ crossed before the finish counts. The separate hopping extension retains
 | `src/bdxr_classroom/learning/` | FastSAC, replay symmetry, training, and policy export |
 | `src/bdxr_classroom/evaluation/` | Rollouts, command checks, measurements, and plots |
 | `src/bdxr_classroom/game/` | Course, controller handovers, scoring, and web interface |
+| `src/bdxr_classroom/hopping_demo/` | One-policy Jump interaction, flat pad, and recorded hop checks |
 | `src/bdxr_classroom/lesson/` | Notebook execution, visualizations, assessment, and exports |
 | `notebooks/` | Walking and optional hopping notebooks; authored cells in `sections/` and `extensions/` |
-| `configs/` | Pinned revisions, evaluation targets, course, and hopping curriculum |
+| `configs/` | Pinned revisions, evaluation targets, course, stationary hopping recipe, and legacy curriculum |
 | `assets/lesson/` | Only selected media used by the lesson |
 | `scripts/` | Entry points grouped into setup, lesson, training, evaluation, and media |
 | `tests/` | Tests grouped by simulation, learning, evaluation, game, lesson, and storage |
@@ -93,6 +107,8 @@ to `candidates/`; selection requires review of their results.
 Edit the teaching cells in `notebooks/sections/`, then rebuild the portable file
 with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classroom
 code and selected recordings; students do not need to clone the repository.
+Use `--hopping-only` when updating the independent hopping lesson while preserving
+the walking notebook and its pinned release.
 Instructor figures and short animated examples use public image links directly
 in Markdown, visible without executing cells. Internet access is required for
 these previews; Colab did not display the former Jupyter attachment links.
