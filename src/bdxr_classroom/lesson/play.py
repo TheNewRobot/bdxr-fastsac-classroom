@@ -94,3 +94,18 @@ def pause_and_recordings(lab, port):
     folder = Path(state["experiment"])
     folder = folder if folder.is_absolute() else lab.work / folder
     return sorted((folder / "videos").glob("gameplay_*.mp4"))
+
+
+def optional_recording(lab, port, enabled=False):
+    """Leave the game untouched unless the student requests a recorded replay."""
+    if not enabled:
+        return None
+    from IPython.display import Video, display
+
+    recordings = pause_and_recordings(lab, port)
+    if not recordings:
+        print("Record a clip in the game, then rerun this cell.")
+        return None
+    latest = recordings[-1]
+    display(Video(str(latest), embed=True, width=640))
+    return latest

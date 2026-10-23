@@ -17,7 +17,7 @@
 # On remote VS Code, forward port 8765 if the panel is blank.
 
 # %%
-from bdxr_classroom.lesson.play import launch_game, display_game, pause_and_recordings
+from bdxr_classroom.lesson.play import launch_game, display_game
 
 POLICY = "baseline"  # @param ["baseline", "variation"]
 GAME_PORT = 8765
@@ -30,18 +30,15 @@ display_game(GAME_PORT)
 # ### Optional · watch and keep your result
 #
 # To keep a clip, open **Recording · optional** in the game and start recording.
-# Stop recording or pause, then run the replay cell to watch it.
+# Enable **WATCH_RECORDING** below to pause and watch your latest clip.
 # Saving is optional: the ZIP contains configurations, measurements,
 # checkpoints, and gameplay. Include replay only for a larger resumable backup.
 
 # %%
-from IPython.display import display, Video
+from bdxr_classroom.lesson.play import optional_recording
 
-recordings = pause_and_recordings(lab, GAME_PORT)
-if recordings:
-    display(Video(str(recordings[-1]), embed=True, width=640))
-else:
-    print("Start recording in the game, drive, then stop recording and rerun this cell.")
+WATCH_RECORDING = False  # @param {type:"boolean"}
+replay = optional_recording(lab, GAME_PORT, WATCH_RECORDING)
 
 # %%
 from bdxr_classroom.lesson.exports import optional_download
