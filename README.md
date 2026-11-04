@@ -8,8 +8,8 @@
 
 | Class | Open directly in Colab |
 |---|---|
-| **Hopping** · train a hopper and test takeoff and landing | [Hopping class](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Hopping_Extra.ipynb) |
 | **Walking** · train, change one reward, and drive your droid | [Walking class](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Walking_101.ipynb) |
+| **Hopping** · train a hopper and test takeoff and landing | [Hopping class](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Hopping_Extra.ipynb) |
 
 [Download the walking notebook](notebooks/BDXR_Walking_101.ipynb) · [Watch 15 seconds of gameplay](assets/lesson/classroom_walking/highlights_15s.mp4)
 
@@ -17,7 +17,9 @@ A beginner robotics lesson for **163A/263A**, using **BDX-R, FastSAC, and MuJoCo
 
 ## Start the lesson
 
-Open the Colab link, save a copy in Drive, select a **GPU runtime**, and run the cells in order. Setup downloads the lesson automatically; no manual ZIP upload is needed.
+**Start with Walking.** Open its Colab link above, save a **fresh copy in Drive**, select a **GPU runtime**, and run the cells in order. Setup downloads the lesson automatically; no manual ZIP upload is needed.
+
+If you saved an earlier version, open the current link and make a fresh copy: older notebooks may contain outdated download checksums that prevent setup from completing. Hopping is a separate optional lesson.
 
 ## What you will explore
 
