@@ -11,7 +11,7 @@
 | **Walking** · train, change one reward, and drive your droid | [Walking class](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Walking_101.ipynb) |
 | **Hopping** · train a hopper and test takeoff and landing | [Hopping class](https://colab.research.google.com/github/TheNewRobot/bdxr-fastsac-classroom/blob/main/notebooks/BDXR_Hopping_Extra.ipynb) |
 
-[Download the walking notebook](notebooks/BDXR_Walking_101.ipynb) · [Watch 15 seconds of gameplay](assets/lesson/classroom_walking/highlights_15s.mp4)
+[Watch 15 seconds of gameplay](assets/lesson/classroom_walking/highlights_15s.mp4)
 
 A beginner robotics lesson for **163A/263A**, using **BDX-R, FastSAC, and MuJoCo Warp**. Train a small droid, inspect its motion, and explore how rewards change its gait.
 
