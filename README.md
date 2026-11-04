@@ -17,9 +17,9 @@ A beginner robotics lesson for **163A/263A**, using **BDX-R, FastSAC, and MuJoCo
 
 ## Start the lesson
 
-**Start with Walking.** Open its Colab link above, save a **fresh copy in Drive**, select a **GPU runtime**, and run the cells in order. Setup downloads the lesson automatically; no manual ZIP upload is needed.
+**Start with Walking.** Open its Colab link above and **save your own copy in Drive before editing or running the notebook**. In your copy, select a **GPU runtime** and run the cells in order. Setup downloads the lesson automatically; no manual ZIP upload is needed.
 
-If you saved an earlier version, open the current link and make a fresh copy: older notebooks may contain outdated download checksums that prevent setup from completing. Hopping is a separate optional lesson.
+Hopping is a separate optional lesson.
 
 ## What you will explore
 
