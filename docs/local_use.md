@@ -1,0 +1,114 @@
+# Local setup and development
+
+[Back to the lesson](../README.md)
+
+Run these commands from the repository root.
+
+```bash
+python scripts/setup/setup.py
+export PYTHONPATH="$PWD/src"
+export MUJOCO_GL=egl
+.venv/bin/python -m bdxr_classroom.learning.train \
+  --name command_walking --num-envs 512 --batch-size 2048 --seed 7 \
+  --steps 12000 --minutes 22 --command-mode balanced --command-interval 2 \
+  --speed-min -.15 --speed-max .35 --yaw-max .45 --initial-jitter .03 \
+  --yaw-tracking imu --yaw-std .2 --yaw-bias-weight 10 \
+  --lateral-bias-weight 2 --quiet-standing-weight 3 \
+  --idle-velocity-weight .5 --contact-spin-weight 2 \
+  --mirror-replay --compile --save-every 3000
+```
+
+These settings match the notebook's walking recipe. Runtime depends on the GPU;
+the time limit can stop training before 12,000 steps. The trainer prints the
+actual timestamped experiment path. The notebook uses a short forward check.
+For a deeper **development-only** assessment within the classroom command range:
+
+```bash
+.venv/bin/python -m bdxr_classroom.evaluation.command_evaluate \
+  experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt \
+  --cases slow forward reverse stop turn_left turn_right left right
+```
+
+The evaluator's default ten-command suite includes faster and farther reverse
+commands for broader stress testing. Its strict checker remains in
+`scripts/evaluation/check_command_results.py`; the student flow uses the brief check.
+
+Resume with `--resume .../checkpoints/resume.pt`; policy, critics, optimizers,
+normalization and replay are restored, while simulation episodes restart.
+Use `--finetune` to start a new experiment from a compatible training checkpoint.
+Fine-tuning uses the requested seed for a new random stream; resuming restores
+the checkpoint's random stream.
+W&B is on by default; students can use `--wandb-mode disabled`.
+
+Launch the core game with your walking checkpoint:
+
+```bash
+.venv/bin/python -m bdxr_classroom.game.server \
+  --walking experiments/candidates/<timestamp>_command_walking/checkpoints/final.pt \
+  --course-config configs/walking_course.json \
+  --head-motion-config configs/game_head_motion.json
+```
+
+The local panel runs on port 8765. The notebook includes the Colab port-proxy
+integration. Falls reset the robot; simulation time and fall count accumulate.
+Hold direction buttons or W/S/A/D; releasing clears the movement command.
+The game uses physical head articulation so its visible pose and collisions agree.
+Full mesh coverage uses single-point convex contacts to avoid a reproduced
+multi-point contact failure. Training physics keeps its existing settings.
+Recording is opt-in in the panel; saving a ZIP is optional in both notebooks.
+The walking course uses three offset passages with 65 cm openings for the full
+robot body, approximately 5–6 mm obstacles,
+4 mm uneven ground, and a 45 mm finish ascent. Four route checkpoints must be
+crossed before the finish counts. The hopping class uses a separate flat practice
+pad. The older combined course remains available for development, outside either
+classroom workflow.
+
+For the standalone hopping panel:
+
+```bash
+.venv/bin/python -m bdxr_classroom.hopping_demo.server \
+  --checkpoint experiments/candidates/<timestamp>_stationary_hops/checkpoints/final.pt \
+  --port 8766
+```
+
+Click Jump once, wait for landing, and use Reset for another attempt. Recording
+is optional. The notebook checks the exact hopper before enabling this panel;
+the direct command above is also useful for inspecting unsuccessful policies.
+
+## Repository layout
+
+| Path | Purpose |
+| --- | --- |
+| `src/bdxr_classroom/simulation/` | Robot environment, commands, terrain, and rewards |
+| `src/bdxr_classroom/learning/` | FastSAC, replay symmetry, training, and policy export |
+| `src/bdxr_classroom/evaluation/` | Rollouts, command checks, measurements, and plots |
+| `src/bdxr_classroom/game/` | Course, controller handovers, scoring, and web interface |
+| `src/bdxr_classroom/hopping_demo/` | One-policy Jump interaction, flat pad, and recorded hop checks |
+| `src/bdxr_classroom/lesson/` | Notebook execution, visualizations, assessment, and exports |
+| `notebooks/` | Walking and optional hopping notebooks; authored cells in `sections/` and `extensions/` |
+| `configs/` | Pinned revisions, evaluation targets, course, stationary hopping recipe, and legacy curriculum |
+| `assets/lesson/` | Only selected media used by the lesson |
+| `scripts/` | Entry points grouped into setup, lesson, training, evaluation, and media |
+| `tests/` | Tests grouped by simulation, learning, evaluation, game, lesson, and storage |
+| `experiments/lesson/` | **Gitignored** selected policy runs |
+| `experiments/candidates/` | New or unfinished training runs |
+| `experiments/evaluations/` | Course, obstacle, and controller checks |
+| `experiments/support/` | Parent policies and historical media sources |
+| `experiments/archive/` | Retired trial evidence and cleanup manifests |
+
+Training runs are local and gitignored. Keep each run's configuration,
+checkpoints, measurements and videos together in its timestamped directory.
+
+Edit the teaching cells in `notebooks/sections/`, then rebuild the portable file
+with `.venv/bin/python scripts/lesson/build_notebook.py`. It bundles the classroom
+code and selected recordings; students do not need to clone the repository.
+Use `--hopping-only` when updating the independent hopping lesson while preserving
+the walking notebook and its pinned release.
+Instructor figures and short animated examples use public image links directly
+in Markdown, visible without executing cells. Internet access is required for
+these previews; Colab did not display the former Jupyter attachment links.
+Student activities generate separate results.
+The notebook downloads its versioned archive from a public GitHub release; it does
+not read notebook metadata through the Colab frontend. Students need no manual ZIP
+upload. Rebuilding writes release files under ignored `artifacts/lesson_releases/`;
+publish the matching ZIP and checksum before sharing the rebuilt notebook.

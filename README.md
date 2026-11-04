@@ -33,7 +33,11 @@ checkpoint. Colab hopping timing and reliability remain unverified.
 
 The actor uses proprioception and movement commands; the critic may use additional simulator observations during training.
 
-[Instructor notes](docs/instructor_notes.md) · [Local setup and development](docs/local_use.md) · [Walking-only course video](assets/lesson/classroom_walking/course.mp4)
+**Results vary between training runs.** Use the notebook's short checks to
+assess your own policy. Local measurements do not guarantee Colab timing or
+success. See [measured examples and limitations](docs/results.md).
+
+[Teaching guide](docs/instructor_notes.md) · [Local setup](docs/local_use.md)
 
 ## Credits
 
